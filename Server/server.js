@@ -13,6 +13,8 @@ require('./models/User');
 require('./models/Team');
 
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const teamRoutes = require('./routes/teamRoutes');
 
 const app = express();
 
@@ -51,6 +53,8 @@ app.get('/api/health', (req, res) => {
 
 // Mount API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/teams', teamRoutes);
 
 // 404 Route Handler for undefined routes
 app.use((req, res) => {
