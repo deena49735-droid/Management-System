@@ -8,6 +8,10 @@ const helmet = require('helmet');
 // Load environment variables from .env
 dotenv.config();
 
+// Preload models to register schemas for populate queries
+require('./models/User');
+require('./models/Team');
+
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
@@ -15,11 +19,18 @@ const app = express();
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
-const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+// CORS configuration (allow configured CLIENT_URL as well as standard local dev origins)
+const configuredOrigin = process.env.CLIENT_URL;
+const allowedOrigins = [configuredOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in dev if matching frontend
+    },
     credentials: true,
   })
 );

@@ -247,4 +247,15 @@ Build **one phase at a time**. Wait for confirmation before starting the next.
 - This is a real project for real users. Write clean, maintainable, production-quality code with clear comments where logic is not obvious.
 - Handle errors properly (try/catch, consistent error responses) and never expose stack traces to the client.
 - Add rate limiting and basic security headers (helmet) before going live.
+- **Do not create any file that was not asked for or is not strictly needed for the current phase.** No extra documentation, summary or notes files, no sample or test files, no duplicate files, no unused components, and no extra folders.
+- Before creating a new file, first list the files you plan to create and wait for approval if it is not in the folder structure above.
+- Edit existing files instead of creating new versions of them.
+- Do not delete, rename or rewrite files from earlier phases unless the current prompt says so.
 - After each phase, explain how to run and test it.
+
+FILE RULES (strict):
+- Only edit or create the files needed for this task. Do not create any other file: no docs, summaries, notes, test files, sample files, backups or duplicates.
+- Edit existing files instead of making new versions of them.
+- Do not touch files unrelated to this task.
+- If you think a new file is needed, tell me the file name and why, and wait for my approval first.
+- When finished, list every file you changed or created.
