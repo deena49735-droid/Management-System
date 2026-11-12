@@ -11,10 +11,16 @@ dotenv.config();
 // Preload models to register schemas for populate queries
 require('./models/User');
 require('./models/Team');
+require('./models/Criteria');
+require('./models/PointEntry');
+require('./models/TeamPointEntry');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const teamRoutes = require('./routes/teamRoutes');
+const criteriaRoutes = require('./routes/criteriaRoutes');
+const entryRoutes = require('./routes/entryRoutes');
+const teamEntryRoutes = require('./routes/teamEntryRoutes');
 
 const app = express();
 
@@ -55,6 +61,9 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/teams', teamRoutes);
+app.use('/api/criteria', criteriaRoutes);
+app.use('/api/entries', entryRoutes);
+app.use('/api/team-entries', teamEntryRoutes);
 
 // 404 Route Handler for undefined routes
 app.use((req, res) => {
