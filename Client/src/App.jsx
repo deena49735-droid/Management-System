@@ -5,7 +5,11 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute, { getDashboardPathByRole } from './components/ProtectedRoute';
 
 import Login from './pages/Login';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminLayout from './pages/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminTeams from './pages/admin/AdminTeams';
+import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import LeadDashboard from './pages/LeadDashboard';
 import AssistantDashboard from './pages/AssistantDashboard';
 import MemberDashboard from './pages/MemberDashboard';
@@ -58,15 +62,22 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<RootRoute />} />
 
-          {/* Protected Role-Based Routes */}
+          {/* Protected Admin Routes */}
           <Route
             path="/admin"
             element={
               <ProtectedRoute roles={['admin']}>
-                <AdminDashboard />
+                <AdminLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="teams" element={<AdminTeams />} />
+            <Route path="teams/:id" element={<AdminTeamDetail />} />
+          </Route>
+
+          {/* Other Role-Based Routes */}
           <Route
             path="/lead"
             element={
