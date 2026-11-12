@@ -53,6 +53,7 @@ const rejectValidation = [
 // Routes
 router.post('/', createEntryValidation, entryController.createEntry);
 router.get('/', entryController.getEntries);
+router.get('/my-summary', entryController.getMySummary);
 router.patch('/:id/approve', approveValidation, entryController.approveEntry);
 router.patch('/:id/reject', rejectValidation, entryController.rejectEntry);
 

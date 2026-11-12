@@ -4,6 +4,51 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 
 /**
+ * @desc    Get the logged-in user's team
+ * @route   GET /api/teams/my
+ * @access  Private (any authenticated user belonging to a team)
+ */
+exports.getMyTeam = async (req, res, next) => {
+  try {
+    let teamId = req.user.team;
+    if (!teamId) {
+      const foundTeam = await Team.findOne({
+        $or: [{ lead: req.user._id }, { assistant: req.user._id }, { members: req.user._id }],
+      });
+      if (foundTeam) {
+        teamId = foundTeam._id;
+      }
+    }
+
+    if (!teamId) {
+      return res.status(404).json({
+        success: false,
+        message: 'You do not belong to any team.',
+      });
+    }
+
+    const team = await Team.findById(teamId)
+      .populate('lead', 'name phone role')
+      .populate('assistant', 'name phone role')
+      .populate('members', 'name phone role');
+
+    if (!team) {
+      return res.status(404).json({
+        success: false,
+        message: 'Team not found.',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: team,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Create a new team (admin only)
  * @route   POST /api/teams
  * @access  Private (Admin)

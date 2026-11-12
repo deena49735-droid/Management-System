@@ -6,8 +6,14 @@ const teamController = require('../controllers/teamController');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
-// Protect all team management routes with auth and admin role check
-router.use(auth, roleCheck('admin'));
+// Authentication middleware required for all team routes
+router.use(auth);
+
+// GET /api/teams/my - accessible to any logged-in user who belongs to a team (placed before /:id)
+router.get('/my', teamController.getMyTeam);
+
+// Protect all subsequent team management routes with admin role check
+router.use(roleCheck('admin'));
 
 // Validation rules for creating a team
 const createTeamValidation = [

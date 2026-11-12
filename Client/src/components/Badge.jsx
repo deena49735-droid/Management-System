@@ -14,8 +14,41 @@ const roleLabels = {
   member: 'Member',
 };
 
+const entryStatusStyles = {
+  pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  rejected: 'bg-rose-50 text-rose-700 border-rose-200',
+};
+
+const entryStatusDots = {
+  pending: 'bg-amber-500',
+  approved: 'bg-emerald-500',
+  rejected: 'bg-rose-500',
+};
+
+const entryStatusLabels = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+};
+
 const Badge = ({ role, status, children, className = '' }) => {
-  // If status is passed (boolean or 'active' / 'inactive')
+  // If entry status (pending / approved / rejected)
+  if (status === 'pending' || status === 'approved' || status === 'rejected') {
+    const style = entryStatusStyles[status];
+    const dot = entryStatusDots[status];
+    const label = entryStatusLabels[status];
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold border ${style} ${className}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+        {children || label}
+      </span>
+    );
+  }
+
+  // If active/inactive status is passed (boolean or 'active' / 'inactive')
   if (status !== undefined) {
     const isActive = status === true || status === 'active';
     return (

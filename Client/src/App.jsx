@@ -10,8 +10,20 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
-import LeadDashboard from './pages/LeadDashboard';
-import AssistantDashboard from './pages/AssistantDashboard';
+import AdminCriteria from './pages/admin/AdminCriteria';
+import AdminEntries from './pages/admin/AdminEntries';
+
+import LeadLayout from './pages/lead/LeadLayout';
+import LeadOverview from './pages/lead/LeadOverview';
+import LeadApprovals from './pages/lead/LeadApprovals';
+import LeadHistory from './pages/lead/LeadHistory';
+
+import AssistantLayout from './pages/assistant/AssistantLayout';
+import AssistantOverview from './pages/assistant/AssistantOverview';
+import AssistantNewEntry from './pages/assistant/AssistantNewEntry';
+import AssistantTeamPoints from './pages/assistant/AssistantTeamPoints';
+import AssistantSubmissions from './pages/assistant/AssistantSubmissions';
+
 import MemberDashboard from './pages/MemberDashboard';
 import NotFound from './pages/NotFound';
 
@@ -75,25 +87,40 @@ function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="teams" element={<AdminTeams />} />
             <Route path="teams/:id" element={<AdminTeamDetail />} />
+            <Route path="criteria" element={<AdminCriteria />} />
+            <Route path="entries" element={<AdminEntries />} />
           </Route>
 
-          {/* Other Role-Based Routes */}
+          {/* Protected Team Lead Routes */}
           <Route
             path="/lead"
             element={
               <ProtectedRoute roles={['teamLead']}>
-                <LeadDashboard />
+                <LeadLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<LeadOverview />} />
+            <Route path="approvals" element={<LeadApprovals />} />
+            <Route path="history" element={<LeadHistory />} />
+          </Route>
+
+          {/* Protected Team Assistant Routes */}
           <Route
             path="/assistant"
             element={
               <ProtectedRoute roles={['teamAssistant']}>
-                <AssistantDashboard />
+                <AssistantLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<AssistantOverview />} />
+            <Route path="entries/new" element={<AssistantNewEntry />} />
+            <Route path="team-points" element={<AssistantTeamPoints />} />
+            <Route path="submissions" element={<AssistantSubmissions />} />
+          </Route>
+
+          {/* Protected Member Route */}
           <Route
             path="/dashboard"
             element={

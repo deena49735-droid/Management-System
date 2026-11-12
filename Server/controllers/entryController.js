@@ -420,3 +420,87 @@ exports.rejectEntry = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Get point entries summary for logged-in user
+ * @route   GET /api/entries/my-summary
+ * @access  Private
+ */
+exports.getMySummary = async (req, res, next) => {
+  try {
+    const currentWeek = getWeekNumber(new Date());
+    const currentYear = new Date().getFullYear();
+    const memberId = new mongoose.Types.ObjectId(req.user._id);
+
+    const summary = await PointEntry.aggregate([
+      {
+        $match: { member: memberId },
+      },
+      {
+        $group: {
+          _id: null,
+          approvedTotal: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'approved'] }, '$points', 0],
+            },
+          },
+          weekTotal: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$status', 'approved'] },
+                    { $eq: ['$weekNumber', currentWeek] },
+                    { $eq: ['$year', currentYear] },
+                  ],
+                },
+                '$points',
+                0,
+              ],
+            },
+          },
+          penaltyTotal: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ['$status', 'approved'] },
+                    { $lt: ['$points', 0] },
+                  ],
+                },
+                '$points',
+                0,
+              ],
+            },
+          },
+          pendingCount: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'pending'] }, 1, 0],
+            },
+          },
+          rejectedCount: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const data = summary[0] || {
+      approvedTotal: 0,
+      weekTotal: 0,
+      penaltyTotal: 0,
+      pendingCount: 0,
+      rejectedCount: 0,
+    };
+    delete data._id;
+
+    res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
