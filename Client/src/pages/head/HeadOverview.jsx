@@ -154,7 +154,10 @@ const HeadOverview = () => {
               className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3.5 shadow-2xs"
             >
               <div>
-                <p className="text-sm font-bold text-slate-900">{m.name}</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <p className="text-sm font-bold text-slate-900">{m.name}</p>
+                  <span className="text-xs text-slate-400">@{m.username}</span>
+                </div>
                 <p className="text-xs text-slate-500">{m.phone}</p>
               </div>
               <Badge role={m.role}>{m.teamRole}</Badge>
@@ -167,7 +170,7 @@ const HeadOverview = () => {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <tr>
-                <th className="px-5 py-3">Member Name</th>
+                <th className="px-5 py-3">Member</th>
                 <th className="px-5 py-3">Phone Number</th>
                 <th className="px-5 py-3 text-right">Team Role</th>
               </tr>
@@ -175,7 +178,12 @@ const HeadOverview = () => {
             <tbody className="divide-y divide-slate-100">
               {allMembers.map((m) => (
                 <tr key={m._id} className="hover:bg-slate-50/80 transition">
-                  <td className="px-5 py-3.5 font-semibold text-slate-900">{m.name}</td>
+                  <td className="px-5 py-3.5 font-semibold text-slate-900">
+                    <div className="flex items-center gap-2">
+                      <span>{m.name}</span>
+                      <span className="text-xs font-normal text-slate-400">@{m.username}</span>
+                    </div>
+                  </td>
                   <td className="px-5 py-3.5 text-slate-600">{m.phone}</td>
                   <td className="px-5 py-3.5 text-right">
                     <Badge role={m.role}>{m.teamRole}</Badge>

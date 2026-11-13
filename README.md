@@ -74,7 +74,7 @@ TeamPointEntry (team-level: monthly and one-time)
 
 ## 4. Database Collections
 
-- **User**: name, phone, password (hashed), role, team
+- **User**: name, username (used to log in), phone (contact only), password (hashed), role, team
 - **Team**: name, head (the Team Head), assistant, members[]
 - **Criteria**: see above
 - **PointEntry**: member-level points and penalties
@@ -108,9 +108,11 @@ TeamPointEntry (team-level: monthly and one-time)
 
 ---
 
-## 6. Game Criteria (seed data from the official PDF)
+## 6. Game Criteria (exact structure of the official PDF)
 
-### Meeting Day Activities (member level)
+The app must show and store the criteria in exactly this structure, order, wording and points. Every row has a display order and a `basisLabel` (the Basis text exactly as printed). Category totals are calculated from the active rows, and they are the maximum if each activity is earned once.
+
+### 6.1 Meeting Day Activities (member level, category `meeting_day`)
 
 | Activity | Points | Basis |
 |---|---|---|
@@ -125,44 +127,52 @@ TeamPointEntry (team-level: monthly and one-time)
 | Bringing Visitors | 50 | Per Member / Per Visitor |
 | 30 Sec theme presentation | 20 | Per Member |
 | Physical Testimonials | 200 | Per Member / Per Testimonial |
-| Photo of your specific ask sheet (with name) | 20 | Per Member |
+| Take a photo of your specific ask sheet (With Name) | 20 | Per Member |
 | Training | 50 | Per Member |
 | Connecting Specific Ask | 20 | Per Member / Per Specific Ask |
+| **TOTAL, Meeting Day Activities** | **600** | |
 
-### Non-Meeting Day Activities (member level)
+### 6.2 Non-Meeting Day Activities (member level, category `non_meeting_day`)
 
 | Activity | Points | Basis |
 |---|---|---|
-| Early Morning Health Activity (selfie), min. 4 days per week | 20 | Per Member |
-| Know Our Member Meeting (group photo) | 20 | Per Member |
-| WhatsApp Status Promotion | 20 | Per Member |
+| Early Morning Health Activity (Put Selfie) Min. 4 Days Per Week | 20 | Per Member |
+| Know Our Member Meeting (Group Photo) | 20 | Per Member |
+| Whatsapp Status Promotion | 20 | Per Member |
 | Power Team Meeting | 20 | Per Member |
 | Team Sports with Members | 20 | Per Member |
-| Team Outing (with your team members only) | 25 | Per Member |
-| Tea sapda polama? Min. 4 members (team members only) | 25 | Per Member |
+| Team Outing (With Your Team Members Only) | 25 | Per Member |
+| Tea sapda polama? Min. 4 Members (With Your Team Members Only) | 25 | Per Member |
 | Attending Cross Chapter Meeting (Observer) | 30 | Per Member |
-| Posting Success Story message in BNI Kadambas main group | 100 | Per Member |
+| Posting Success Story message in BNI Kadambas main Group | 100 | Per Member |
 | Sunday selfie with family | 20 | Per Member |
+| **TOTAL, Non-Meeting Day Activities** | **300** | |
 
-### Monthly Points (team level, 1,000 each, total 5,000)
+### 6.3 Monthly Points (team level, category `monthly`)
 
-- Kitty fee on time payment
-- MSP Completion
-- New Member sponsor
-- Full Present with whole team
-- Traffic light Green Score
+| Activity | Points | Basis |
+|---|---|---|
+| Kitty fee on time payment | 1,000 | Per Team |
+| MSP Completion | 1,000 | Per Team |
+| New Member sponsor | 1,000 | Per Team |
+| Full Present with whole team | 1,000 | Per Team |
+| Traffic light Green Score | 1,000 | Per Team |
+| **TOTAL, Monthly Points** | **5000** | |
 
-### One Time Bonus Points (team level, 1,000 each, total 5,000)
+### 6.4 One Time Bonus Points (team level, category `one_time`)
 
-- 100% BNI Connect updation
-- 100% Contact Save in WhatsApp
-- 121 Dance Card Submission
-- Completing passport to success
-- Following Kadambas social media page
+| Activity | Points | Basis |
+|---|---|---|
+| 100% BNI Connect updation | 1,000 | Per Team |
+| 100% Contact Save in Whatsapp | 1,000 | Per Team |
+| 121 Dance Card Submission | 1,000 | Per Team |
+| Completing passport to success | 1,000 | Per Team |
+| Following Kadambas social media page | 1,000 | Per Team |
+| **TOTAL, One Time Bonus Points** | **5000** | |
 
-### Negative Points (penalties)
+### 6.5 Negative Points Criteria (member level, category `penalty`, grouped by Frequency)
 
-| Frequency | Criteria | Points | Basis |
+| Frequency | Negative Points Criteria | Penalty Points | Basis |
 |---|---|---|---|
 | Weekly | Late after 7:59 AM | -100 | Per Member |
 | Weekly | Absent for Weekly BNI Meeting | -100 | Per Member |
@@ -175,6 +185,8 @@ TeamPointEntry (team-level: monthly and one-time)
 | Monthly | MSP Incomplete | -1000 | Per Member / Per Month |
 | Monthly | Traffic Light Score - Grey | -3000 | Per Member |
 | Monthly | Traffic Light Score - Red | -1000 | Per Member |
+
+Total criteria rows: 14 + 10 + 5 + 5 + 11 = 45.
 
 ---
 
@@ -260,3 +272,34 @@ Build **one phase at a time**. Wait for confirmation before starting the next.
 The role is called **Team Head** everywhere: screens, buttons, menus, messages, API paths, route paths, database values, field names, variable and file names. The role value in the database is `teamHead`, the Team model field is `head`, the API path is `/api/teams/:id/head`, and the client route is `/head`. Never use "Team Lead", "teamLead" or "lead" for this role anywhere in the code.
 
 The app has exactly four dashboards: Admin, Team Head, Team Assistant and Member.
+
+---
+
+## 13. Login Rule
+
+Users log in with **username and password**. The phone number is only a contact detail and is never used to log in. Usernames are stored in lowercase, are unique, 3 to 30 characters, and may contain only lowercase letters, digits, dot and underscore. The admin creates users and sets their usernames. There is no public registration. Login errors are always generic ("Invalid username or password").
+
+---
+
+## 14. UI Standards
+
+- Keep the existing colour palette. Do not introduce new brand colours. Use neutral greys plus the existing green (positive), red (negative) and amber (pending) for status.
+- Professional, clean, business-style interface: consistent spacing scale, one font family, subtle shadows, consistent border radius, clear visual hierarchy.
+- Mobile-first and fully responsive (360px to 1440px+). No horizontal page scroll. Tables become cards on mobile. Tap targets at least 44px.
+- Reuse shared components (Button, Input, Select, Card, StatCard, Table, Badge, Modal, Tabs, EmptyState, Skeleton, Pagination). Do not copy styles into each page.
+- Accessible: labels on every field, visible focus states, sufficient contrast.
+- Use lucide-react icons. No emoji as icons.
+
+---
+
+## 15. System Architecture
+
+- **Client**: React single page app (Vite). Role-based routes: exactly four dashboards, Admin, Team Head, Team Assistant, Member. Talks to the API only through one axios instance.
+- **API**: Express REST API. Flow: route -> validation -> auth -> roleCheck (and team scope check) -> controller -> model. Central error handler.
+- **Database**: MongoDB Atlas (Mongoose). Collections: User, Team, Criteria, PointEntry, TeamPointEntry, Meeting, Notification.
+- **Files**: Cloudinary for proof photos (Phase 6). Only the image URL is stored in the database.
+- **Jobs**: node-cron for weekly and monthly automatic penalties (Phase 6).
+- **Security**: JWT, bcrypt, helmet, rate limiting on login, server-side validation, team scoping on every team-related query, secrets only in .env.
+- **Data flow**: criteria (rules) -> point entries (ledger, pending/approved/rejected) -> MongoDB aggregation -> leaderboard and dashboards. Totals are never stored, they are always calculated from approved entries.
+- **Indexes**: User.username (unique), Criteria.key (unique), PointEntry (status, team, year, month, weekNumber), TeamPointEntry (status, team, year, month).
+- **Deployment**: client on Vercel or Netlify, API on Render or Railway, database on Atlas.

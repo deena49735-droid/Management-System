@@ -36,6 +36,7 @@ const HeadDashboard = () => {
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Logged In As</p>
               <p className="mt-1 text-lg font-bold text-slate-800">{user?.name}</p>
+              <p className="text-xs text-indigo-600 font-medium">@{user?.username}</p>
               <p className="text-xs text-slate-500">{user?.phone}</p>
             </div>
 

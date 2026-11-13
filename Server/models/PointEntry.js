@@ -15,7 +15,10 @@ const pointEntrySchema = new mongoose.Schema(
     criteria: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Criteria',
-      required: [true, 'Criteria is required'],
+      required: function () {
+        return !this.isAdminAdjustment && !this.isReversal;
+      },
+      default: null,
     },
     quantity: {
       type: Number,
@@ -44,6 +47,15 @@ const pointEntrySchema = new mongoose.Schema(
     year: {
       type: Number,
       required: [true, 'Year is required'],
+    },
+    frequency: {
+      type: String,
+      required: [true, 'Frequency is required'],
+      enum: {
+        values: ['weekly', 'monthly'],
+        message: '{VALUE} is not a valid point entry frequency',
+      },
+      default: 'weekly',
     },
     proofImage: {
       type: String,
@@ -80,11 +92,54 @@ const pointEntrySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    isAdminAdjustment: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    isReversal: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    reversalOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PointEntry',
+      default: null,
+    },
+    reversalReason: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    reversedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    reversedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// Pre-validate hook for reversal integrity
+pointEntrySchema.pre('validate', function () {
+  if (this.isReversal) {
+    if (!this.reversalOf) {
+      this.invalidate('reversalOf', 'reversalOf is required when isReversal is true.');
+    }
+    if (!this.reversalReason || !this.reversalReason.trim()) {
+      this.invalidate('reversalReason', 'reversalReason is required when isReversal is true.');
+    }
+  } else if (this.reversalOf) {
+    this.invalidate('reversalOf', 'reversalOf must be null for non-reversal entries.');
+  }
+});
 
 // Indexes for fast querying & filtering
 pointEntrySchema.index({ member: 1, date: 1 });
@@ -92,7 +147,46 @@ pointEntrySchema.index({ team: 1, status: 1 });
 pointEntrySchema.index({ weekNumber: 1, month: 1, year: 1 });
 pointEntrySchema.index({ status: 1, team: 1, year: 1, month: 1, weekNumber: 1 });
 
+// Deduplication Indexes (Partial Unique)
+pointEntrySchema.index(
+  { member: 1, criteria: 1, weekNumber: 1, year: 1 },
+  {
+    name: 'uniq_point_weekly_active',
+    unique: true,
+    partialFilterExpression: {
+      frequency: 'weekly',
+      isReversal: false,
+      isAdminAdjustment: false,
+      status: { $in: ['pending', 'approved'] },
+    },
+  }
+);
+
+pointEntrySchema.index(
+  { member: 1, criteria: 1, month: 1, year: 1 },
+  {
+    name: 'uniq_point_monthly_active',
+    unique: true,
+    partialFilterExpression: {
+      frequency: 'monthly',
+      isReversal: false,
+      isAdminAdjustment: false,
+      status: { $in: ['pending', 'approved'] },
+    },
+  }
+);
+
+pointEntrySchema.index(
+  { reversalOf: 1 },
+  {
+    name: 'uniq_point_reversal',
+    unique: true,
+    partialFilterExpression: {
+      isReversal: true,
+    },
+  }
+);
+
 const PointEntry = mongoose.model('PointEntry', pointEntrySchema);
 
 module.exports = PointEntry;
-

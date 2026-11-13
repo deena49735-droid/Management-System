@@ -312,9 +312,14 @@ const Leaderboard = () => {
                       </div>
 
                       <div className="mt-3">
-                        <h3 className="text-base font-bold text-slate-900 truncate">
-                          {item.name}
-                        </h3>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h3 className="text-base font-bold text-slate-900 truncate">
+                            {item.name}
+                          </h3>
+                          {activeTab === 'members' && item.username && (
+                            <span className="text-xs font-normal text-slate-400">@{item.username}</span>
+                          )}
+                        </div>
                         {activeTab === 'members' && (
                           <p className="text-xs text-slate-500 truncate">
                             {item.team || 'Unassigned'}
@@ -424,14 +429,19 @@ const Leaderboard = () => {
                             #{row.rank}
                           </span>
                           <div>
-                            <p className="text-sm font-bold text-slate-900">
-                              {row.name}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-sm font-bold text-slate-900">
+                                {row.name}
+                              </p>
+                              {activeTab === 'members' && row.username && (
+                                <span className="text-xs text-slate-400">@{row.username}</span>
+                              )}
                               {isUserRow && (
-                                <span className="ml-1.5 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                <span className="rounded-md bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
                                   {activeTab === 'members' ? 'You' : 'Your Team'}
                                 </span>
                               )}
-                            </p>
+                            </div>
                             {activeTab === 'members' && (
                               <p className="text-xs text-slate-500">{row.team}</p>
                             )}
@@ -548,6 +558,9 @@ const Leaderboard = () => {
                             <td className="px-5 py-3.5 font-bold text-slate-900">
                               <div className="flex items-center gap-2">
                                 <span>{row.name}</span>
+                                {activeTab === 'members' && row.username && (
+                                  <span className="text-xs font-normal text-slate-400">@{row.username}</span>
+                                )}
                                 {isUserRow && (
                                   <span className="rounded-md bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
                                     {activeTab === 'members' ? 'You' : 'Your Team'}

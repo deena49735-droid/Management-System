@@ -55,7 +55,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex flex-col text-right">
             <span className="text-sm font-semibold text-slate-800 leading-tight">{user.name}</span>
-            <span className="text-xs text-slate-500">{user.phone}</span>
+            <span className="text-xs text-slate-500">{user.username ? `@${user.username}` : user.phone}</span>
           </div>
 
           <span

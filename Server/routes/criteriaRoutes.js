@@ -6,6 +6,9 @@ const criteriaController = require('../controllers/criteriaController');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 
+// GET /api/criteria/structure is accessible to any logged-in user
+router.get('/structure', auth, criteriaController.getCriteriaStructure);
+
 // GET /api/criteria is accessible to any logged-in user
 router.get('/', auth, criteriaController.getCriteria);
 
@@ -63,17 +66,28 @@ const updateValidation = [
   body('needsProof')
     .optional()
     .isBoolean()
-    .withMessage('needsProof must be a boolean value'),
+    .withMessage('needsProof must be a boolean'),
   body('isActive')
     .optional()
     .isBoolean()
-    .withMessage('isActive must be a boolean value'),
+    .withMessage('isActive must be a boolean'),
+  body('basisLabel')
+    .optional()
+    .trim(),
+  body('displayOrder')
+    .optional()
+    .isNumeric(),
 ];
 
-// Admin only routes
+const idParamValidation = [
+  param('id')
+    .isMongoId()
+    .withMessage('Invalid criteria ID format'),
+];
+
+// Admin-only mutation routes
 router.post('/', auth, roleCheck('admin'), createValidation, criteriaController.createCriteria);
 router.put('/:id', auth, roleCheck('admin'), updateValidation, criteriaController.updateCriteria);
-router.delete('/:id', auth, roleCheck('admin'), param('id').isMongoId(), criteriaController.deactivateCriteria);
+router.delete('/:id', auth, roleCheck('admin'), idParamValidation, criteriaController.deactivateCriteria);
 
 module.exports = router;
-

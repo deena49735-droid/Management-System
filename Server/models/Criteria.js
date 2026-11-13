@@ -43,6 +43,18 @@ const criteriaSchema = new mongoose.Schema(
       },
       default: 'per_member',
     },
+    basisLabel: {
+      type: String,
+      required: [true, 'Basis label is required'],
+      trim: true,
+      default: 'Per Member',
+    },
+    displayOrder: {
+      type: Number,
+      required: [true, 'Display order is required'],
+      default: 1,
+      index: true,
+    },
     frequency: {
       type: String,
       required: [true, 'Frequency is required'],

@@ -293,6 +293,7 @@ exports.getMemberLeaderboard = async (req, res, next) => {
         $project: {
           userId: '$_id',
           name: 1,
+          username: 1,
           role: 1,
           teamId: '$team',
           team: { $ifNull: [{ $arrayElemAt: ['$teamDoc.name', 0] }, 'Unassigned'] },

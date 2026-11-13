@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getDashboardPathByRole } from '../components/ProtectedRoute';
 
 const Login = () => {
-  const [phone, setPhone] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,21 +22,21 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const trimmedPhone = phone.trim();
-    if (!trimmedPhone || !password) {
-      toast.error('Please enter both your phone number and password.');
+    const trimmedUsername = username.trim().toLowerCase();
+    if (!trimmedUsername || !password) {
+      toast.error('Please enter both your username and password.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const loggedInUser = await login(trimmedPhone, password);
+      const loggedInUser = await login(trimmedUsername, password);
       toast.success(`Welcome back, ${loggedInUser.name}!`);
       const targetPath = getDashboardPathByRole(loggedInUser.role);
       navigate(targetPath, { replace: true });
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || 'Login failed. Please verify your phone number and password.';
+        error.response?.data?.message || 'Login failed. Please verify your username and password.';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -64,21 +64,20 @@ const Login = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
-                htmlFor="phone"
+                htmlFor="username"
                 className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
-                Phone Number
+                Username
               </label>
               <input
-                id="phone"
-                name="phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. 9876543210"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. admin or username"
                 className="block w-full min-h-[48px] rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-base transition sm:text-sm"
               />
             </div>

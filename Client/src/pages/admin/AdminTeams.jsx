@@ -188,7 +188,7 @@ const AdminTeams = () => {
                         {team.head ? (
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-slate-800">{team.head.name}</span>
-                            <span className="text-xs text-slate-400">({team.head.phone})</span>
+                            <span className="text-xs text-slate-400">@{team.head.username}</span>
                           </div>
                         ) : (
                           <span className="text-xs italic text-slate-400">Unassigned</span>
@@ -198,7 +198,7 @@ const AdminTeams = () => {
                         {team.assistant ? (
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-slate-800">{team.assistant.name}</span>
-                            <span className="text-xs text-slate-400">({team.assistant.phone})</span>
+                            <span className="text-xs text-slate-400">@{team.assistant.username}</span>
                           </div>
                         ) : (
                           <span className="text-xs italic text-slate-400">Unassigned</span>
@@ -240,13 +240,13 @@ const AdminTeams = () => {
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-bold">Team Head</span>
                       <span className="font-semibold text-slate-800 mt-0.5 block truncate">
-                        {team.head?.name || 'Unassigned'}
+                        {team.head ? `${team.head.name} (@${team.head.username})` : 'Unassigned'}
                       </span>
                     </div>
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-bold">Assistant</span>
                       <span className="font-semibold text-slate-800 mt-0.5 block truncate">
-                        {team.assistant?.name || 'Unassigned'}
+                        {team.assistant ? `${team.assistant.name} (@${team.assistant.username})` : 'Unassigned'}
                       </span>
                     </div>
                   </div>

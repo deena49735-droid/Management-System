@@ -14,6 +14,7 @@ require('./models/Team');
 require('./models/Criteria');
 require('./models/PointEntry');
 require('./models/TeamPointEntry');
+require('./models/AuditLog');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -22,6 +23,8 @@ const criteriaRoutes = require('./routes/criteriaRoutes');
 const entryRoutes = require('./routes/entryRoutes');
 const teamEntryRoutes = require('./routes/teamEntryRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const teamEntryController = require('./controllers/teamEntryController');
+const auth = require('./middleware/auth');
 
 const app = express();
 
@@ -65,6 +68,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/criteria', criteriaRoutes);
 app.use('/api/entries', entryRoutes);
 app.use('/api/team-entries', teamEntryRoutes);
+app.use('/api/team-scorecard', auth, teamEntryController.getTeamScorecard);
 app.use('/api/leaderboard', leaderboardRoutes);
 
 // 404 Route Handler for undefined routes
@@ -91,8 +95,40 @@ app.use((err, req, res, next) => {
 
   // Handle Mongoose Duplicate Key Error
   if (err.code === 11000) {
+    const errorMsg = err.message || '';
+    if (errorMsg.includes('uniq_point_weekly_active')) {
+      return res.status(409).json({
+        success: false,
+        message: 'A pending or approved entry for this weekly criterion already exists for this member in the specified week.',
+      });
+    }
+    if (errorMsg.includes('uniq_point_monthly_active')) {
+      return res.status(409).json({
+        success: false,
+        message: 'A pending or approved entry for this monthly criterion already exists for this member in the specified month.',
+      });
+    }
+    if (errorMsg.includes('uniq_teampoint_monthly_active')) {
+      return res.status(409).json({
+        success: false,
+        message: 'A pending or approved team entry for this monthly criterion already exists for the specified month.',
+      });
+    }
+    if (errorMsg.includes('uniq_teampoint_one_time_active')) {
+      return res.status(409).json({
+        success: false,
+        message: 'This one-time bonus criterion has already been awarded or submitted for this team.',
+      });
+    }
+    if (errorMsg.includes('uniq_point_reversal') || errorMsg.includes('uniq_teampoint_reversal') || (err.keyPattern && err.keyPattern.reversalOf)) {
+      return res.status(409).json({
+        success: false,
+        message: 'This transaction has already been reversed.',
+      });
+    }
+
     const field = Object.keys(err.keyValue || {})[0] || 'field';
-    return res.status(400).json({
+    return res.status(409).json({
       success: false,
       message: `A record with this ${field} already exists.`,
     });

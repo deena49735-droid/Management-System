@@ -9,6 +9,7 @@
     "seed:admin": "node seed/createAdmin.js",
     "seed:criteria": "node seed/seedCriteria.js",
     "migrate:teamHead": "node seed/migrateTeamHead.js",
+    "migrate:usernames": "node seed/migrateUsernames.js",
     "test": "node --test test/phase1.test.js"
   },
   "keywords": [],

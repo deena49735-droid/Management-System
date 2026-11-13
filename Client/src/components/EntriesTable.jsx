@@ -67,7 +67,9 @@ const EntriesTable = ({
                 <div className="flex-1 min-w-0">
                   {showMember && (
                     <p className="text-xs font-semibold text-slate-500 truncate">
-                      {entry.member?.name || (entry.team?.name ? `Team: ${entry.team.name}` : 'Team Entry')}
+                      {entry.member?.name
+                        ? `${entry.member.name}${entry.member.username ? ` (@${entry.member.username})` : ''}`
+                        : (entry.team?.name ? `Team: ${entry.team.name}` : 'Team Entry')}
                     </p>
                   )}
                   <h4 className="text-sm font-bold text-slate-900 mt-0.5 leading-snug">
@@ -148,10 +150,10 @@ const EntriesTable = ({
                   <tr key={entry._id} className="hover:bg-slate-50/80 transition">
                     {showMember && (
                       <td className="px-5 py-3.5 font-medium text-slate-900">
-                        {entry.member?.name || (entry.team?.name ? `Team: ${entry.team.name}` : '—')}
-                        {entry.member?.phone && (
-                          <span className="block text-xs font-normal text-slate-400">
-                            {entry.member.phone}
+                        <span>{entry.member?.name || (entry.team?.name ? `Team: ${entry.team.name}` : '—')}</span>
+                        {entry.member?.username && (
+                          <span className="block text-xs font-normal text-slate-500">
+                            @{entry.member.username}
                           </span>
                         )}
                       </td>

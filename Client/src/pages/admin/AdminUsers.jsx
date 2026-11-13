@@ -31,6 +31,7 @@ const AdminUsers = () => {
   // Form States
   const [addForm, setAddForm] = useState({
     name: '',
+    username: '',
     phone: '',
     password: '',
     role: 'member',
@@ -39,6 +40,7 @@ const AdminUsers = () => {
 
   const [editForm, setEditForm] = useState({
     name: '',
+    username: '',
     phone: '',
     role: 'member',
     team: '',
@@ -108,8 +110,14 @@ const AdminUsers = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!addForm.name.trim() || !addForm.phone.trim() || !addForm.password) {
+    if (!addForm.name.trim() || !addForm.username.trim() || !addForm.phone.trim() || !addForm.password) {
       setFormError('Please fill in all required fields.');
+      return;
+    }
+
+    const cleanUsername = addForm.username.trim().toLowerCase();
+    if (!/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
+      setFormError('Username must be 3-30 characters and only contain lowercase letters, numbers, dot, and underscore.');
       return;
     }
 
@@ -127,6 +135,7 @@ const AdminUsers = () => {
       setSubmitting(true);
       const payload = {
         name: addForm.name.trim(),
+        username: cleanUsername,
         phone: addForm.phone.trim(),
         password: addForm.password,
         role: addForm.role,
@@ -136,7 +145,7 @@ const AdminUsers = () => {
       await api.post('/users', payload);
       toast.success('User created successfully!');
       setIsAddModalOpen(false);
-      setAddForm({ name: '', phone: '', password: '', role: 'member', team: '' });
+      setAddForm({ name: '', username: '', phone: '', password: '', role: 'member', team: '' });
       fetchUsers();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to create user.';
@@ -153,6 +162,7 @@ const AdminUsers = () => {
     setEditingUser(targetUser);
     setEditForm({
       name: targetUser.name || '',
+      username: targetUser.username || '',
       phone: targetUser.phone || '',
       role: targetUser.role || 'member',
       team: targetUser.team?._id || targetUser.team || '',
@@ -165,8 +175,14 @@ const AdminUsers = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!editForm.name.trim() || !editForm.phone.trim()) {
-      setFormError('Name and phone number are required.');
+    if (!editForm.name.trim() || !editForm.username.trim() || !editForm.phone.trim()) {
+      setFormError('Name, username, and phone number are required.');
+      return;
+    }
+
+    const cleanUsername = editForm.username.trim().toLowerCase();
+    if (!/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
+      setFormError('Username must be 3-30 characters and only contain lowercase letters, numbers, dot, and underscore.');
       return;
     }
 
@@ -179,6 +195,7 @@ const AdminUsers = () => {
       setSubmitting(true);
       const payload = {
         name: editForm.name.trim(),
+        username: cleanUsername,
         phone: editForm.phone.trim(),
         role: editForm.role,
         team: editForm.team || null,
@@ -281,7 +298,7 @@ const AdminUsers = () => {
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Search by name or phone..."
+            placeholder="Search by name, username or phone..."
             className="w-full min-h-[40px] rounded-xl border border-slate-300 pl-9 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
           />
         </div>
@@ -350,7 +367,7 @@ const AdminUsers = () => {
               <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th scope="col" className="px-6 py-3.5">Name</th>
+                    <th scope="col" className="px-6 py-3.5">User</th>
                     <th scope="col" className="px-6 py-3.5">Phone</th>
                     <th scope="col" className="px-6 py-3.5">Role</th>
                     <th scope="col" className="px-6 py-3.5">Team</th>
@@ -363,15 +380,18 @@ const AdminUsers = () => {
                     const isSelf = currentUser?._id === item._id;
                     return (
                       <tr key={item._id} className="hover:bg-slate-50/70 transition">
-                        <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
-                          {item.name}
-                          {isSelf && (
-                            <span className="ml-2 inline-flex items-center rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 border border-purple-200">
-                              You
-                            </span>
-                          )}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5 font-semibold text-slate-900">
+                            <span>{item.name}</span>
+                            <span className="text-xs font-normal text-slate-500">@{item.username}</span>
+                            {isSelf && (
+                              <span className="ml-1 inline-flex items-center rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 border border-purple-200">
+                                You
+                              </span>
+                            )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">{item.phone}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">{item.phone}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge role={item.role} />
                         </td>
@@ -426,15 +446,16 @@ const AdminUsers = () => {
                   <div key={item._id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <h3 className="font-bold text-slate-900">{item.name}</h3>
+                          <span className="text-xs font-normal text-slate-500">@{item.username}</span>
                           {isSelf && (
                             <span className="rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 border border-purple-200">
                               You
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">{item.phone}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{item.phone}</p>
                       </div>
                       <Badge status={item.isActive} />
                     </div>
@@ -516,6 +537,23 @@ const AdminUsers = () => {
               placeholder="e.g. Rajesh Kumar"
               className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Username *
+            </label>
+            <input
+              type="text"
+              required
+              value={addForm.username}
+              onChange={(e) => setAddForm({ ...addForm, username: e.target.value.toLowerCase().trim() })}
+              placeholder="e.g. rajeshkumar"
+              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              3-30 chars, lowercase letters, numbers, dot, underscore
+            </p>
           </div>
 
           <div>
@@ -626,6 +664,23 @@ const AdminUsers = () => {
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
               className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Username *
+            </label>
+            <input
+              type="text"
+              required
+              value={editForm.username}
+              onChange={(e) => setEditForm({ ...editForm, username: e.target.value.toLowerCase().trim() })}
+              placeholder="e.g. rajeshkumar"
+              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">
+              3-30 chars, lowercase letters, numbers, dot, underscore
+            </p>
           </div>
 
           <div>

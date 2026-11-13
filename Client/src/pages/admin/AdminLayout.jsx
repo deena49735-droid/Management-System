@@ -32,7 +32,7 @@ const navItems = [
     ),
   },
   {
-    name: 'Criteria',
+    name: 'Game criteria',
     path: '/admin/criteria',
     icon: (
       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

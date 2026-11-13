@@ -280,7 +280,8 @@ const AdminTeamDetail = () => {
             {team.head ? (
               <div>
                 <p className="text-base font-bold text-slate-900">{team.head.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{team.head.phone}</p>
+                <p className="text-xs text-indigo-600 font-medium mt-0.5">@{team.head.username}</p>
+                <p className="text-xs text-slate-500">{team.head.phone}</p>
                 <div className="mt-2">
                   <Badge role="teamHead" />
                 </div>
@@ -305,7 +306,7 @@ const AdminTeamDetail = () => {
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
-                  {u.name} ({u.phone}) — {u.role}
+                  {u.name} (@{u.username}) — {u.role}
                 </option>
               ))}
             </select>
@@ -335,7 +336,8 @@ const AdminTeamDetail = () => {
             {team.assistant ? (
               <div>
                 <p className="text-base font-bold text-slate-900">{team.assistant.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{team.assistant.phone}</p>
+                <p className="text-xs text-indigo-600 font-medium mt-0.5">@{team.assistant.username}</p>
+                <p className="text-xs text-slate-500">{team.assistant.phone}</p>
                 <div className="mt-2">
                   <Badge role="teamAssistant" />
                 </div>
@@ -360,7 +362,7 @@ const AdminTeamDetail = () => {
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
-                  {u.name} ({u.phone}) — {u.role}
+                  {u.name} (@{u.username}) — {u.role}
                 </option>
               ))}
             </select>
@@ -398,7 +400,7 @@ const AdminTeamDetail = () => {
                 </option>
                 {eligibleNewMembers.map((u) => (
                   <option key={u._id} value={u._id}>
-                    {u.name} ({u.phone})
+                    {u.name} (@{u.username})
                   </option>
                 ))}
               </select>
@@ -448,14 +450,17 @@ const AdminTeamDetail = () => {
                   {team.members.map((member) => (
                     <tr key={member._id} className="hover:bg-slate-50/70 transition">
                       <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
-                        {member.name}
+                        <div className="flex items-center gap-2">
+                          <span>{member.name}</span>
+                          <span className="text-xs font-normal text-slate-400">@{member.username}</span>
+                        </div>
                         {team.head?._id === member._id && (
-                          <span className="ml-2 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
+                          <span className="mt-1 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
                             Head
                           </span>
                         )}
                         {team.assistant?._id === member._id && (
-                          <span className="ml-2 inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                          <span className="mt-1 inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
                             Assistant
                           </span>
                         )}
@@ -487,8 +492,9 @@ const AdminTeamDetail = () => {
                 <div key={member._id} className="p-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="font-bold text-slate-900">{member.name}</h4>
+                        <span className="text-xs text-slate-400">@{member.username}</span>
                         {team.head?._id === member._id && (
                           <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
                             Head

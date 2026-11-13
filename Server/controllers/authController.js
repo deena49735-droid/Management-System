@@ -27,24 +27,25 @@ const generateToken = (user) => {
  */
 exports.login = async (req, res, next) => {
   try {
-    const { phone, password } = req.body;
+    const { username, password } = req.body;
 
     // Validate request inputs
-    if (!phone || !password) {
+    if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide both phone number and password.',
+        message: 'Please provide both username and password.',
       });
     }
 
-    // Find user by phone and explicitly select password (since select: false is on schema)
-    const user = await User.findOne({ phone: phone.trim() }).select('+password');
+    // Find user by lowercase trimmed username and explicitly select password
+    const cleanUsername = username.trim().toLowerCase();
+    const user = await User.findOne({ username: cleanUsername }).select('+password');
 
     // Return the same generic error for non-existent user or invalid password
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid phone number or password.',
+        message: 'Invalid username or password.',
       });
     }
 
@@ -61,7 +62,7 @@ exports.login = async (req, res, next) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid phone number or password.',
+        message: 'Invalid username or password.',
       });
     }
 
@@ -76,6 +77,7 @@ exports.login = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        username: user.username,
         phone: user.phone,
         role: user.role,
         team: user.team,
@@ -127,6 +129,7 @@ exports.adminOnlyTest = async (req, res) => {
     user: {
       _id: req.user._id,
       name: req.user.name,
+      username: req.user.username,
       role: req.user.role,
     },
   });

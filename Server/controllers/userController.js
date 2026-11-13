@@ -18,8 +18,18 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    const { name, phone, password, role, team } = req.body;
+    const { name, username, phone, password, role, team } = req.body;
     const trimmedPhone = phone.trim();
+    const trimmedUsername = (username || '').trim().toLowerCase();
+
+    // Check if username is already registered
+    const existingUsername = await User.findOne({ username: trimmedUsername });
+    if (existingUsername) {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this username already exists.',
+      });
+    }
 
     // Check if phone number is already registered
     const existingUser = await User.findOne({ phone: trimmedPhone });
@@ -57,6 +67,7 @@ exports.createUser = async (req, res, next) => {
     const userRole = role || 'member';
     const user = await User.create({
       name: name.trim(),
+      username: trimmedUsername,
       phone: trimmedPhone,
       password,
       role: userRole,
@@ -108,10 +119,11 @@ exports.getUsers = async (req, res, next) => {
 
     const filter = {};
 
-    // Search by name or phone
+    // Search by name, username or phone
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
+        { username: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
       ];
     }
@@ -239,6 +251,32 @@ exports.updateUser = async (req, res, next) => {
         success: false,
         message: 'Admins cannot change their own role.',
       });
+    }
+
+    // Update username if provided and check uniqueness
+    if (req.body.username) {
+      const trimmedUsername = req.body.username.trim().toLowerCase();
+      if (!/^[a-z0-9._]{3,30}$/.test(trimmedUsername)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            'Username must be between 3 and 30 characters and contain only lowercase letters, numbers, dot, and underscore.',
+        });
+      }
+
+      if (trimmedUsername !== user.username) {
+        const usernameExists = await User.findOne({
+          username: trimmedUsername,
+          _id: { $ne: user._id },
+        });
+        if (usernameExists) {
+          return res.status(409).json({
+            success: false,
+            message: 'A user with this username already exists.',
+          });
+        }
+        user.username = trimmedUsername;
+      }
     }
 
     // Update phone if provided and check uniqueness

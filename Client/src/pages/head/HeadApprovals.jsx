@@ -185,7 +185,7 @@ const HeadApprovals = () => {
                 {rejectItem.criteria?.name} ({rejectItem.points} pts)
               </p>
               <p className="text-slate-500 mt-0.5">
-                Member: {rejectItem.member?.name || 'Whole Team'}
+                Member: {rejectItem.member?.name ? `${rejectItem.member.name} (@${rejectItem.member.username})` : 'Whole Team'}
               </p>
             </div>
           )

@@ -1,6 +1,81 @@
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const Criteria = require('../models/Criteria');
+const {
+  CATEGORY_ORDER,
+  CATEGORY_LABELS,
+  CATEGORY_LEVELS,
+} = require('../constants/criteriaConstants');
+
+/**
+ * @desc    Get structured criteria grouped by official PDF categories
+ * @route   GET /api/criteria/structure
+ * @access  Private (Any authenticated user)
+ */
+exports.getCriteriaStructure = async (req, res, next) => {
+  try {
+    const allCriteria = await Criteria.find({}).sort({ displayOrder: 1, name: 1 });
+
+    const categories = CATEGORY_ORDER.map((catKey) => {
+      const itemsInCat = allCriteria.filter((c) => c.category === catKey);
+
+      // Sort items by displayOrder
+      itemsInCat.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+      const formattedItems = itemsInCat.map((c) => ({
+        id: c._id,
+        _id: c._id,
+        key: c.key,
+        name: c.name,
+        points: c.points,
+        basis: c.basis,
+        basisLabel: c.basisLabel,
+        displayOrder: c.displayOrder,
+        frequency: c.frequency,
+        level: c.level,
+        needsProof: c.needsProof,
+        isActive: c.isActive,
+      }));
+
+      // Calculate total points of ACTIVE items (penalties have no total)
+      let total = null;
+      if (catKey !== 'penalty') {
+        total = formattedItems
+          .filter((item) => item.isActive)
+          .reduce((sum, item) => sum + item.points, 0);
+      }
+
+      const catData = {
+        key: catKey,
+        label: CATEGORY_LABELS[catKey],
+        level: CATEGORY_LEVELS[catKey],
+        total,
+        items: formattedItems,
+      };
+
+      // For penalty category, also return items grouped by frequency: Weekly and Monthly
+      if (catKey === 'penalty') {
+        const weekly = formattedItems.filter((i) => i.frequency === 'weekly');
+        const monthly = formattedItems.filter((i) => i.frequency === 'monthly');
+        catData.weekly = weekly;
+        catData.monthly = monthly;
+        catData.groups = [
+          { frequency: 'Weekly', label: 'Weekly Penalties', items: weekly },
+          { frequency: 'Monthly', label: 'Monthly Penalties', items: monthly },
+        ];
+      }
+
+      return catData;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /**
  * @desc    Get all criteria (filterable by category, level, isActive)
@@ -27,7 +102,7 @@ exports.getCriteria = async (req, res, next) => {
       filter.isActive = req.query.isActive === 'true' || req.query.isActive === true;
     }
 
-    const criteria = await Criteria.find(filter).sort({ level: 1, category: 1, points: -1, name: 1 });
+    const criteria = await Criteria.find(filter).sort({ category: 1, displayOrder: 1, name: 1 });
 
     res.status(200).json({
       success: true,
@@ -53,7 +128,8 @@ exports.createCriteria = async (req, res, next) => {
       });
     }
 
-    const { key, name, category, points, basis, frequency, level, needsProof, isActive } = req.body;
+    const { key, name, category, points, basis, basisLabel, displayOrder, frequency, level, needsProof, isActive } =
+      req.body;
     const normalizedKey = key.trim().toLowerCase();
 
     const existing = await Criteria.findOne({ key: normalizedKey });
@@ -70,6 +146,8 @@ exports.createCriteria = async (req, res, next) => {
       category,
       points: Number(points),
       basis: basis || 'per_member',
+      basisLabel: basisLabel ? basisLabel.trim() : 'Per Member',
+      displayOrder: displayOrder !== undefined ? Number(displayOrder) : 1,
       frequency: frequency || 'weekly',
       level,
       needsProof: Boolean(needsProof),
@@ -86,7 +164,7 @@ exports.createCriteria = async (req, res, next) => {
 };
 
 /**
- * @desc    Update criteria details (name, points, needsProof, isActive)
+ * @desc    Update criteria details (name, points, needsProof, isActive, basisLabel, displayOrder)
  * @route   PUT /api/criteria/:id
  * @access  Private (Admin only)
  */
@@ -121,12 +199,15 @@ exports.updateCriteria = async (req, res, next) => {
     if (req.body.isActive !== undefined) criteria.isActive = Boolean(req.body.isActive);
     if (req.body.category) criteria.category = req.body.category;
     if (req.body.basis) criteria.basis = req.body.basis;
+    if (req.body.basisLabel) criteria.basisLabel = req.body.basisLabel.trim();
+    if (req.body.displayOrder !== undefined) criteria.displayOrder = Number(req.body.displayOrder);
     if (req.body.frequency) criteria.frequency = req.body.frequency;
 
     await criteria.save();
 
     res.status(200).json({
       success: true,
+      message: 'Criteria updated successfully.',
       data: criteria,
     });
   } catch (error) {
@@ -168,4 +249,3 @@ exports.deactivateCriteria = async (req, res, next) => {
     next(error);
   }
 };
-

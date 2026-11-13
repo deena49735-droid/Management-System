@@ -28,9 +28,9 @@ exports.getMyTeam = async (req, res, next) => {
     }
 
     const team = await Team.findById(teamId)
-      .populate('head', 'name phone role')
-      .populate('assistant', 'name phone role')
-      .populate('members', 'name phone role');
+      .populate('head', 'name username phone role')
+      .populate('assistant', 'name username phone role')
+      .populate('members', 'name username phone role');
 
     if (!team) {
       return res.status(404).json({
@@ -110,8 +110,8 @@ exports.getTeams = async (req, res, next) => {
     }
 
     const teams = await Team.find(filter)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
       .sort({ name: 1 });
 
     const formattedTeams = teams.map((team) => {
@@ -146,9 +146,9 @@ exports.getTeamById = async (req, res, next) => {
     }
 
     const team = await Team.findById(req.params.id)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
-      .populate('members', 'name phone role isActive');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     if (!team) {
       return res.status(404).json({
@@ -315,9 +315,9 @@ exports.assignHead = async (req, res, next) => {
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
-      .populate('members', 'name phone role isActive');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     res.status(200).json({
       success: true,
@@ -406,9 +406,9 @@ exports.assignAssistant = async (req, res, next) => {
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
-      .populate('members', 'name phone role isActive');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     res.status(200).json({
       success: true,
@@ -489,9 +489,9 @@ exports.addMember = async (req, res, next) => {
     await user.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
-      .populate('members', 'name phone role isActive');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     res.status(200).json({
       success: true,
@@ -558,9 +558,9 @@ exports.removeMember = async (req, res, next) => {
     }
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('head', 'name phone role isActive')
-      .populate('assistant', 'name phone role isActive')
-      .populate('members', 'name phone role isActive');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     res.status(200).json({
       success: true,

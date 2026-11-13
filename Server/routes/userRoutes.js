@@ -15,6 +15,14 @@ const createUserValidation = [
     .trim()
     .notEmpty()
     .withMessage('Name is required'),
+  body('username')
+    .trim()
+    .notEmpty()
+    .withMessage('Username is required')
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters')
+    .matches(/^[a-z0-9._]+$/)
+    .withMessage('Username can only contain lowercase letters, numbers, dot, and underscore'),
   body('phone')
     .trim()
     .matches(/^[0-9]{10}$/)
@@ -42,6 +50,13 @@ const updateUserValidation = [
     .trim()
     .notEmpty()
     .withMessage('Name cannot be empty'),
+  body('username')
+    .optional()
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters')
+    .matches(/^[a-z0-9._]+$/)
+    .withMessage('Username can only contain lowercase letters, numbers, dot, and underscore'),
   body('phone')
     .optional()
     .trim()

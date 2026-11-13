@@ -14,7 +14,7 @@ const authController = require('../controllers/authController');
 
 describe('Phase 1 Tests', () => {
   describe('User Model Schema & Methods', () => {
-    it('should validate required fields: name, phone, password', async () => {
+    it('should validate required fields: name, username, phone, password', async () => {
       const user = new User();
       let err;
       try {
@@ -24,6 +24,7 @@ describe('Phase 1 Tests', () => {
       }
       assert.ok(err);
       assert.ok(err.errors.name, 'Name should be required');
+      assert.ok(err.errors.username, 'Username should be required');
       assert.ok(err.errors.phone, 'Phone should be required');
       assert.ok(err.errors.password, 'Password should be required');
     });
@@ -31,6 +32,7 @@ describe('Phase 1 Tests', () => {
     it('should default role to member and isActive to true', () => {
       const user = new User({
         name: 'John Doe',
+        username: 'johndoe',
         phone: '1234567890',
         password: 'password123',
       });
@@ -41,6 +43,7 @@ describe('Phase 1 Tests', () => {
     it('should reject invalid roles', async () => {
       const user = new User({
         name: 'John Doe',
+        username: 'johndoe',
         phone: '1234567890',
         password: 'password123',
         role: 'superUser', // invalid
@@ -58,6 +61,7 @@ describe('Phase 1 Tests', () => {
     it('should validate password minlength >= 6', async () => {
       const user = new User({
         name: 'John Doe',
+        username: 'johndoe',
         phone: '1234567890',
         password: '123',
       });
@@ -78,6 +82,7 @@ describe('Phase 1 Tests', () => {
 
       const user = new User({
         name: 'Jane Doe',
+        username: 'janedoe',
         phone: '9876543210',
         password: hashedPassword,
       });
@@ -92,6 +97,7 @@ describe('Phase 1 Tests', () => {
     it('should exclude password when serialized via toJSON', () => {
       const user = new User({
         name: 'Jane Doe',
+        username: 'janedoe',
         phone: '9876543210',
         password: 'SecretPassword123',
       });
@@ -234,10 +240,10 @@ describe('Phase 1 Tests', () => {
   });
 
   describe('Auth Controller Input Validation', () => {
-    it('should return 400 if phone or password is empty', async () => {
+    it('should return 400 if username or password is empty', async () => {
       let statusCalled = null;
       let jsonCalled = null;
-      const req = { body: { phone: '', password: '' } };
+      const req = { body: { username: '', password: '' } };
       const res = {
         status: (code) => {
           statusCalled = code;

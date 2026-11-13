@@ -26,6 +26,8 @@ import AssistantSubmissions from './pages/assistant/AssistantSubmissions';
 
 import MemberDashboard from './pages/MemberDashboard';
 import Leaderboard from './pages/Leaderboard';
+import TeamScorecard from './pages/TeamScorecard';
+import GameCriteria from './pages/GameCriteria';
 import NotFound from './pages/NotFound';
 
 /**
@@ -104,6 +106,7 @@ function App() {
             <Route index element={<HeadOverview />} />
             <Route path="approvals" element={<HeadApprovals />} />
             <Route path="history" element={<HeadHistory />} />
+            <Route path="scorecard" element={<TeamScorecard />} />
           </Route>
 
           {/* Protected Team Assistant Routes */}
@@ -117,7 +120,8 @@ function App() {
           >
             <Route index element={<AssistantOverview />} />
             <Route path="entries/new" element={<AssistantNewEntry />} />
-            <Route path="team-points" element={<AssistantTeamPoints />} />
+            <Route path="scorecard" element={<TeamScorecard />} />
+            <Route path="team-points" element={<Navigate to="/assistant/scorecard" replace />} />
             <Route path="submissions" element={<AssistantSubmissions />} />
           </Route>
 
@@ -127,6 +131,16 @@ function App() {
             element={
               <ProtectedRoute roles={['member', 'admin', 'teamHead', 'teamAssistant']}>
                 <MemberDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Shared Game Criteria Route for ALL Authenticated Roles */}
+          <Route
+            path="/criteria"
+            element={
+              <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
+                <GameCriteria />
               </ProtectedRoute>
             }
           />
