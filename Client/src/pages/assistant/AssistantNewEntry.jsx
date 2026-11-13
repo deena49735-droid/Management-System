@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
+import ProofUpload from '../../components/ProofUpload';
 
 const CATEGORY_ORDER = ['meeting_day', 'non_meeting_day', 'penalty'];
 
@@ -38,6 +39,9 @@ const AssistantNewEntry = () => {
   const [quantity, setQuantity] = useState(1);
   const [date, setDate] = useState(getTodayDateString());
   const [note, setNote] = useState('');
+  const [proofImage, setProofImage] = useState('');
+  const [proofPublicId, setProofPublicId] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
 
   useEffect(() => {
     const fetchFormData = async () => {
@@ -109,6 +113,13 @@ const AssistantNewEntry = () => {
       return;
     }
 
+    if (selectedCriteria?.needsProof && !proofImage) {
+      const msg = `Photo proof is required for "${selectedCriteria.name}". Please upload a proof photo.`;
+      setServerError(msg);
+      toast.error(msg);
+      return;
+    }
+
     try {
       setSubmitting(true);
       await api.post('/entries', {
@@ -117,6 +128,8 @@ const AssistantNewEntry = () => {
         quantity: showQuantity ? Number(quantity) || 1 : 1,
         date: date || new Date().toISOString(),
         note: note ? note.trim() : undefined,
+        proofImage: proofImage || undefined,
+        proofPublicId: proofPublicId || undefined,
       });
 
       toast.success('Point entry submitted successfully! Awaiting Head approval.');
@@ -259,6 +272,18 @@ const AssistantNewEntry = () => {
             />
           </div>
 
+          {/* Photo Proof Upload */}
+          <ProofUpload
+            value={proofImage}
+            onChange={({ url, publicId }) => {
+              setProofImage(url);
+              setProofPublicId(publicId);
+            }}
+            onUploadingChange={setUploadingProof}
+            required={Boolean(selectedCriteria?.needsProof)}
+            disabled={submitting}
+          />
+
           {/* Note Field */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -309,10 +334,10 @@ const AssistantNewEntry = () => {
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || uploadingProof}
               className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : 'Submit Entry'}
+              {submitting ? 'Submitting...' : uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
             </button>
           </div>
         </form>

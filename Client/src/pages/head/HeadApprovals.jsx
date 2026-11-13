@@ -138,6 +138,7 @@ const HeadApprovals = () => {
       <EntriesTable
         entries={currentList}
         loading={loading}
+        prominentProof={true}
         emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
         renderActions={(entry) => {
           const isSelf = activeTab === 'member' && entry.member?._id === user?._id;

@@ -1,5 +1,6 @@
 import React from 'react';
 import Badge from './Badge';
+import ProofImage from './ProofImage';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -21,6 +22,7 @@ const EntriesTable = ({
   emptyMessage = 'No point entries found.',
   showMember = true,
   renderActions = null,
+  prominentProof = false,
 }) => {
   if (loading) {
     return (
@@ -96,9 +98,14 @@ const EntriesTable = ({
               </div>
 
               <div className="mt-2.5 flex items-center justify-between text-xs text-slate-600">
-                <span className="font-medium">
-                  Qty: <span className="font-bold text-slate-800">{entry.quantity || 1}</span>
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">
+                    Qty: <span className="font-bold text-slate-800">{entry.quantity || 1}</span>
+                  </span>
+                  <div className="shrink-0">
+                    <ProofImage src={entry.proofImage} alt={entry.criteria?.name} prominent={prominentProof} />
+                  </div>
+                </div>
                 {entry.enteredBy && (
                   <span className="text-slate-400">
                     By: {entry.enteredBy.name || entry.submittedBy?.name || 'System'}
@@ -138,6 +145,7 @@ const EntriesTable = ({
                 <th className="px-5 py-3.5">Criteria</th>
                 <th className="px-4 py-3.5 text-center">Qty</th>
                 <th className="px-4 py-3.5 text-right">Points</th>
+                <th className="px-4 py-3.5 text-center">Proof</th>
                 <th className="px-5 py-3.5">Date</th>
                 <th className="px-4 py-3.5 text-center">Status</th>
                 {renderActions && <th className="px-5 py-3.5 text-right">Actions</th>}
@@ -186,6 +194,9 @@ const EntriesTable = ({
                       >
                         {isNegative ? entry.points : `+${entry.points}`}
                       </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <ProofImage src={entry.proofImage} alt={entry.criteria?.name} prominent={prominentProof} />
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap text-xs text-slate-500">
                       {formatDate(entry.date || entry.createdAt)}

@@ -3,6 +3,8 @@ import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import ProofUpload from '../components/ProofUpload';
+import ProofImage from '../components/ProofImage';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -57,6 +59,8 @@ const TeamScorecard = () => {
   const [submittingCriterion, setSubmittingCriterion] = useState(null);
   const [note, setNote] = useState('');
   const [proofImage, setProofImage] = useState('');
+  const [proofPublicId, setProofPublicId] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const fetchScorecard = async () => {
@@ -81,11 +85,17 @@ const TeamScorecard = () => {
     setSubmittingCriterion(item);
     setNote('');
     setProofImage('');
+    setProofPublicId('');
   };
 
   const handleSubmitScorecardItem = async (e) => {
     e.preventDefault();
     if (!submittingCriterion) return;
+
+    if (submittingCriterion?.criterion?.needsProof && !proofImage) {
+      toast.error(`Photo proof is required for "${submittingCriterion.criterion.name}". Please upload an image.`);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -94,12 +104,15 @@ const TeamScorecard = () => {
         month,
         year,
         note: note.trim(),
-        proofImage: proofImage.trim() || null,
+        proofImage: proofImage.trim() || undefined,
+        proofPublicId: proofPublicId || undefined,
         team: scorecard?.team?._id || user?.team,
       });
 
       toast.success('Team entry submitted successfully for review.');
       setSubmittingCriterion(null);
+      setProofImage('');
+      setProofPublicId('');
       await fetchScorecard();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit team entry.');
@@ -176,6 +189,7 @@ const TeamScorecard = () => {
                   <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4 sm:px-6">Criteria Item</th>
                     <th className="py-3 px-4 text-right">Points</th>
+                    <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
                     {isAssistant && <th className="py-3 px-4 text-center">Action</th>}
                   </tr>
@@ -192,6 +206,9 @@ const TeamScorecard = () => {
                         </td>
                         <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
                           +{item.criterion.points}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <span
@@ -224,7 +241,7 @@ const TeamScorecard = () => {
                 <tfoot>
                   <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-900">
                     <td className="py-3.5 px-4 sm:px-6">TOTAL</td>
-                    <td colSpan={isAssistant ? 3 : 2} className="py-3.5 px-4 text-right">
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right">
                       <span className="text-indigo-600 font-extrabold text-base">
                         {scorecard?.monthly?.earned || 0}
                       </span>
@@ -256,6 +273,7 @@ const TeamScorecard = () => {
                   <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
                     <th className="py-3 px-4 sm:px-6">Criteria Item</th>
                     <th className="py-3 px-4 text-right">Points</th>
+                    <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
                     {isAssistant && <th className="py-3 px-4 text-center">Action</th>}
                   </tr>
@@ -272,6 +290,9 @@ const TeamScorecard = () => {
                         </td>
                         <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
                           +{item.criterion.points}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <span
@@ -304,7 +325,7 @@ const TeamScorecard = () => {
                 <tfoot>
                   <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-900">
                     <td className="py-3.5 px-4 sm:px-6">TOTAL</td>
-                    <td colSpan={isAssistant ? 3 : 2} className="py-3.5 px-4 text-right">
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right">
                       <span className="text-indigo-600 font-extrabold text-base">
                         {scorecard?.oneTime?.earned || 0}
                       </span>
@@ -343,18 +364,17 @@ const TeamScorecard = () => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Proof Image URL (Optional)
-              </label>
-              <input
-                type="url"
-                value={proofImage}
-                onChange={(e) => setProofImage(e.target.value)}
-                placeholder="https://example.com/proof.jpg"
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
-              />
-            </div>
+            {/* Photo Proof Upload */}
+            <ProofUpload
+              value={proofImage}
+              onChange={({ url, publicId }) => {
+                setProofImage(url);
+                setProofPublicId(publicId);
+              }}
+              onUploadingChange={setUploadingProof}
+              required={Boolean(submittingCriterion?.criterion?.needsProof)}
+              disabled={submitting}
+            />
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -373,16 +393,17 @@ const TeamScorecard = () => {
               <button
                 type="button"
                 onClick={() => setSubmittingCriterion(null)}
+                disabled={submitting || uploadingProof}
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || uploadingProof}
                 className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition disabled:opacity-50"
               >
-                {submitting ? 'Submitting...' : 'Confirm & Submit'}
+                {submitting ? 'Submitting...' : uploadingProof ? 'Uploading photo...' : 'Confirm & Submit'}
               </button>
             </div>
           </form>

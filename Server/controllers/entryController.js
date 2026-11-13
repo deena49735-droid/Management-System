@@ -18,6 +18,18 @@ const getWeekNumber = (d) => {
 };
 
 /**
+ * Helper to validate that a proof image URL originates from Cloudinary in the proofs folder
+ */
+const validateProofUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const expectedPrefix = cloudName
+    ? `https://res.cloudinary.com/${cloudName}/`
+    : 'https://res.cloudinary.com/';
+  return url.startsWith(expectedPrefix) && url.includes('/kadambas/proofs/');
+};
+
+/**
  * @desc    Submit a member point entry
  * @route   POST /api/entries
  * @access  Private (teamAssistant for own team, or admin)
@@ -57,7 +69,7 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
-    const { member, criteria, quantity, date, note, proofImage } = req.body;
+    const { member, criteria, quantity, date, note, proofImage, proofPublicId } = req.body;
 
     // Validate Criteria
     if (!mongoose.Types.ObjectId.isValid(criteria)) {
@@ -90,6 +102,23 @@ exports.createEntry = async (req, res, next) => {
       return res.status(403).json({
         success: false,
         message: 'Members cannot submit penalty entries. Penalties are managed by chapter leadership.',
+      });
+    }
+
+    // Validate proof requirements
+    if (criteriaDoc.needsProof && !proofImage) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `Photo proof is required for "${criteriaDoc.name}". Please upload a photo proof.`,
+      });
+    }
+
+    if (proofImage && !validateProofUrl(proofImage)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid proof image URL. Proof must be uploaded to the official Cloudinary proofs storage.',
       });
     }
 
@@ -193,6 +222,7 @@ exports.createEntry = async (req, res, next) => {
           year,
           frequency,
           proofImage: proofImage || null,
+          proofPublicId: proofPublicId || null,
           note: note ? note.trim() : '',
           status: 'pending',
           enteredBy: req.user._id,
@@ -577,7 +607,15 @@ exports.adminDirectAward = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const { member, criteria, quantity, date, note } = req.body;
+    const { member, criteria, quantity, date, note, proofImage, proofPublicId } = req.body;
+
+    if (proofImage && !validateProofUrl(proofImage)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid proof image URL. Proof must be uploaded to the official Cloudinary proofs storage.',
+      });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(member)) {
       await session.abortTransaction();
@@ -655,7 +693,8 @@ exports.adminDirectAward = async (req, res, next) => {
           month,
           year,
           frequency,
-          proofImage: null,
+          proofImage: proofImage || null,
+          proofPublicId: proofPublicId || null,
           note: note ? note.trim() : 'Admin Direct Award',
           status: 'approved',
           enteredBy: req.user._id,
@@ -896,6 +935,7 @@ exports.reverseEntry = async (req, res, next) => {
           year: original.year,
           frequency: original.frequency,
           proofImage: original.proofImage,
+          proofPublicId: original.proofPublicId,
           note: `Reversal of entry ${original._id}: ${reason.trim()}`,
           status: 'approved',
           enteredBy: req.user._id,

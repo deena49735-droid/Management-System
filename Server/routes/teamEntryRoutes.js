@@ -32,6 +32,9 @@ const createTeamEntryValidation = [
   body('proofImage')
     .optional({ nullable: true })
     .isString(),
+  body('proofPublicId')
+    .optional({ nullable: true })
+    .isString(),
 ];
 
 // Validation for admin direct team criteria award

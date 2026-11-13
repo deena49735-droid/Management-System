@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import EntriesTable from '../components/EntriesTable';
 import Pagination from '../components/Pagination';
 import Modal from '../components/Modal';
+import ProofUpload from '../components/ProofUpload';
 
 const PAGE_SIZE = 15;
 
@@ -59,6 +60,9 @@ const MemberDashboard = () => {
   const [quantity, setQuantity] = useState(1);
   const [entryDate, setEntryDate] = useState(getTodayDateString());
   const [entryNote, setEntryNote] = useState('');
+  const [proofImage, setProofImage] = useState('');
+  const [proofPublicId, setProofPublicId] = useState('');
+  const [uploadingProof, setUploadingProof] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -150,6 +154,13 @@ const MemberDashboard = () => {
       return;
     }
 
+    if (selectedCriterion?.needsProof && !proofImage) {
+      const msg = `Photo proof is required for "${selectedCriterion.name}". Please upload a proof photo.`;
+      setSubmitError(msg);
+      toast.error(msg);
+      return;
+    }
+
     try {
       setSubmitting(true);
       await api.post('/entries', {
@@ -158,6 +169,8 @@ const MemberDashboard = () => {
         quantity: showQuantity ? Number(quantity) || 1 : 1,
         date: entryDate,
         note: entryNote ? entryNote.trim() : undefined,
+        proofImage: proofImage || undefined,
+        proofPublicId: proofPublicId || undefined,
       });
 
       toast.success('Activity submitted! Awaiting Team Head approval.');
@@ -165,6 +178,8 @@ const MemberDashboard = () => {
       setSelectedCriteriaId('');
       setQuantity(1);
       setEntryNote('');
+      setProofImage('');
+      setProofPublicId('');
       fetchDashboardData();
       fetchBreakdown();
     } catch (err) {
@@ -226,6 +241,8 @@ const MemberDashboard = () => {
             <button
               onClick={() => {
                 setSubmitError('');
+                setProofImage('');
+                setProofPublicId('');
                 setIsSubmitOpen(true);
               }}
               className="flex min-h-[40px] items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition"
@@ -552,6 +569,18 @@ const MemberDashboard = () => {
             />
           </div>
 
+          {/* Photo Proof Upload */}
+          <ProofUpload
+            value={proofImage}
+            onChange={({ url, publicId }) => {
+              setProofImage(url);
+              setProofPublicId(publicId);
+            }}
+            onUploadingChange={setUploadingProof}
+            required={Boolean(selectedCriterion?.needsProof)}
+            disabled={submitting}
+          />
+
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
               Note (Optional)
@@ -569,17 +598,17 @@ const MemberDashboard = () => {
             <button
               type="button"
               onClick={() => setIsSubmitOpen(false)}
-              disabled={submitting}
+              disabled={submitting || uploadingProof}
               className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={submitting || !selectedCriteriaId}
+              disabled={submitting || uploadingProof || !selectedCriteriaId}
               className="inline-flex min-h-[42px] items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:bg-indigo-800 transition disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : 'Submit Entry'}
+              {submitting ? 'Submitting...' : uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
             </button>
           </div>
         </form>

@@ -23,6 +23,7 @@ const criteriaRoutes = require('./routes/criteriaRoutes');
 const entryRoutes = require('./routes/entryRoutes');
 const teamEntryRoutes = require('./routes/teamEntryRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 const teamEntryController = require('./controllers/teamEntryController');
 const auth = require('./middleware/auth');
 
@@ -70,6 +71,7 @@ app.use('/api/entries', entryRoutes);
 app.use('/api/team-entries', teamEntryRoutes);
 app.use('/api/team-scorecard', auth, teamEntryController.getTeamScorecard);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // 404 Route Handler for undefined routes
 app.use((req, res) => {

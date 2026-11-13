@@ -41,6 +41,10 @@ const teamPointEntrySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    proofPublicId: {
+      type: String,
+      default: null,
+    },
     note: {
       type: String,
       trim: true,

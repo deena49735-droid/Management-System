@@ -6,6 +6,18 @@ const Team = require('../models/Team');
 const AuditLog = require('../models/AuditLog');
 
 /**
+ * Helper to validate that a proof image URL originates from Cloudinary in the proofs folder
+ */
+const validateProofUrl = (url) => {
+  if (!url || typeof url !== 'string') return false;
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const expectedPrefix = cloudName
+    ? `https://res.cloudinary.com/${cloudName}/`
+    : 'https://res.cloudinary.com/';
+  return url.startsWith(expectedPrefix) && url.includes('/kadambas/proofs/');
+};
+
+/**
  * @desc    Submit a team point entry (monthly or one-time)
  * @route   POST /api/team-entries
  * @access  Private (teamAssistant of that team only, or admin)
@@ -24,7 +36,7 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
-    const { criteria, month, year, note, proofImage, team } = req.body;
+    const { criteria, month, year, note, proofImage, proofPublicId, team } = req.body;
     const userRole = req.user.role;
 
     if (userRole === 'teamHead') {
@@ -108,6 +120,23 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
+    // Validate proof requirements
+    if (criteriaDoc.needsProof && !proofImage) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: `Photo proof is required for "${criteriaDoc.name}". Please upload a photo proof.`,
+      });
+    }
+
+    if (proofImage && !validateProofUrl(proofImage)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid proof image URL. Proof must be uploaded to the official Cloudinary proofs storage.',
+      });
+    }
+
     // Standardized frequency: 'monthly' or 'one_time'
     const frequency = criteriaDoc.frequency === 'one_time' || criteriaDoc.category === 'one_time' ? 'one_time' : 'monthly';
 
@@ -168,6 +197,7 @@ exports.createTeamEntry = async (req, res, next) => {
           year: entryYear,
           frequency,
           proofImage: proofImage || null,
+          proofPublicId: proofPublicId || null,
           note: note ? note.trim() : '',
           status: 'pending',
           submittedBy: req.user._id,
@@ -540,7 +570,15 @@ exports.adminDirectTeamAward = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const { team, criteria, month, year, note } = req.body;
+    const { team, criteria, month, year, note, proofImage, proofPublicId } = req.body;
+
+    if (proofImage && !validateProofUrl(proofImage)) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid proof image URL. Proof must be uploaded to the official Cloudinary proofs storage.',
+      });
+    }
 
     if (!mongoose.Types.ObjectId.isValid(team)) {
       await session.abortTransaction();
@@ -606,7 +644,8 @@ exports.adminDirectTeamAward = async (req, res, next) => {
           month: entryMonth,
           year: entryYear,
           frequency,
-          proofImage: null,
+          proofImage: proofImage || null,
+          proofPublicId: proofPublicId || null,
           note: note ? note.trim() : 'Admin Direct Team Award',
           status: 'approved',
           submittedBy: req.user._id,
@@ -828,6 +867,7 @@ exports.reverseTeamEntry = async (req, res, next) => {
           year: original.year,
           frequency: original.frequency,
           proofImage: original.proofImage,
+          proofPublicId: original.proofPublicId,
           note: `Reversal of team entry ${original._id}: ${reason.trim()}`,
           status: 'approved',
           submittedBy: req.user._id,
@@ -1005,6 +1045,7 @@ exports.getTeamScorecard = async (req, res, next) => {
           points: crit.points,
           basisLabel: crit.basisLabel,
           displayOrder: crit.displayOrder,
+          needsProof: Boolean(crit.needsProof),
         },
         status,
         entry,
@@ -1045,6 +1086,7 @@ exports.getTeamScorecard = async (req, res, next) => {
           points: crit.points,
           basisLabel: crit.basisLabel,
           displayOrder: crit.displayOrder,
+          needsProof: Boolean(crit.needsProof),
         },
         status,
         entry,
