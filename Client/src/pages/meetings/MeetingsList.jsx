@@ -9,6 +9,9 @@ import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import Input from '../../components/Input';
+import EmptyState from '../../components/EmptyState';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -83,7 +86,12 @@ const MeetingsList = () => {
     fetchTeamsForAdmin();
   }, [user?.role]);
 
-  const basePath = user?.role === 'admin' ? '/admin/meetings' : user?.role === 'teamHead' ? '/head/meetings' : '/assistant/meetings';
+  const basePath =
+    user?.role === 'admin'
+      ? '/admin/meetings'
+      : user?.role === 'teamHead'
+      ? '/head/meetings'
+      : '/assistant/meetings';
 
   const handleCreateMeeting = async (e) => {
     e.preventDefault();
@@ -124,7 +132,7 @@ const MeetingsList = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Meeting Attendance Sheets"
+        title="Meeting attendance sheets"
         subtitle="Weekly chapter meeting sheets, attendance records, and meeting day points."
         actions={
           canCreate ? (
@@ -133,20 +141,20 @@ const MeetingsList = () => {
               icon={Plus}
               onClick={() => setIsCreateModalOpen(true)}
             >
-              New Meeting Sheet
+              New meeting sheet
             </Button>
           ) : undefined
         }
       />
 
-      {/* Filter Bar */}
+      {/* Filter Toolbar */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-9 min-h-[36px] rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -158,7 +166,7 @@ const MeetingsList = () => {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="h-9 min-h-[36px] rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
           >
             <option value="">All months</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -172,7 +180,7 @@ const MeetingsList = () => {
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="h-9 min-h-[36px] rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
           >
             <option value="">All years</option>
             <option value="2026">2026</option>
@@ -187,7 +195,7 @@ const MeetingsList = () => {
                 setMonthFilter('');
                 setYearFilter('');
               }}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-auto"
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-auto h-10 min-h-[40px] px-2 flex items-center"
             >
               Clear filters
             </button>
@@ -197,33 +205,24 @@ const MeetingsList = () => {
 
       {/* Meetings List */}
       {loading ? (
-        <Card className="p-12 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3" />
-          <p className="text-sm font-medium text-slate-500">Loading meeting sheets...</p>
-        </Card>
+        <SkeletonTable rows={5} cols={5} />
       ) : meetings.length === 0 ? (
-        <Card className="p-12 text-center border-dashed">
-          <Calendar className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-          <p className="text-sm font-semibold text-slate-800">No meeting sheets found.</p>
-          {canCreate && (
-            <button
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="mt-3 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
-            >
-              + Create a new meeting sheet
-            </button>
-          )}
-        </Card>
+        <EmptyState
+          icon={Calendar}
+          title="No meeting sheets found"
+          description="Meeting attendance records will appear here once created."
+          actionLabel={canCreate ? 'Create a meeting sheet' : undefined}
+          onAction={canCreate ? () => setIsCreateModalOpen(true) : undefined}
+        />
       ) : (
         <div className="space-y-3">
-          {/* Mobile Cards */}
-          <div className="grid grid-cols-1 gap-3.5 md:hidden">
+          {/* Mobile Cards (Below 768px: clean cards, no horizontal scroll) */}
+          <div className="grid grid-cols-1 gap-3 md:hidden">
             {meetings.map((m) => (
               <div
                 key={m._id}
                 onClick={() => navigate(`${basePath}/${m._id}`)}
-                className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition cursor-pointer space-y-3"
+                className="rounded-xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition cursor-pointer space-y-3 active:bg-slate-50"
               >
                 <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
                   <div>
@@ -263,18 +262,18 @@ const MeetingsList = () => {
             ))}
           </div>
 
-          {/* Desktop Table */}
-          <Card className="hidden md:block overflow-hidden">
+          {/* Desktop Table (>= 768px) */}
+          <Card className="hidden md:block overflow-hidden p-0">
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
-                  <th className="px-5 py-3">Meeting Date</th>
-                  {user?.role === 'admin' && <th className="px-5 py-3">Team</th>}
-                  <th className="px-4 py-3 text-center">Status</th>
-                  <th className="px-5 py-3 text-center">Attendance (P / L / A)</th>
-                  <th className="px-4 py-3 text-right">Net Points</th>
-                  <th className="px-5 py-3">Created / Submitted By</th>
-                  <th className="px-5 py-3 text-right">Action</th>
+                  <th className="px-5 py-3.5">Meeting date</th>
+                  {user?.role === 'admin' && <th className="px-5 py-3.5">Team</th>}
+                  <th className="px-4 py-3.5 text-center">Status</th>
+                  <th className="px-5 py-3.5 text-center">Attendance (P / L / A)</th>
+                  <th className="px-4 py-3.5 text-right">Net points</th>
+                  <th className="px-5 py-3.5">Created / Submitted by</th>
+                  <th className="px-5 py-3.5 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -322,13 +321,14 @@ const MeetingsList = () => {
                     </td>
                     <td className="px-5 py-3.5 text-right whitespace-nowrap">
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="secondary"
                         onClick={() => navigate(`${basePath}/${m._id}`)}
                       >
                         {m.status === 'draft' && canCreate
                           ? 'Edit sheet'
-                          : m.status === 'submitted' && (user?.role === 'teamHead' || user?.role === 'admin')
+                          : m.status === 'submitted' &&
+                            (user?.role === 'teamHead' || user?.role === 'admin')
                           ? 'Review sheet'
                           : 'View sheet'}
                       </Button>
@@ -345,39 +345,35 @@ const MeetingsList = () => {
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Create New Meeting Sheet"
+        title="Create new meeting sheet"
+        subtitle="Select the meeting date. Members of the team will be pre-populated automatically."
         maxWidth="max-w-md"
       >
-        <p className="text-xs text-slate-500 mb-4">
-          Select the meeting date. Members of the team will be pre-populated automatically.
-        </p>
-
         <form onSubmit={handleCreateMeeting} className="space-y-4">
-          {/* Date Input */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-              Meeting Date
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Meeting date <span className="text-rose-500">*</span>
             </label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               required
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
           {/* Team Selector if Admin */}
           {user?.role === 'admin' && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                Select Team
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Select team <span className="text-rose-500">*</span>
               </label>
               <select
                 value={selectedTeamId}
                 onChange={(e) => setSelectedTeamId(e.target.value)}
                 required
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
               >
                 <option value="">Select team...</option>
                 {teams.map((t) => (
@@ -401,9 +397,9 @@ const MeetingsList = () => {
             <Button
               type="submit"
               variant="primary"
-              loading={creating}
+              isLoading={creating}
             >
-              Create Draft Sheet
+              Create draft sheet
             </Button>
           </div>
         </form>

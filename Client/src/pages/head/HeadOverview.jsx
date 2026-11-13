@@ -88,7 +88,7 @@ const HeadOverview = () => {
       const myRankEntry = teamsList.find((t) => t.teamId === teamData?._id);
       if (myRankEntry) {
         setTeamRank(myRankEntry.rank);
-        setTeamPointsMonth(myRankEntry.totalPoints || 0);
+        setTeamPointsMonth(myRankEntry.total ?? myRankEntry.totalPoints ?? 0);
       }
 
       setRecentMeetings((meetingsRes.data?.data || []).slice(0, 5));

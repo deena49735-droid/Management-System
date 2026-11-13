@@ -87,7 +87,7 @@ const AssistantOverview = () => {
       const myRankEntry = teamsList.find((t) => t.teamId === teamData?._id);
       if (myRankEntry) {
         setTeamRank(myRankEntry.rank);
-        setTeamPointsMonth(myRankEntry.totalPoints || 0);
+        setTeamPointsMonth(myRankEntry.total ?? myRankEntry.totalPoints ?? 0);
       }
     } catch (err) {
       console.error('Failed to load assistant dashboard:', err);

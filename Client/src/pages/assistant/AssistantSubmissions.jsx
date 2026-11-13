@@ -55,12 +55,12 @@ const AssistantSubmissions = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="My Recorded Submissions"
+        title="My recorded submissions"
         subtitle="Track the approval status of member point entries you have submitted."
         actions={
           <Link to="/assistant/entries/new">
             <Button variant="primary" icon={Plus}>
-              New Entry
+              Add entry
             </Button>
           </Link>
         }
@@ -68,7 +68,7 @@ const AssistantSubmissions = () => {
 
       {/* Filter Bar */}
       <Card className="p-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
               { key: '', label: 'All' },
@@ -80,10 +80,10 @@ const AssistantSubmissions = () => {
                 key={st.key}
                 type="button"
                 onClick={() => setStatusFilter(st.key)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
+                className={`h-10 min-h-[40px] rounded-lg px-3.5 text-xs font-semibold capitalize transition ${
                   statusFilter === st.key
                     ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
                 {st.label}
@@ -98,23 +98,26 @@ const AssistantSubmissions = () => {
       </Card>
 
       {/* Entries Table */}
-      <Card>
-        <Card.Body className="p-0">
-          <EntriesTable
-            entries={paginatedEntries}
-            loading={loading}
-            emptyMessage="You have not submitted any entries matching this filter."
-          />
-        </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer className="flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card.Footer>
-        )}
+      <Card
+        className="overflow-hidden p-0"
+        footer={
+          totalPages > 1 ? (
+            <div className="flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={entries.length}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          ) : null
+        }
+      >
+        <EntriesTable
+          entries={paginatedEntries}
+          loading={loading}
+          emptyMessage="You have not submitted any entries matching this filter."
+        />
       </Card>
     </div>
   );

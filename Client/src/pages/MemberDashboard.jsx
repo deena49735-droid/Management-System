@@ -4,13 +4,11 @@ import toast from 'react-hot-toast';
 import {
   Award,
   Calendar,
-  AlertTriangle,
   Medal,
   Plus,
   RefreshCw,
   Trophy,
   ArrowRight,
-  TrendingUp,
   ShieldAlert,
 } from 'lucide-react';
 import api from '../api/axios';
@@ -23,7 +21,8 @@ import PageHeader from '../components/PageHeader';
 import StatCard from '../components/StatCard';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import Badge from '../components/Badge';
+import Avatar from '../components/Avatar';
+import Input from '../components/Input';
 import { SkeletonCard, Skeleton } from '../components/Skeleton';
 
 const PAGE_SIZE = 15;
@@ -251,7 +250,7 @@ const MemberDashboard = () => {
               setIsSubmitOpen(true);
             }}
           >
-            Submit Activity
+            Submit activity
           </Button>
         }
       />
@@ -283,14 +282,14 @@ const MemberDashboard = () => {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total Points"
+            label="Total points"
             value={summary.approvedTotal ?? 0}
             icon={Award}
             tint="emerald"
             hint="Lifetime approved points"
           />
           <StatCard
-            label="This Week"
+            label="This week"
             value={summary.weekTotal ?? 0}
             icon={Calendar}
             tint="brand"
@@ -304,7 +303,7 @@ const MemberDashboard = () => {
             hint="Negative deductions"
           />
           <StatCard
-            label="My Rank"
+            label="My rank"
             value={memberRank !== null ? `#${memberRank}` : '—'}
             icon={Medal}
             tint="amber"
@@ -314,228 +313,225 @@ const MemberDashboard = () => {
       )}
 
       {/* Points by Category Card */}
-      <Card>
-        <Card.Header
-          title="Points by Category"
-          subtitle="Target performance breakdown comparing earned points against available targets."
-          action={
-            <div className="inline-flex rounded-lg bg-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => setBreakdownPeriod('week')}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                  breakdownPeriod === 'week'
-                    ? 'bg-white text-indigo-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                This week
-              </button>
-              <button
-                type="button"
-                onClick={() => setBreakdownPeriod('month')}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                  breakdownPeriod === 'month'
-                    ? 'bg-white text-indigo-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                This month
-              </button>
-            </div>
-          }
-        />
-        <Card.Body>
-          {breakdownLoading ? (
-            <div className="py-8 text-center text-sm text-slate-400">Loading breakdown...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {breakdownData?.categories?.map((cat) => {
-                const percent = Math.min(
-                  100,
-                  Math.round(((cat.earned || 0) / (cat.total || 1)) * 100)
-                );
+      <Card
+        title="Points by category"
+        subtitle="Performance breakdown comparing earned points against available targets."
+        action={
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setBreakdownPeriod('week')}
+              className={`min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold transition ${
+                breakdownPeriod === 'week'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              This week
+            </button>
+            <button
+              type="button"
+              onClick={() => setBreakdownPeriod('month')}
+              className={`min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold transition ${
+                breakdownPeriod === 'month'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              This month
+            </button>
+          </div>
+        }
+      >
+        {breakdownLoading ? (
+          <div className="py-8 text-center text-sm text-slate-400">Loading breakdown...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {breakdownData?.categories?.map((cat) => {
+              const percent = Math.min(
+                100,
+                Math.round(((cat.earned || 0) / (cat.total || 1)) * 100)
+              );
 
-                return (
-                  <div key={cat.key} className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        {cat.label}
-                      </span>
-                      <span className="text-sm font-semibold tabular-nums text-slate-900">
-                        <span className="text-indigo-600 font-bold">{cat.earned || 0}</span> / {cat.total}
-                      </span>
-                    </div>
-
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                      <div
-                        className="h-full rounded-full bg-indigo-600 transition-all duration-500"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-                    <p className="mt-1 text-right text-[11px] text-slate-500 font-medium tabular-nums">
-                      {percent}% completed
-                    </p>
+              return (
+                <div key={cat.key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                      {cat.label}
+                    </span>
+                    <span className="text-sm font-semibold tabular-nums text-slate-900">
+                      <span className="text-indigo-600 font-bold">{cat.earned || 0}</span> / {cat.total}
+                    </span>
                   </div>
-                );
-              })}
 
-              {/* Penalties item shown separately */}
-              <div className="rounded-xl border border-rose-200/80 bg-rose-50/50 p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-rose-700">
-                    Penalties
-                  </span>
-                  <span className="text-base font-bold tabular-nums text-rose-600">
-                    {breakdownData?.penalties?.earned || 0} pts
-                  </span>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-right text-[11px] text-slate-500 font-medium tabular-nums">
+                    {percent}% completed
+                  </p>
                 </div>
-                <p className="text-xs text-rose-700/80 mt-2">
-                  Total deductions incurred for {breakdownPeriod === 'week' ? 'this week' : 'this month'}.
-                </p>
+              );
+            })}
+
+            {/* Penalties item shown separately */}
+            <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-rose-700">
+                  Penalties
+                </span>
+                <span className="text-base font-bold tabular-nums text-rose-600">
+                  {breakdownData?.penalties?.earned || 0} pts
+                </span>
               </div>
+              <p className="text-xs text-rose-700/80 mt-2">
+                Total deductions incurred for {breakdownPeriod === 'week' ? 'this week' : 'this month'}.
+              </p>
             </div>
-          )}
-        </Card.Body>
+          </div>
+        )}
       </Card>
 
       {/* Main Grid: Entries Table (2 cols) & Top 5 Leaderboard Preview (1 col) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Entries */}
         <div className="lg:col-span-2 space-y-4">
-          <Card>
-            <Card.Header
-              title="My Activity Entries"
-              subtitle="Track and review your submitted point logs"
-              action={
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {[
-                    { key: '', label: 'All' },
-                    { key: 'approved', label: 'Approved' },
-                    { key: 'pending', label: 'Pending' },
-                    { key: 'rejected', label: 'Rejected' },
-                  ].map((st) => (
-                    <button
-                      key={st.key}
-                      onClick={() => {
-                        setStatusFilter(st.key);
-                        setCurrentPage(1);
-                      }}
-                      className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                        statusFilter === st.key
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {st.label}
-                    </button>
-                  ))}
+          <Card
+            title="My activity entries"
+            subtitle="Track and review your submitted point logs"
+            action={
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { key: '', label: 'All' },
+                  { key: 'approved', label: 'Approved' },
+                  { key: 'pending', label: 'Pending' },
+                  { key: 'rejected', label: 'Rejected' },
+                ].map((st) => (
+                  <button
+                    key={st.key}
+                    onClick={() => {
+                      setStatusFilter(st.key);
+                      setCurrentPage(1);
+                    }}
+                    className={`h-8 min-h-[32px] rounded-lg px-2.5 text-xs font-semibold transition ${
+                      statusFilter === st.key
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+            }
+            className="overflow-hidden p-0"
+            footer={
+              totalPages > 1 ? (
+                <div className="flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={entries.length}
+                    onPageChange={setCurrentPage}
+                  />
                 </div>
-              }
+              ) : null
+            }
+          >
+            <EntriesTable
+              entries={paginatedEntries}
+              loading={loading}
+              showMember={false}
+              emptyMessage="You have no point entries matching this filter."
             />
-            <Card.Body className="p-0">
-              <EntriesTable
-                entries={paginatedEntries}
-                loading={loading}
-                showMember={false}
-                emptyMessage="You have no point entries matching this filter."
-              />
-            </Card.Body>
-            {totalPages > 1 && (
-              <Card.Footer className="flex justify-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                />
-              </Card.Footer>
-            )}
           </Card>
         </div>
 
         {/* Top 5 Leaderboard Preview */}
         <div className="space-y-4">
-          <Card>
-            <Card.Header
-              title="Top 5 Leaderboard"
-              subtitle="Current month standings"
-              action={
-                <Link
-                  to="/leaderboard"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-                >
-                  <span>Full view</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              }
-            />
-            <Card.Body className="p-0">
-              {loading ? (
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                </div>
-              ) : topMembers.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-500">
-                  No member activity logged this month yet.
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {topMembers.map((member) => {
-                    const isCurrentUser = member.userId === user?._id;
-                    return (
-                      <div
-                        key={member.userId}
-                        className={`flex items-center justify-between px-4 py-3 text-sm transition ${
-                          isCurrentUser ? 'bg-indigo-50/70 font-semibold' : 'hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span
-                            className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold tabular-nums ${
-                              member.rank === 1
-                                ? 'bg-amber-100 text-amber-800'
-                                : member.rank === 2
-                                ? 'bg-slate-200 text-slate-700'
-                                : member.rank === 3
-                                ? 'bg-amber-50 text-amber-900 border border-amber-200'
-                                : 'text-slate-500'
-                            }`}
-                          >
-                            {member.rank}
-                          </span>
-                          <div className="min-w-0 truncate">
-                            <p className="truncate text-slate-900 text-sm">
-                              {member.name}{' '}
-                              {isCurrentUser && (
-                                <span className="ml-1 text-[11px] font-bold text-indigo-600">(You)</span>
-                              )}
-                            </p>
-                            <p className="truncate text-xs text-slate-500">{member.teamName || '—'}</p>
-                          </div>
-                        </div>
-                        <div className="text-right pl-3">
-                          <span className="font-semibold tabular-nums text-slate-900">
-                            {member.points}
-                          </span>
-                          <span className="text-xs text-slate-400 ml-1">pts</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card.Body>
-            <Card.Footer className="bg-slate-50/50">
+          <Card
+            title="Top 5 leaderboard"
+            subtitle="Current month standings"
+            action={
               <Link
                 to="/leaderboard"
-                className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-slate-700 hover:text-indigo-600 transition"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
               >
-                <span>View Full Leaderboard</span>
+                <span>Full view</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-            </Card.Footer>
+            }
+            className="overflow-hidden p-0"
+            footer={
+              <Link
+                to="/leaderboard"
+                className="flex items-center justify-center gap-1.5 w-full text-xs font-semibold text-slate-700 hover:text-indigo-600 transition py-1"
+              >
+                <span>View full leaderboard</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            }
+          >
+            {loading ? (
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : topMembers.length === 0 ? (
+              <div className="p-6 text-center text-xs text-slate-500">
+                No member activity logged this month yet.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {topMembers.map((member) => {
+                  const isCurrentUser = member.userId === user?._id;
+                  return (
+                    <div
+                      key={member.userId}
+                      className={`flex items-center justify-between px-4 py-3 text-sm transition ${
+                        isCurrentUser ? 'bg-indigo-50/70 font-semibold' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold tabular-nums shrink-0 ${
+                            member.rank === 1
+                              ? 'bg-amber-100 text-amber-800'
+                              : member.rank === 2
+                              ? 'bg-slate-200 text-slate-700'
+                              : member.rank === 3
+                              ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                              : 'text-slate-500'
+                          }`}
+                        >
+                          {member.rank}
+                        </span>
+                        <Avatar name={member.name} size="xs" />
+                        <div className="min-w-0 truncate">
+                          <p className="truncate text-slate-900 text-sm">
+                            {member.name}{' '}
+                            {isCurrentUser && (
+                              <span className="ml-1 text-[11px] font-bold text-indigo-600">(You)</span>
+                            )}
+                          </p>
+                          <p className="truncate text-xs text-slate-400">{member.team || member.teamName || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="text-right pl-3 shrink-0">
+                        <span className="font-semibold tabular-nums text-slate-900">
+                          {member.total ?? member.points ?? 0}
+                        </span>
+                        <span className="text-xs text-slate-400 ml-1">pts</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
       </div>
@@ -544,7 +540,8 @@ const MemberDashboard = () => {
       <Modal
         isOpen={isSubmitOpen}
         onClose={() => setIsSubmitOpen(false)}
-        title="Submit Activity for Verification"
+        title="Submit activity for verification"
+        subtitle="Submit earned activity points to your Team Head"
         maxWidth="max-w-md"
       >
         <form onSubmit={handleSubmitEntry} className="space-y-4">
@@ -555,8 +552,8 @@ const MemberDashboard = () => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Activity Criteria <span className="text-rose-500">*</span>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Activity criteria <span className="text-rose-500">*</span>
             </label>
             <select
               value={selectedCriteriaId}
@@ -565,7 +562,7 @@ const MemberDashboard = () => {
                 setQuantity(1);
               }}
               required
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             >
               <option value="">— Select an activity —</option>
               {CATEGORY_ORDER.map(
@@ -583,45 +580,40 @@ const MemberDashboard = () => {
             </select>
           </div>
 
-          {/* Quantity Field (conditionally shown under quantity rule) */}
+          {/* Quantity Field */}
           {showQuantity && (
             <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                Quantity ({selectedCriterion?.basisLabel}) <span className="text-rose-500">*</span>
-              </label>
-              <input
+              <Input
+                label={`Quantity (${selectedCriterion?.basisLabel})`}
                 type="number"
                 min="1"
                 max="50"
+                required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                required
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                helperText={`Calculated as ${selectedCriterion.points} points × ${Number(quantity) || 1} units.`}
               />
-              <p className="mt-1 text-xs text-slate-500">
-                Calculated as {selectedCriterion.points} points × {Number(quantity) || 1} units.
-              </p>
             </div>
           )}
 
           {/* Points Live Preview */}
           {selectedCriterion && (
             <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50/50 p-3.5">
-              <span className="text-xs font-semibold text-slate-600">Calculated Points Preview:</span>
+              <span className="text-xs font-semibold text-slate-600">Points preview:</span>
               <span className="text-base font-bold tabular-nums text-emerald-700">+{previewPoints} pts</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Activity Date <span className="text-rose-500">*</span>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Activity date <span className="text-rose-500">*</span>
             </label>
             <input
               type="date"
               required
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
@@ -638,7 +630,7 @@ const MemberDashboard = () => {
           />
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Note (Optional)
             </label>
             <textarea
@@ -646,7 +638,7 @@ const MemberDashboard = () => {
               value={entryNote}
               onChange={(e) => setEntryNote(e.target.value)}
               placeholder="e.g. Details about visitors, ask sheet, or workout selfie"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
@@ -662,10 +654,10 @@ const MemberDashboard = () => {
             <Button
               type="submit"
               variant="primary"
-              loading={submitting}
+              isLoading={submitting}
               disabled={submitting || uploadingProof || !selectedCriteriaId}
             >
-              {uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
+              {uploadingProof ? 'Uploading photo...' : 'Submit entry'}
             </Button>
           </div>
         </form>

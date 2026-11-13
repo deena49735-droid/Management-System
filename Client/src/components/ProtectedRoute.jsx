@@ -1,6 +1,8 @@
 import React from 'react';
 import { Navigate, useLocation, Link } from 'react-router-dom';
+import { ShieldAlert, Home, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Button from './Button';
 
 /**
  * Helper to get default dashboard path by role
@@ -46,44 +48,32 @@ const ProtectedRoute = ({ children, roles }) => {
 
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-sm border border-slate-200 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600 mb-4">
-            <svg
-              className="h-8 w-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+        <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xs border border-slate-200 text-center sm:p-8">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-4 border border-rose-100">
+            <ShieldAlert className="h-6 w-6" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">Access Denied</h2>
-          <p className="mt-2 text-sm text-slate-600">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-900">Access denied</h2>
+          <p className="mt-1.5 text-sm text-slate-500">
             You do not have permission to view this page.
           </p>
-          <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 text-left">
-            <p><span className="font-semibold text-slate-700">Your role:</span> {user.role}</p>
-            <p><span className="font-semibold text-slate-700">Required role(s):</span> {roles.join(', ')}</p>
+          <div className="mt-4 rounded-lg bg-slate-50 p-3.5 text-xs text-slate-600 text-left border border-slate-100 space-y-1">
+            <p><span className="font-semibold text-slate-700">Your role:</span> {user.role === 'teamHead' ? 'Team Head' : user.role === 'teamAssistant' ? 'Team Assistant' : user.role}</p>
+            <p><span className="font-semibold text-slate-700">Required role(s):</span> {roles.map(r => r === 'teamHead' ? 'Team Head' : r === 'teamAssistant' ? 'Team Assistant' : r).join(', ')}</p>
           </div>
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <Link
-              to={homePath}
-              className="flex-1 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition"
-            >
-              Go to Your Dashboard
+            <Link to={homePath} className="flex-1">
+              <Button variant="primary" className="w-full" icon={Home}>
+                Back to dashboard
+              </Button>
             </Link>
-            <button
+            <Button
+              variant="secondary"
               onClick={logout}
-              className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+              className="flex-1"
+              icon={LogOut}
             >
-              Logout
-            </button>
+              Sign out
+            </Button>
           </div>
         </div>
       </div>

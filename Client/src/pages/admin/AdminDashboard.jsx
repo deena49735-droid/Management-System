@@ -284,8 +284,10 @@ const AdminDashboard = () => {
           ) : (
             <div className="divide-y divide-slate-100">
               {topTeams.map((team, idx) => {
-                const maxScore = topTeams[0]?.totalPoints || 1;
-                const percent = Math.max(8, Math.min(100, Math.round((team.totalPoints / maxScore) * 100)));
+                const teamScore = team.total ?? team.totalPoints ?? 0;
+                const firstTeamScore = topTeams[0]?.total ?? topTeams[0]?.totalPoints ?? 1;
+                const maxScore = firstTeamScore > 0 ? firstTeamScore : 1;
+                const percent = Math.max(8, Math.min(100, Math.round((teamScore / maxScore) * 100)));
 
                 return (
                   <div key={team.teamId || idx} className="py-3 first:pt-0 last:pb-0 space-y-1.5">
@@ -305,11 +307,11 @@ const AdminDashboard = () => {
                           {team.rank || idx + 1}
                         </span>
                         <span className="font-semibold text-slate-900 truncate">
-                          {team.teamName}
+                          {team.name || team.teamName}
                         </span>
                       </div>
                       <span className="font-semibold text-slate-900 tabular-nums shrink-0">
-                        {team.totalPoints.toLocaleString()} pts
+                        {teamScore.toLocaleString()} pts
                       </span>
                     </div>
 

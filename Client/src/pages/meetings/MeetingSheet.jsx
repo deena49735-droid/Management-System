@@ -11,6 +11,7 @@ import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Modal from '../../components/Modal';
+import { SkeletonCard } from '../../components/Skeleton';
 
 const EARLY_BIRD_TIME = '07:25';
 const LATE_AFTER = '07:59';
@@ -89,10 +90,8 @@ const MeetingSheet = () => {
   }, [id]);
 
   // Determine read-only mode:
-  // Assistant can only edit if status is 'draft'
-  // Admin can edit only if status is 'draft' (or review)
-  // Team Head is always review / read-only for rows
-  const isEditable = (user?.role === 'teamAssistant' || user?.role === 'admin') && meeting?.status === 'draft';
+  const isEditable =
+    (user?.role === 'teamAssistant' || user?.role === 'admin') && meeting?.status === 'draft';
   const isReadOnly = !isEditable;
 
   // Local live derivation of row points and summary
@@ -328,7 +327,6 @@ const MeetingSheet = () => {
   const handleSubmitConfirm = async () => {
     try {
       setSubmitting(true);
-      // Auto-save draft rows first if edited
       await api.put(`/meetings/${id}`, {
         rows: rows.map((r) => ({
           member: r.member?._id || r.member,
@@ -406,9 +404,9 @@ const MeetingSheet = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-        <p className="text-sm font-medium text-slate-500">Loading meeting sheet...</p>
+      <div className="space-y-6">
+        <SkeletonCard rows={2} />
+        <SkeletonCard rows={4} />
       </div>
     );
   }
@@ -421,15 +419,20 @@ const MeetingSheet = () => {
     );
   }
 
-  const basePath = user?.role === 'admin' ? '/admin/meetings' : user?.role === 'teamHead' ? '/head/meetings' : '/assistant/meetings';
+  const basePath =
+    user?.role === 'admin'
+      ? '/admin/meetings'
+      : user?.role === 'teamHead'
+      ? '/head/meetings'
+      : '/assistant/meetings';
 
   return (
     <div className="space-y-6 pb-24">
       {/* Header with Back button */}
       <PageHeader
         backTo={basePath}
-        title={`Weekly Meeting Sheet · ${formatDate(meeting.date)}`}
-        subtitle={`${meeting.team?.name || 'Team Meeting'} · Week ${meeting.weekNumber} · Month ${meeting.month}/${meeting.year}`}
+        title={`Weekly meeting sheet · ${formatDate(meeting.date)}`}
+        subtitle={`${meeting.team?.name || 'Team meeting'} · Week ${meeting.weekNumber} · Month ${meeting.month}/${meeting.year}`}
         badge={<Badge status={meeting.status} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -454,7 +457,7 @@ const MeetingSheet = () => {
         <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 space-y-1">
           <div className="flex items-center gap-2 font-semibold text-amber-800">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>Sent Back for Revision</span>
+            <span>Sent back for revision</span>
           </div>
           <p className="pl-6 text-slate-700 italic">
             "{meeting.sendBackReason}"
@@ -467,7 +470,7 @@ const MeetingSheet = () => {
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-4 text-xs text-indigo-900 space-y-1">
           <div className="flex items-center gap-2 font-semibold text-indigo-800">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>Self-Approval Notice</span>
+            <span>Self-approval notice</span>
           </div>
           <p className="pl-6 text-indigo-800">
             {meeting.ledgerStatus.headPendingCount} point {meeting.ledgerStatus.headPendingCount === 1 ? 'entry' : 'entries'} belong to you as Team Head. Per Stage 1A rules, team entries can be approved, but your own entry requires Admin approval.
@@ -485,7 +488,7 @@ const MeetingSheet = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search member in sheet..."
-              className="w-full min-h-[38px] rounded-lg border border-slate-300 bg-white pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
@@ -507,7 +510,7 @@ const MeetingSheet = () => {
       {/* Member Rows */}
       <div className="space-y-3.5">
         {filteredRows.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+          <div className="rounded-xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
             No members match your search.
           </div>
         ) : (
@@ -536,7 +539,7 @@ const MeetingSheet = () => {
           {/* Total Points Live Display */}
           <div>
             <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Meeting Total
+              Meeting total
             </p>
             <p
               className={`text-lg sm:text-xl font-bold tabular-nums ${
@@ -561,9 +564,9 @@ const MeetingSheet = () => {
                   variant="secondary"
                   onClick={handleSaveDraft}
                   disabled={saving || submitting}
-                  loading={saving}
+                  isLoading={saving}
                 >
-                  Save Draft
+                  Save draft
                 </Button>
                 <Button
                   type="button"
@@ -571,32 +574,33 @@ const MeetingSheet = () => {
                   onClick={() => setIsSubmitModalOpen(true)}
                   disabled={saving || submitting}
                 >
-                  Submit Sheet
+                  Submit sheet
                 </Button>
               </>
             )}
 
             {/* Review mode for Team Head and Admin when submitted */}
-            {meeting.status === 'submitted' && (user?.role === 'teamHead' || user?.role === 'admin') && (
-              <>
-                <Button
-                  type="button"
-                  variant="outlineDanger"
-                  onClick={() => setIsSendBackModalOpen(true)}
-                  disabled={sendingBack || approving}
-                >
-                  Send Back
-                </Button>
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={() => setIsApproveModalOpen(true)}
-                  disabled={sendingBack || approving}
-                >
-                  Approve Sheet
-                </Button>
-              </>
-            )}
+            {meeting.status === 'submitted' &&
+              (user?.role === 'teamHead' || user?.role === 'admin') && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outlineDanger"
+                    onClick={() => setIsSendBackModalOpen(true)}
+                    disabled={sendingBack || approving}
+                  >
+                    Send back
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={() => setIsApproveModalOpen(true)}
+                    disabled={sendingBack || approving}
+                  >
+                    Approve sheet
+                  </Button>
+                </>
+              )}
           </div>
         </div>
       </div>
@@ -614,14 +618,11 @@ const MeetingSheet = () => {
       <Modal
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
-        title="Submit Meeting Sheet for Approval?"
+        title="Submit meeting sheet for approval?"
+        subtitle="Submitting this sheet will generate point entries for Team Head review."
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Submitting this sheet will generate point entries for Team Head review.
-          </p>
-
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-500">Attendance:</span>
@@ -630,7 +631,7 @@ const MeetingSheet = () => {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Total Net Points:</span>
+              <span className="text-slate-500">Total net points:</span>
               <span
                 className={`font-bold tabular-nums ${
                   derivedSummary.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
@@ -640,7 +641,7 @@ const MeetingSheet = () => {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Negative Penalties:</span>
+              <span className="text-slate-500">Negative penalties:</span>
               <span className="font-semibold tabular-nums text-rose-600">
                 {derivedSummary.penaltyCount} penalties
               </span>
@@ -657,12 +658,12 @@ const MeetingSheet = () => {
               Cancel
             </Button>
             <Button
-              type="button"
+              type="submit"
               variant="primary"
               onClick={handleSubmitConfirm}
-              loading={submitting}
+              isLoading={submitting}
             >
-              Confirm and Submit
+              Confirm and submit
             </Button>
           </div>
         </div>
@@ -672,21 +673,18 @@ const MeetingSheet = () => {
       <Modal
         isOpen={isApproveModalOpen}
         onClose={() => setIsApproveModalOpen(false)}
-        title="Approve Meeting Sheet?"
+        title="Approve meeting sheet?"
+        subtitle="Approving this sheet will post all derived points to the official ledger."
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Approving this sheet will post all derived points to the official ledger.
-          </p>
-
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-2 text-xs">
             <div className="flex justify-between">
               <span className="text-slate-500">Date:</span>
               <span className="font-semibold text-slate-800">{formatDate(meeting.date)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Total Net Points:</span>
+              <span className="text-slate-500">Total net points:</span>
               <span
                 className={`font-bold tabular-nums ${
                   derivedSummary.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
@@ -716,9 +714,9 @@ const MeetingSheet = () => {
               type="button"
               variant="primary"
               onClick={handleApproveConfirm}
-              loading={approving}
+              isLoading={approving}
             >
-              Confirm Approval
+              Confirm approval
             </Button>
           </div>
         </div>
@@ -731,20 +729,17 @@ const MeetingSheet = () => {
           setIsSendBackModalOpen(false);
           setSendBackReason('');
         }}
-        title="Send Back Meeting Sheet"
+        title="Send back meeting sheet"
+        subtitle="Provide a clear reason so the team assistant can correct the attendance sheet."
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Provide a clear reason so the team assistant can correct the attendance sheet.
-          </p>
-
           <textarea
             rows={3}
             value={sendBackReason}
             onChange={(e) => setSendBackReason(e.target.value)}
             placeholder="Enter mandatory reason for sending back..."
-            className="w-full rounded-lg border border-slate-300 p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+            className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-hidden focus:ring-2 focus:ring-rose-100 transition"
           />
 
           <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
@@ -763,10 +758,10 @@ const MeetingSheet = () => {
               type="button"
               variant="danger"
               onClick={handleSendBackConfirm}
-              loading={sendingBack}
+              isLoading={sendingBack}
               disabled={!sendBackReason.trim()}
             >
-              Confirm Send Back
+              Confirm send back
             </Button>
           </div>
         </div>
@@ -776,4 +771,3 @@ const MeetingSheet = () => {
 };
 
 export default MeetingSheet;
-

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ShieldCheck, Edit3, Power, AlertCircle, FileText } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
@@ -8,14 +9,19 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import PageHeader from '../components/PageHeader';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
-import Card from '../components/Card';
+import Input from '../components/Input';
+import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
 
 const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
   const { user } = useAuth();
   const location = useLocation();
 
   const isAdminRoute = location.pathname.startsWith('/admin');
-  const isAdmin = forceAdminMode !== undefined ? forceAdminMode : user?.role === 'admin' && isAdminRoute;
+  const isAdmin =
+    forceAdminMode !== undefined
+      ? forceAdminMode
+      : user?.role === 'admin' && isAdminRoute;
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +77,6 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
 
       toast.success('Criteria updated successfully.');
       setEditingItem(null);
-      // Re-fetch structure to automatically recalculate category totals
       await fetchCriteriaStructure();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update criteria.');
@@ -103,20 +108,26 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Game Criteria"
+        title="Game criteria"
         subtitle="Official BNI Kadambas Chapter Game points, bonuses, and penalties specification."
         badge={
           isAdmin ? (
-            <Badge variant="brand">Admin Editing Enabled</Badge>
+            <Badge variant="indigo">Admin editing enabled</Badge>
           ) : undefined
         }
       />
 
       {loading ? (
-        <Card className="p-12 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3"></div>
-          <p className="text-sm font-medium text-slate-500">Loading criteria tables...</p>
-        </Card>
+        <div className="space-y-6">
+          <SkeletonTable rows={5} cols={5} />
+          <SkeletonTable rows={5} cols={5} />
+        </div>
+      ) : categories.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No game criteria configured"
+          description="Criteria definitions have not been loaded yet."
+        />
       ) : (
         <div className="space-y-6">
           {categories.map((cat) => {
@@ -138,22 +149,22 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                     <h2 className="text-base font-semibold text-slate-900">{cat.label}</h2>
                   </div>
                   <span className="text-xs font-medium text-slate-500">
-                    {cat.level === 'team' ? 'Team Level' : 'Member Level'} • {cat.items?.length || 0} Criteria
+                    {cat.level === 'team' ? 'Team level' : 'Member level'} • {cat.items?.length || 0} criteria
                   </span>
                 </div>
 
-                {/* Desktop Table View */}
+                {/* Desktop Table View (>= 768px) */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-sm text-slate-600">
                     <thead className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                       <tr>
                         <th className="px-5 py-3 w-16 text-center">#</th>
                         <th className="px-5 py-3">Activity / Parameter</th>
-                        <th className="px-5 py-3 w-36">Basis</th>
+                        <th className="px-5 py-3 w-44">Basis</th>
                         <th className="px-5 py-3 w-32">Frequency</th>
                         <th className="px-5 py-3 text-right w-28">Points</th>
                         {isAdmin && <th className="px-5 py-3 text-center w-28">Status</th>}
-                        {isAdmin && <th className="px-5 py-3 text-right w-24">Actions</th>}
+                        {isAdmin && <th className="px-5 py-3 text-right w-36">Actions</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -172,11 +183,11 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                             </td>
 
                             <td className="px-5 py-3">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-slate-900 text-sm">{item.name}</span>
                                 {item.needsProof && (
-                                  <Badge variant="brand" size="xs">
-                                    Proof Required
+                                  <Badge variant="indigo">
+                                    Proof required
                                   </Badge>
                                 )}
                               </div>
@@ -204,7 +215,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
 
                             {isAdmin && (
                               <td className="px-5 py-3 text-center whitespace-nowrap">
-                                <Badge variant={item.isActive ? 'success' : 'neutral'} size="xs">
+                                <Badge variant={item.isActive ? 'success' : 'neutral'}>
                                   {item.isActive ? 'Active' : 'Inactive'}
                                 </Badge>
                               </td>
@@ -215,16 +226,21 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                                 <div className="flex items-center justify-end gap-1.5">
                                   <Button
                                     variant="ghost"
-                                    size="xs"
+                                    size="sm"
                                     onClick={() => openEditModal(item)}
+                                    icon={Edit3}
                                   >
                                     Edit
                                   </Button>
                                   <Button
                                     variant="ghost"
-                                    size="xs"
+                                    size="sm"
                                     onClick={() => setToggleItem(item)}
-                                    className={item.isActive ? 'text-rose-600 hover:text-rose-700' : 'text-emerald-600 hover:text-emerald-700'}
+                                    className={
+                                      item.isActive
+                                        ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
+                                        : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                                    }
                                   >
                                     {item.isActive ? 'Deactivate' : 'Activate'}
                                   </Button>
@@ -234,11 +250,27 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                           </tr>
                         );
                       })}
+
+                      {/* Clean TOTAL row for categories with totals */}
+                      {typeof cat.total === 'number' && (
+                        <tr className="bg-slate-50/90 font-bold border-t-2 border-slate-200 text-slate-900">
+                          <td className="px-5 py-3.5 text-center text-xs text-slate-400">Total</td>
+                          <td className="px-5 py-3.5 text-sm uppercase tracking-wider text-slate-800" colSpan={3}>
+                            Total, {cat.label}
+                          </td>
+                          <td className="px-5 py-3.5 text-right whitespace-nowrap tabular-nums">
+                            <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                              {cat.total.toLocaleString()} pts
+                            </span>
+                          </td>
+                          {isAdmin && <td colSpan={2} />}
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Mobile Cards View */}
+                {/* Mobile Cards View (Below 768px: clean cards, no horizontal scroll) */}
                 <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
                   {cat.items?.map((item) => {
                     const isInactive = !item.isActive;
@@ -251,18 +283,18 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-2">
-                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[11px] font-bold tabular-nums text-slate-500">
+                          <div className="flex items-start gap-2.5 min-w-0">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[11px] font-bold tabular-nums text-slate-600">
                               {item.displayOrder || '—'}
                             </span>
-                            <div>
+                            <div className="min-w-0">
                               <p className="font-semibold text-slate-900 text-sm leading-snug">
                                 {item.name}
                               </p>
                               {item.needsProof && (
                                 <span className="inline-block mt-1">
-                                  <Badge variant="brand" size="xs">
-                                    Proof Required
+                                  <Badge variant="indigo">
+                                    Proof required
                                   </Badge>
                                 </span>
                               )}
@@ -291,20 +323,20 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
 
                         {isAdmin && (
                           <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-2">
-                            <Badge variant={item.isActive ? 'success' : 'neutral'} size="xs">
+                            <Badge variant={item.isActive ? 'success' : 'neutral'}>
                               {item.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                             <div className="flex items-center gap-2">
                               <Button
                                 variant="secondary"
-                                size="xs"
+                                size="sm"
                                 onClick={() => openEditModal(item)}
                               >
                                 Edit
                               </Button>
                               <Button
                                 variant={item.isActive ? 'outlineDanger' : 'secondary'}
-                                size="xs"
+                                size="sm"
                                 onClick={() => setToggleItem(item)}
                               >
                                 {item.isActive ? 'Deactivate' : 'Activate'}
@@ -315,6 +347,18 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                       </div>
                     );
                   })}
+
+                  {/* Clean Mobile TOTAL row */}
+                  {typeof cat.total === 'number' && (
+                    <div className="p-4 bg-slate-50/90 border-t-2 border-slate-200 flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Total, {cat.label}
+                      </span>
+                      <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200 tabular-nums">
+                        {cat.total.toLocaleString()} pts
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -322,43 +366,32 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
         </div>
       )}
 
-      {/* Edit Modal (Admin only) */}
+      {/* Edit Modal (Admin only) - bottom sheet on mobile */}
       {isAdmin && (
         <Modal
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
-          title={`Edit Criteria: ${editingItem?.name || ''}`}
+          title={`Edit criteria: ${editingItem?.name || ''}`}
           maxWidth="max-w-md"
         >
           <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Criteria Name <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                required
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <Input
+              label="Criteria name"
+              required
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            />
 
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                Points Value <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={editForm.points}
-                onChange={(e) => setEditForm({ ...editForm, points: e.target.value })}
-                required
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
+            <Input
+              label="Points value"
+              type="number"
+              required
+              value={editForm.points}
+              onChange={(e) => setEditForm({ ...editForm, points: e.target.value })}
+            />
 
             {editingItem?.level === 'member' && editingItem?.category !== 'penalty' && (
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2.5 pt-1">
                 <input
                   type="checkbox"
                   id="needsProof"
@@ -366,8 +399,8 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                   onChange={(e) => setEditForm({ ...editForm, needsProof: e.target.checked })}
                   className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <label htmlFor="needsProof" className="text-sm font-medium text-slate-700">
-                  Proof Upload Required
+                <label htmlFor="needsProof" className="text-sm font-medium text-slate-700 cursor-pointer">
+                  Proof photo upload required
                 </label>
               </div>
             )}
@@ -383,9 +416,9 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
               <Button
                 type="submit"
                 variant="primary"
-                loading={saving}
+                isLoading={saving}
               >
-                Save Changes
+                Save changes
               </Button>
             </div>
           </form>
@@ -398,7 +431,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
           isOpen={!!toggleItem}
           onClose={() => setToggleItem(null)}
           onConfirm={handleToggleConfirm}
-          title={toggleItem?.isActive ? 'Deactivate Criteria?' : 'Activate Criteria?'}
+          title={toggleItem?.isActive ? 'Deactivate criteria?' : 'Activate criteria?'}
           message={`Are you sure you want to ${
             toggleItem?.isActive ? 'deactivate' : 'activate'
           } "${toggleItem?.name}"?`}

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { AlertCircle, Calendar, PlusCircle } from 'lucide-react';
 import api from '../../api/axios';
 import ProofUpload from '../../components/ProofUpload';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import Input from '../../components/Input';
+import { SkeletonCard } from '../../components/Skeleton';
 
 const CATEGORY_ORDER = ['meeting_day', 'non_meeting_day', 'penalty'];
 
@@ -148,10 +151,9 @@ const AssistantNewEntry = () => {
 
   if (loading) {
     return (
-      <Card className="p-12 text-center max-w-2xl mx-auto">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3" />
-        <p className="text-sm font-medium text-slate-500">Loading form options...</p>
-      </Card>
+      <div className="mx-auto max-w-2xl space-y-6">
+        <SkeletonCard rows={5} />
+      </div>
     );
   }
 
@@ -168,44 +170,63 @@ const AssistantNewEntry = () => {
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
       <PageHeader
-        title="Add Member Point Entry"
+        backTo="/assistant/submissions"
+        title="Add member point entry"
         subtitle={`Submit activity or penalty points for members of ${team?.name || 'your team'}.`}
       />
 
       {serverError && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
-          <p className="font-semibold">Submission Blocked:</p>
-          <p className="mt-0.5">{serverError}</p>
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 flex items-start gap-2.5">
+          <AlertCircle className="h-4 w-4 shrink-0 text-rose-500 mt-0.5" />
+          <div>
+            <p className="font-semibold">Submission blocked:</p>
+            <p className="mt-0.5">{serverError}</p>
+          </div>
         </div>
       )}
 
       {/* Entry Form */}
-      <Card className="p-6 sm:p-8">
+      <Card className="p-5 sm:p-7">
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Team Member Select */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Team Member <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              required
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">— Select a Member —</option>
-              {teamMembers.map((m) => (
-                <option key={m._id} value={m._id}>
-                  {m.name} (@{m.username}) - {m.teamRole}
-                </option>
-              ))}
-            </select>
+          {/* Section: Member and Criteria Selection (Two columns on desktop) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Team member <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={memberId}
+                onChange={(e) => setMemberId(e.target.value)}
+                required
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              >
+                <option value="">— Select a member —</option>
+                {teamMembers.map((m) => (
+                  <option key={m._id} value={m._id}>
+                    {m.name} (@{m.username}) - {m.teamRole}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Activity date <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              />
+            </div>
           </div>
 
           {/* Criteria Select */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Activity Criteria <span className="text-rose-500">*</span>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Activity criteria <span className="text-rose-500">*</span>
             </label>
             <select
               value={criteriaId}
@@ -214,9 +235,9 @@ const AssistantNewEntry = () => {
                 setQuantity(1);
               }}
               required
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             >
-              <option value="">— Select Activity / Penalty —</option>
+              <option value="">— Select activity or penalty —</option>
               {CATEGORY_ORDER.map(
                 (catKey) =>
                   groupedCriteria[catKey] && (
@@ -236,40 +257,21 @@ const AssistantNewEntry = () => {
             </select>
           </div>
 
-          {/* Quantity Field (Shown ONLY when basisLabel contains specified keywords) */}
+          {/* Quantity Field */}
           {showQuantity && (
             <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
-                Quantity ({selectedCriteria?.basisLabel}) <span className="text-rose-500">*</span>
-              </label>
-              <input
+              <Input
+                label={`Quantity (${selectedCriteria?.basisLabel})`}
                 type="number"
                 min="1"
                 max="50"
+                required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                required
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                helperText={`Calculated as ${selectedCriteria.points} points × ${Number(quantity) || 1} units.`}
               />
-              <p className="mt-1 text-xs text-slate-500">
-                Calculated as {selectedCriteria.points} points × {Number(quantity) || 1} units.
-              </p>
             </div>
           )}
-
-          {/* Date Field */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Activity Date
-            </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
 
           {/* Photo Proof Upload */}
           <ProofUpload
@@ -285,15 +287,15 @@ const AssistantNewEntry = () => {
 
           {/* Note Field */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-              Notes / Context (Optional)
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Notes or remarks (Optional)
             </label>
             <textarea
               rows="2"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="e.g. Details, visitor name, cross-chapter chapter name..."
-              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="e.g. Details, visitor name, cross-chapter details..."
+              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
@@ -306,7 +308,7 @@ const AssistantNewEntry = () => {
             >
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Calculated Points Preview
+                  Points preview
                 </span>
                 <p className="text-xs text-slate-600 mt-0.5">
                   {selectedCriteria.points} pts {showQuantity ? `× ${Number(quantity) || 1}` : ''}
@@ -317,13 +319,13 @@ const AssistantNewEntry = () => {
                   isNegative ? 'text-rose-600' : 'text-emerald-700'
                 }`}
               >
-                {previewPoints > 0 ? `+${previewPoints}` : previewPoints}
+                {previewPoints > 0 ? `+${previewPoints}` : previewPoints} pts
               </div>
             </div>
           )}
 
-          {/* Submit Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          {/* Sticky action footer on mobile */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
             <Button
               type="button"
               variant="secondary"
@@ -335,10 +337,10 @@ const AssistantNewEntry = () => {
             <Button
               type="submit"
               variant="primary"
-              loading={submitting}
+              isLoading={submitting}
               disabled={submitting || uploadingProof}
             >
-              {uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
+              {uploadingProof ? 'Uploading photo...' : 'Submit entry'}
             </Button>
           </div>
         </form>

@@ -52,49 +52,49 @@ const HeadHistory = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Team Points History"
+        title="Team points history"
         subtitle="Search and inspect all historical member activity and team bonus point entries."
         actions={
-          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto">
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
             <button
               type="button"
               onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'member'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Member Entries
+              Member entries
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'team'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Team Monthly / Bonus Entries
+              Team monthly / bonus
             </button>
           </div>
         }
       />
 
-      {/* Filters Card */}
+      {/* Filters Toolbar */}
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Statuses</option>
+              <option value="">All statuses</option>
               <option value="approved">Approved</option>
               <option value="pending">Pending</option>
               <option value="rejected">Rejected</option>
@@ -102,15 +102,15 @@ const HeadHistory = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Month
             </label>
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Months</option>
+              <option value="">All months</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={m}>
                   {new Date(0, m - 1).toLocaleString('en', { month: 'long' })}
@@ -120,15 +120,15 @@ const HeadHistory = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Year
             </label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Years</option>
+              <option value="">All years</option>
               <option value="2025">2025</option>
               <option value="2026">2026</option>
               <option value="2027">2027</option>
@@ -138,23 +138,26 @@ const HeadHistory = () => {
       </Card>
 
       {/* Entries Table */}
-      <Card>
-        <Card.Body className="p-0">
-          <EntriesTable
-            entries={paginatedEntries}
-            loading={loading}
-            emptyMessage={`No ${activeTab} history found matching your filters.`}
-          />
-        </Card.Body>
-        {totalPages > 1 && (
-          <Card.Footer className="flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card.Footer>
-        )}
+      <Card
+        className="overflow-hidden p-0"
+        footer={
+          totalPages > 1 ? (
+            <div className="flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={entries.length}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          ) : null
+        }
+      >
+        <EntriesTable
+          entries={paginatedEntries}
+          loading={loading}
+          emptyMessage={`No ${activeTab} history found matching your filters.`}
+        />
       </Card>
     </div>
   );

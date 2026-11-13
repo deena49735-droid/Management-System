@@ -77,9 +77,10 @@ const AdminEntries = () => {
   const handleApprove = async (entry) => {
     try {
       setActionLoadingId(entry._id);
-      const endpoint = activeTab === 'member'
-        ? `/entries/${entry._id}/approve`
-        : `/team-entries/${entry._id}/approve`;
+      const endpoint =
+        activeTab === 'member'
+          ? `/entries/${entry._id}/approve`
+          : `/team-entries/${entry._id}/approve`;
 
       const res = await api.patch(endpoint);
       toast.success(res.data.message || 'Entry approved successfully.');
@@ -98,9 +99,10 @@ const AdminEntries = () => {
     if (!rejectItem) return;
     try {
       setRejecting(true);
-      const endpoint = activeTab === 'member'
-        ? `/entries/${rejectItem._id}/reject`
-        : `/team-entries/${rejectItem._id}/reject`;
+      const endpoint =
+        activeTab === 'member'
+          ? `/entries/${rejectItem._id}/reject`
+          : `/team-entries/${rejectItem._id}/reject`;
 
       const res = await api.patch(endpoint, { reason });
       toast.success(res.data.message || 'Entry rejected.');
@@ -119,49 +121,49 @@ const AdminEntries = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="All Point Entries"
+        title="All point entries"
         subtitle="Review, approve, or override member activity and team bonus point entries."
         actions={
-          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto">
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
             <button
               type="button"
               onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'member'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Member Entries
+              Member entries
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'team'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Team Monthly / Bonus
+              Team monthly / bonus
             </button>
           </div>
         }
       />
 
-      {/* Filter Controls */}
+      {/* Filter Toolbar */}
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-              Filter by Team
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              Filter by team
             </label>
             <select
               value={selectedTeam}
               onChange={(e) => setSelectedTeam(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Teams</option>
+              <option value="">All teams</option>
               {teams.map((t) => (
                 <option key={t._id} value={t._id}>
                   {t.name}
@@ -171,15 +173,15 @@ const AdminEntries = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Statuses</option>
+              <option value="">All statuses</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
@@ -187,15 +189,15 @@ const AdminEntries = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Month
             </label>
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Months</option>
+              <option value="">All months</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={m}>
                   {new Date(0, m - 1).toLocaleString('en', { month: 'long' })}
@@ -205,15 +207,15 @@ const AdminEntries = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Year
             </label>
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
-              <option value="">All Years</option>
+              <option value="">All years</option>
               <option value="2025">2025</option>
               <option value="2026">2026</option>
               <option value="2027">2027</option>
@@ -223,73 +225,80 @@ const AdminEntries = () => {
       </Card>
 
       {/* Entries Table in Card */}
-      <Card>
-        <Card.Body className="p-0">
+      <Card
+        className="overflow-hidden p-0"
+        footer={
+          totalPages > 1 ? (
+            <div className="flex justify-center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={entries.length}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          ) : null
+        }
+      >
+        <EntriesTable
+          entries={paginatedEntries}
+          loading={loading}
+          emptyMessage={`No ${activeTab} entries found matching your filters.`}
+          renderActions={(entry) => {
+            const isLoading = actionLoadingId === entry._id;
+            return (
+              <div className="flex items-center gap-1.5">
+                {entry.status === 'pending' && (
+                  <>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleApprove(entry)}
+                      isLoading={isLoading}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant="outlineDanger"
+                      size="sm"
+                      onClick={() => setRejectItem(entry)}
+                      disabled={isLoading}
+                    >
+                      Reject
+                    </Button>
+                  </>
+                )}
 
-      {/* Entries Table */}
-      <EntriesTable
-        entries={paginatedEntries}
-        loading={loading}
-        emptyMessage={`No ${activeTab} entries found matching your filters.`}
-        renderActions={(entry) => {
-          const isLoading = actionLoadingId === entry._id;
-          return (
-            <div className="flex items-center gap-1.5">
-              {entry.status === 'pending' && (
-                <>
-                  <button
-                    onClick={() => handleApprove(entry)}
-                    disabled={isLoading}
-                    className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 active:bg-emerald-800 transition disabled:opacity-50"
-                  >
-                    {isLoading ? '...' : 'Approve'}
-                  </button>
-                  <button
+                {entry.status === 'approved' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setRejectItem(entry)}
                     disabled={isLoading}
-                    className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition disabled:opacity-50"
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                    title="Admin override: Reject an already approved entry"
                   >
-                    Reject
-                  </button>
-                </>
-              )}
+                    Override reject
+                  </Button>
+                )}
 
-              {entry.status === 'approved' && (
-                <button
-                  onClick={() => setRejectItem(entry)}
-                  disabled={isLoading}
-                  className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50 transition disabled:opacity-50"
-                  title="Admin Override: Reject an already approved entry"
-                >
-                  Override Reject
-                </button>
-              )}
-
-              {entry.status === 'rejected' && (
-                <button
-                  onClick={() => handleApprove(entry)}
-                  disabled={isLoading}
-                  className="inline-flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition disabled:opacity-50"
-                  title="Admin Override: Re-approve a rejected entry"
-                >
-                  Override Approve
-                </button>
-              )}
-            </div>
-          );
-        }}
-      />
-      </Card.Body>
-      {totalPages > 1 && (
-        <Card.Footer className="flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card.Footer>
-      )}
-    </Card>
+                {entry.status === 'rejected' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleApprove(entry)}
+                    isLoading={isLoading}
+                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                    title="Admin override: Re-approve a rejected entry"
+                  >
+                    Override approve
+                  </Button>
+                )}
+              </div>
+            );
+          }}
+        />
+      </Card>
 
       {/* Reject Modal */}
       <RejectModal
@@ -298,16 +307,16 @@ const AdminEntries = () => {
         onConfirm={handleRejectConfirm}
         title={
           rejectItem?.status === 'approved'
-            ? 'Override & Reject Approved Entry'
-            : 'Reject Point Entry'
+            ? 'Override and reject entry'
+            : 'Reject point entry'
         }
         itemDescription={
           rejectItem && (
             <div>
               <p className="font-semibold text-slate-800">
-                {rejectItem.criteria?.name} ({rejectItem.points} pts)
+                {rejectItem.criteria?.name} ({rejectItem.points > 0 ? `+${rejectItem.points}` : rejectItem.points} pts)
               </p>
-              <p className="text-slate-500 mt-0.5">
+              <p className="text-slate-500 mt-0.5 text-xs">
                 For: {rejectItem.member?.name || rejectItem.team?.name || 'Team'}
               </p>
             </div>
@@ -320,4 +329,3 @@ const AdminEntries = () => {
 };
 
 export default AdminEntries;
-

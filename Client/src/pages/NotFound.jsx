@@ -16,7 +16,7 @@ const NotFound = () => {
           404
         </div>
         <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-          Page Not Found
+          Page not found
         </h1>
         <p className="mt-1.5 text-sm text-slate-500">
           The page you are looking for does not exist or has been moved.
@@ -24,7 +24,7 @@ const NotFound = () => {
         <div className="mt-6">
           <Link to={redirectPath} className="block w-full">
             <Button variant="primary" className="w-full" icon={Home}>
-              {isAuthenticated ? 'Back to Dashboard' : 'Back to Login'}
+              {isAuthenticated ? 'Back to dashboard' : 'Back to login'}
             </Button>
           </Link>
         </div>

@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Search, Users, ArrowRight } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import Badge from '../../components/Badge';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import Input from '../../components/Input';
+import Avatar from '../../components/Avatar';
+import EmptyState from '../../components/EmptyState';
+import { SkeletonTable } from '../../components/Skeleton';
 
 const AdminTeams = () => {
   const navigate = useNavigate();
@@ -89,7 +93,7 @@ const AdminTeams = () => {
     <div className="space-y-6">
       {/* Header and Add Team Button */}
       <PageHeader
-        title="Team Management"
+        title="Team management"
         subtitle="Create chapter teams, assign leadership positions, and manage member rosters."
         actions={
           <Button
@@ -101,16 +105,16 @@ const AdminTeams = () => {
               setIsAddModalOpen(true);
             }}
           >
-            Add Team
+            Add team
           </Button>
         }
       />
 
-      {/* Search and Filters */}
+      {/* Search and Filters Toolbar */}
       <Card className="p-4">
-        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="relative flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
               <Search className="h-4 w-4" />
             </div>
             <input
@@ -118,16 +122,16 @@ const AdminTeams = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search teams by name..."
-              className="w-full min-h-[40px] rounded-lg border border-slate-300 pl-9 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="min-h-[40px] rounded-lg border border-slate-300 px-3 text-xs sm:text-sm text-slate-700 bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
           >
-            <option value="">All Statuses</option>
+            <option value="">All statuses</option>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
@@ -135,42 +139,32 @@ const AdminTeams = () => {
       </Card>
 
       {/* Teams List */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden p-0">
         {loading ? (
-          <div className="flex flex-col items-center justify-center p-12 text-slate-500">
-            <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
-            <p className="mt-3 text-sm font-medium">Loading teams...</p>
-          </div>
+          <SkeletonTable rows={5} cols={5} />
         ) : filteredTeams.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <svg
-              className="mx-auto h-12 w-12 text-slate-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <p className="mt-3 text-base font-semibold text-slate-800">No teams found</p>
-            <p className="mt-1 text-sm text-slate-500">
-              {searchTerm || statusFilter
+          <EmptyState
+            icon={Users}
+            title="No teams found"
+            description={
+              searchTerm || statusFilter
                 ? 'Try adjusting your search query or filter options.'
-                : 'Click "Add Team" above to create your first team.'}
-            </p>
-          </div>
+                : 'Click "Add team" above to create your first team.'
+            }
+          />
         ) : (
           <>
-            {/* Desktop Table */}
+            {/* Desktop Table (>= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th scope="col" className="px-6 py-3.5">Team Name</th>
-                    <th scope="col" className="px-6 py-3.5">Team Head</th>
-                    <th scope="col" className="px-6 py-3.5">Team Assistant</th>
-                    <th scope="col" className="px-6 py-3.5 text-center">Members</th>
-                    <th scope="col" className="px-6 py-3.5">Status</th>
-                    <th scope="col" className="px-6 py-3.5 text-right">Action</th>
+                    <th scope="col" className="px-5 py-3.5">Team name</th>
+                    <th scope="col" className="px-5 py-3.5">Team Head</th>
+                    <th scope="col" className="px-5 py-3.5">Team Assistant</th>
+                    <th scope="col" className="px-5 py-3.5 text-center">Members</th>
+                    <th scope="col" className="px-5 py-3.5">Status</th>
+                    <th scope="col" className="px-5 py-3.5 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -178,14 +172,17 @@ const AdminTeams = () => {
                     <tr
                       key={team._id}
                       onClick={() => navigate(`/admin/teams/${team._id}`)}
-                      className="cursor-pointer hover:bg-slate-50/70 transition"
+                      className="cursor-pointer hover:bg-slate-50/80 transition"
                     >
-                      <td className="px-6 py-4 font-bold text-slate-900 whitespace-nowrap">
-                        {team.name}
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 whitespace-nowrap">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={team.name} size="xs" />
+                          <span>{team.name}</span>
+                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-slate-700">
+                      <td className="px-5 py-3.5 whitespace-nowrap text-slate-700">
                         {team.head ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <span className="font-medium text-slate-800">{team.head.name}</span>
                             <span className="text-xs text-slate-400">@{team.head.username}</span>
                           </div>
@@ -193,9 +190,9 @@ const AdminTeams = () => {
                           <span className="text-xs italic text-slate-400">Unassigned</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-slate-700">
+                      <td className="px-5 py-3.5 whitespace-nowrap text-slate-700">
                         {team.assistant ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5">
                             <span className="font-medium text-slate-800">{team.assistant.name}</span>
                             <span className="text-xs text-slate-400">@{team.assistant.username}</span>
                           </div>
@@ -203,17 +200,17 @@ const AdminTeams = () => {
                           <span className="text-xs italic text-slate-400">Unassigned</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-800">
+                      <td className="px-5 py-3.5 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 tabular-nums">
                           {team.memberCount || 0}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <Badge status={team.isActive} />
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 text-xs">
-                          Manage &rarr;
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                          Manage <ArrowRight className="h-3.5 w-3.5" />
                         </span>
                       </td>
                     </tr>
@@ -222,7 +219,7 @@ const AdminTeams = () => {
               </table>
             </div>
 
-            {/* Mobile Cards */}
+            {/* Mobile Cards (Below 768px: clean cards, no horizontal scroll) */}
             <div className="md:hidden divide-y divide-slate-100">
               {filteredTeams.map((team) => (
                 <div
@@ -231,31 +228,37 @@ const AdminTeams = () => {
                   className="p-4 space-y-3 active:bg-slate-50 transition cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-slate-900 text-base">{team.name}</h3>
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={team.name} size="sm" />
+                      <div>
+                        <h3 className="font-semibold text-slate-900 text-sm leading-snug">{team.name}</h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {team.memberCount || 0} roster members
+                        </p>
+                      </div>
+                    </div>
                     <Badge status={team.isActive} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-lg border border-slate-100">
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Team Head</span>
-                      <span className="font-semibold text-slate-800 mt-0.5 block truncate">
-                        {team.head ? `${team.head.name} (@${team.head.username})` : 'Unassigned'}
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Team Head</span>
+                      <span className="font-medium text-slate-800 mt-0.5 block truncate">
+                        {team.head ? team.head.name : 'Unassigned'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Assistant</span>
-                      <span className="font-semibold text-slate-800 mt-0.5 block truncate">
-                        {team.assistant ? `${team.assistant.name} (@${team.assistant.username})` : 'Unassigned'}
+                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Assistant</span>
+                      <span className="font-medium text-slate-800 mt-0.5 block truncate">
+                        {team.assistant ? team.assistant.name : 'Unassigned'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs font-medium text-slate-500">
-                      Roster: <strong className="text-slate-800">{team.memberCount || 0} members</strong>
-                    </span>
-                    <span className="text-xs font-bold text-indigo-600">
-                      View Details &rarr;
+                  <div className="flex items-center justify-between pt-1 text-xs font-semibold text-indigo-600">
+                    <span className="text-slate-400 font-normal">Tap to manage leadership & members</span>
+                    <span className="inline-flex items-center gap-1">
+                      Manage <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </div>
                 </div>
@@ -269,45 +272,41 @@ const AdminTeams = () => {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New Team"
+        title="Add new team"
+        subtitle="Create a new chapter team"
         maxWidth="max-w-md"
       >
         <form onSubmit={handleAddTeamSubmit} className="space-y-4">
           {formError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
               {formError}
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Team Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="e.g. Phoenix Warriors"
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-            />
-          </div>
+          <Input
+            label="Team name"
+            required
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            placeholder="e.g. Phoenix Warriors"
+            autoFocus
+          />
 
-          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
-            <button
+          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-3 border-t border-slate-100">
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => setIsAddModalOpen(false)}
-              className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={submitting}
-              className="min-h-[44px] rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition"
+              variant="primary"
+              isLoading={submitting}
             >
-              {submitting ? 'Creating...' : 'Create Team'}
-            </button>
+              Create team
+            </Button>
           </div>
         </form>
       </Modal>
@@ -316,4 +315,3 @@ const AdminTeams = () => {
 };
 
 export default AdminTeams;
-

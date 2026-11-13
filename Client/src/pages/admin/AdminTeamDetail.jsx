@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Edit2, ShieldAlert, Plus, Users, UserCheck } from 'lucide-react';
+import { Edit2, Plus, Users, UserCheck, Shield, Award } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -9,6 +9,10 @@ import Badge from '../../components/Badge';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import Input from '../../components/Input';
+import Avatar from '../../components/Avatar';
+import EmptyState from '../../components/EmptyState';
+import { SkeletonCard, SkeletonTable } from '../../components/Skeleton';
 
 const AdminTeamDetail = () => {
   const { id } = useParams();
@@ -127,7 +131,7 @@ const AdminTeamDetail = () => {
       toast.success('Team Head assigned successfully!');
       setTeam(res.data.data);
       setSelectedHeadId(userId);
-      fetchData(); // Refresh active users list so role updates
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to assign team head.');
       setSelectedHeadId(team.head?._id || '');
@@ -195,9 +199,13 @@ const AdminTeamDetail = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
-        <div className="h-9 w-9 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
-        <p className="mt-3 text-sm font-medium">Loading team details...</p>
+      <div className="space-y-6">
+        <SkeletonCard />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+        <SkeletonTable rows={4} cols={5} />
       </div>
     );
   }
@@ -210,7 +218,7 @@ const AdminTeamDetail = () => {
       <PageHeader
         backTo="/admin/teams"
         title={team.name}
-        subtitle={`Team Roster: ${team.members?.length || 0} members`}
+        subtitle={`Team roster: ${team.members?.length || 0} members`}
         badge={<Badge status={team.isActive} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -229,7 +237,7 @@ const AdminTeamDetail = () => {
               variant={team.isActive ? 'outlineDanger' : 'secondary'}
               onClick={() => setIsStatusConfirmOpen(true)}
             >
-              {team.isActive ? 'Deactivate Team' : 'Activate Team'}
+              {team.isActive ? 'Deactivate team' : 'Activate team'}
             </Button>
           </div>
         }
@@ -238,29 +246,29 @@ const AdminTeamDetail = () => {
       {/* Leadership Assignment Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {/* Team Head Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+        <Card className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                Team Leadership
+              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+                Team leadership
               </span>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Team Head</h2>
+              <h2 className="text-base font-semibold text-slate-900 mt-0.5">Team Head</h2>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+              <Shield className="h-5 w-5" />
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
             {team.head ? (
-              <div>
-                <p className="text-base font-bold text-slate-900">{team.head.name}</p>
-                <p className="text-xs text-indigo-600 font-medium mt-0.5">@{team.head.username}</p>
-                <p className="text-xs text-slate-500">{team.head.phone}</p>
-                <div className="mt-2">
-                  <Badge role="teamHead" />
+              <div className="flex items-center gap-3">
+                <Avatar name={team.head.name} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{team.head.name}</p>
+                  <p className="text-xs text-slate-500">@{team.head.username} • {team.head.phone}</p>
+                  <div className="mt-1.5">
+                    <Badge role="teamHead" />
+                  </div>
                 </div>
               </div>
             ) : (
@@ -272,51 +280,51 @@ const AdminTeamDetail = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Assign or Change Team Head
+              Assign or change Team Head
             </label>
             <select
               value={selectedHeadId}
               disabled={submitting}
               onChange={(e) => handleAssignHead(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-50"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
-                  {u.name} (@{u.username}) — {u.role}
+                  {u.name} (@{u.username}) — {u.role === 'teamHead' ? 'Team Head' : u.role === 'teamAssistant' ? 'Team Assistant' : u.role}
                 </option>
               ))}
             </select>
             <p className="text-[11px] text-slate-400 mt-1">
-              Selecting a new head will automatically change the previous head back to member.
+              Selecting a new head will automatically revert the previous head to member.
             </p>
           </div>
-        </div>
+        </Card>
 
         {/* Team Assistant Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+        <Card className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
-                Team Support
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
+                Team support
               </span>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Team Assistant</h2>
+              <h2 className="text-base font-semibold text-slate-900 mt-0.5">Team Assistant</h2>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+              <Award className="h-5 w-5" />
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
             {team.assistant ? (
-              <div>
-                <p className="text-base font-bold text-slate-900">{team.assistant.name}</p>
-                <p className="text-xs text-indigo-600 font-medium mt-0.5">@{team.assistant.username}</p>
-                <p className="text-xs text-slate-500">{team.assistant.phone}</p>
-                <div className="mt-2">
-                  <Badge role="teamAssistant" />
+              <div className="flex items-center gap-3">
+                <Avatar name={team.assistant.name} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{team.assistant.name}</p>
+                  <p className="text-xs text-slate-500">@{team.assistant.username} • {team.assistant.phone}</p>
+                  <div className="mt-1.5">
+                    <Badge role="teamAssistant" />
+                  </div>
                 </div>
               </div>
             ) : (
@@ -328,35 +336,35 @@ const AdminTeamDetail = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Assign or Change Team Assistant
+              Assign or change Team Assistant
             </label>
             <select
               value={selectedAssistantId}
               disabled={submitting}
               onChange={(e) => handleAssignAssistant(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-50"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
-                  {u.name} (@{u.username}) — {u.role}
+                  {u.name} (@{u.username}) — {u.role === 'teamHead' ? 'Team Head' : u.role === 'teamAssistant' ? 'Team Assistant' : u.role}
                 </option>
               ))}
             </select>
             <p className="text-[11px] text-slate-400 mt-1">
-              Selecting a new assistant will automatically revert the previous assistant back to member.
+              Selecting a new assistant will automatically revert the previous assistant to member.
             </p>
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Team Members Section */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+      <Card className="overflow-hidden p-0">
         {/* Section Header with Add Member Form */}
-        <div className="border-b border-slate-200 p-6">
+        <div className="border-b border-slate-200 p-5 sm:p-6 bg-slate-50/50">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Team Members Roster</h2>
+              <h2 className="text-base font-semibold text-slate-900">Team members roster</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Manage members assigned to this team. Users can belong to only one team at a time.
               </p>
@@ -368,7 +376,7 @@ const AdminTeamDetail = () => {
                 value={selectedMemberToAdd}
                 onChange={(e) => setSelectedMemberToAdd(e.target.value)}
                 disabled={submitting || eligibleNewMembers.length === 0}
-                className="min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-50 sm:w-64"
+                className="h-11 min-h-[44px] rounded-lg border border-slate-200 px-3 text-sm bg-white focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-100 sm:w-64"
               >
                 <option value="">
                   {eligibleNewMembers.length === 0
@@ -382,80 +390,81 @@ const AdminTeamDetail = () => {
                 ))}
               </select>
 
-              <button
+              <Button
                 type="submit"
+                variant="primary"
                 disabled={submitting || !selectedMemberToAdd}
-                className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 transition"
+                icon={Plus}
               >
-                Add Member
-              </button>
+                Add member
+              </Button>
             </form>
           </div>
         </div>
 
         {/* Member List */}
         {!team.members || team.members.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <svg
-              className="mx-auto h-12 w-12 text-slate-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
-            <p className="mt-3 text-base font-semibold text-slate-800">No members in this team</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Use the dropdown above to add active users to this team roster.
-            </p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title="No members in this team"
+            description="Use the dropdown above to add active users to this team roster."
+          />
         ) : (
           <>
-            {/* Desktop Table View */}
+            {/* Desktop Table View (>= 768px) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-600">
-                <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th scope="col" className="px-6 py-3.5">Name</th>
-                    <th scope="col" className="px-6 py-3.5">Phone</th>
-                    <th scope="col" className="px-6 py-3.5">Role</th>
-                    <th scope="col" className="px-6 py-3.5">Status</th>
-                    <th scope="col" className="px-6 py-3.5 text-right">Action</th>
+                    <th scope="col" className="px-5 py-3.5">Name</th>
+                    <th scope="col" className="px-5 py-3.5">Phone</th>
+                    <th scope="col" className="px-5 py-3.5">Role</th>
+                    <th scope="col" className="px-5 py-3.5">Status</th>
+                    <th scope="col" className="px-5 py-3.5 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {team.members.map((member) => (
                     <tr key={member._id} className="hover:bg-slate-50/70 transition">
-                      <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span>{member.name}</span>
-                          <span className="text-xs font-normal text-slate-400">@{member.username}</span>
+                      <td className="px-5 py-3.5 font-semibold text-slate-900 whitespace-nowrap">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={member.name} size="xs" />
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span>{member.name}</span>
+                              {team.head?._id === member._id && (
+                                <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
+                                  Head
+                                </span>
+                              )}
+                              {team.assistant?._id === member._id && (
+                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                                  Assistant
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-slate-400">@{member.username}</span>
+                          </div>
                         </div>
-                        {team.head?._id === member._id && (
-                          <span className="mt-1 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                            Head
-                          </span>
-                        )}
-                        {team.assistant?._id === member._id && (
-                          <span className="mt-1 inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
-                            Assistant
-                          </span>
-                        )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.phone}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-3.5 whitespace-nowrap text-xs text-slate-500 tabular-nums">
+                        {member.phone}
+                      </td>
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <Badge role={member.role} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-3.5 whitespace-nowrap">
                         <Badge status={member.isActive} />
                       </td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <button
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setMemberToRemove(member)}
-                          className="inline-flex items-center rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                          className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                         >
                           Remove
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -463,83 +472,82 @@ const AdminTeamDetail = () => {
               </table>
             </div>
 
-            {/* Mobile Cards View */}
+            {/* Mobile Cards View (Below 768px: clean cards, no horizontal scroll) */}
             <div className="md:hidden divide-y divide-slate-100">
               {team.members.map((member) => (
-                <div key={member._id} className="p-4 space-y-2">
+                <div key={member._id} className="p-4 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-bold text-slate-900">{member.name}</h4>
-                        <span className="text-xs text-slate-400">@{member.username}</span>
-                        {team.head?._id === member._id && (
-                          <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                            Head
-                          </span>
-                        )}
-                        {team.assistant?._id === member._id && (
-                          <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
-                            Assistant
-                          </span>
-                        )}
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={member.name} size="sm" />
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="font-semibold text-slate-900 text-sm">{member.name}</h4>
+                          {team.head?._id === member._id && (
+                            <span className="rounded-md bg-blue-50 px-1.5 py-0.2 text-[10px] font-semibold text-blue-700 border border-blue-200">
+                              Head
+                            </span>
+                          )}
+                          {team.assistant?._id === member._id && (
+                            <span className="rounded-md bg-emerald-50 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                              Assistant
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">@{member.username} • {member.phone}</p>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{member.phone}</p>
                     </div>
                     <Badge status={member.isActive} />
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
                     <Badge role={member.role} />
-                    <button
+                    <Button
+                      variant="outlineDanger"
+                      size="sm"
                       onClick={() => setMemberToRemove(member)}
-                      className="inline-flex min-h-[36px] items-center rounded-lg border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-600 shadow-2xs hover:bg-rose-50 transition"
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Rename Team Modal */}
       <Modal
         isOpen={isEditNameModalOpen}
         onClose={() => setIsEditNameModalOpen(false)}
-        title="Rename Team"
+        title="Rename team"
+        subtitle="Update the official team title"
         maxWidth="max-w-md"
       >
         <form onSubmit={handleUpdateName} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Team Name *
-            </label>
-            <input
-              type="text"
-              required
-              value={editedName}
-              onChange={(e) => setEditedName(e.target.value)}
-              className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-            />
-          </div>
+          <Input
+            label="Team name"
+            required
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            autoFocus
+          />
 
-          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
-            <button
+          <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-3 border-t border-slate-100">
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => setIsEditNameModalOpen(false)}
-              className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={submitting}
-              className="min-h-[44px] rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 disabled:opacity-50 transition"
+              variant="primary"
+              isLoading={submitting}
             >
-              {submitting ? 'Updating...' : 'Save Name'}
-            </button>
+              Save name
+            </Button>
           </div>
         </form>
       </Modal>
@@ -549,7 +557,7 @@ const AdminTeamDetail = () => {
         isOpen={isStatusConfirmOpen}
         onClose={() => setIsStatusConfirmOpen(false)}
         onConfirm={handleToggleStatus}
-        title={team.isActive ? 'Deactivate Team' : 'Activate Team'}
+        title={team.isActive ? 'Deactivate team?' : 'Activate team?'}
         message={`Are you sure you want to ${
           team.isActive ? 'deactivate' : 'activate'
         } "${team.name}"? ${
@@ -558,8 +566,8 @@ const AdminTeamDetail = () => {
             : 'The team will be available for game activities and entries.'
         }`}
         confirmText={team.isActive ? 'Deactivate' : 'Activate'}
-        isDanger={team.isActive}
-        isLoading={submitting}
+        confirmVariant={team.isActive ? 'danger' : 'primary'}
+        loading={submitting}
       />
 
       {/* Remove Member Confirm Dialog */}
@@ -567,15 +575,14 @@ const AdminTeamDetail = () => {
         isOpen={!!memberToRemove}
         onClose={() => setMemberToRemove(null)}
         onConfirm={handleRemoveMember}
-        title="Remove Member from Team"
+        title="Remove member from team?"
         message={`Are you sure you want to remove ${memberToRemove?.name} from ${team.name}? Their team assignment will be cleared and any head/assistant duties unassigned.`}
-        confirmText="Remove Member"
-        isDanger={true}
-        isLoading={submitting}
+        confirmText="Remove member"
+        confirmVariant="danger"
+        loading={submitting}
       />
     </div>
   );
 };
 
 export default AdminTeamDetail;
-

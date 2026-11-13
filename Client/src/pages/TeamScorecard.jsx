@@ -9,6 +9,9 @@ import PageHeader from '../components/PageHeader';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
+import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
+import EmptyState from '../components/EmptyState';
+import { Trophy } from 'lucide-react';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -42,7 +45,7 @@ const statusStyles = {
   },
   not_submitted: {
     variant: 'neutral',
-    label: 'Not Submitted',
+    label: 'Not submitted',
   },
 };
 
@@ -127,14 +130,14 @@ const TeamScorecard = () => {
     <div className="space-y-6">
       {/* Header with Back button */}
       <PageHeader
-        title={scorecard?.team?.name ? `${scorecard.team.name} Scorecard` : 'Team Scorecard'}
+        title={scorecard?.team?.name ? `${scorecard.team.name} scorecard` : 'Team scorecard'}
         subtitle="Monthly criteria points and one-time bonus achievements tracking."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="h-10 min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
               {MONTHS.map((m) => (
                 <option key={m.value} value={m.value}>
@@ -146,7 +149,7 @@ const TeamScorecard = () => {
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="h-10 min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
             >
               {YEARS.map((y) => (
                 <option key={y} value={y}>
@@ -159,33 +162,33 @@ const TeamScorecard = () => {
       />
 
       {loading ? (
-        <Card className="p-12 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3"></div>
-          <p className="text-sm font-medium text-slate-500">Loading scorecard...</p>
-        </Card>
+        <div className="space-y-6">
+          <SkeletonTable rows={5} cols={5} />
+          <SkeletonTable rows={5} cols={5} />
+        </div>
       ) : (
         <div className="space-y-6">
           {/* SECTION 1: Monthly Points */}
-          <Card>
-            <Card.Header
-              title="Monthly Points"
-              subtitle="Target criteria evaluated each calendar month"
-              action={
-                <Badge variant="brand">
-                  {MONTHS.find((m) => m.value === month)?.label} {year}
-                </Badge>
-              }
-            />
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+          <Card
+            title="Monthly points"
+            subtitle="Target criteria evaluated each calendar month"
+            action={
+              <Badge variant="indigo">
+                {MONTHS.find((m) => m.value === month)?.label} {year}
+              </Badge>
+            }
+            className="overflow-hidden p-0"
+          >
+            {/* Desktop Table View (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm text-slate-600">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    <th className="py-3 px-4 sm:px-6">Criteria Item</th>
+                    <th className="py-3 px-5">Criteria item</th>
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
-                    {isAssistant && <th className="py-3 px-4 text-center">Action</th>}
+                    {isAssistant && <th className="py-3 px-5 text-right">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -195,7 +198,7 @@ const TeamScorecard = () => {
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-4 sm:px-6 font-semibold text-slate-900">
+                        <td className="py-3.5 px-5 font-semibold text-slate-900">
                           {item.criterion.name}
                         </td>
                         <td className="py-3.5 px-4 text-right font-bold tabular-nums text-emerald-600">
@@ -205,15 +208,15 @@ const TeamScorecard = () => {
                           <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <Badge variant={badge.variant} size="xs">
+                          <Badge variant={badge.variant}>
                             {badge.label}
                           </Badge>
                         </td>
                         {isAssistant && (
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="py-3.5 px-5 text-right">
                             {canSubmit ? (
                               <Button
-                                size="xs"
+                                size="sm"
                                 variant="primary"
                                 onClick={() => handleOpenSubmit(item)}
                               >
@@ -232,8 +235,8 @@ const TeamScorecard = () => {
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
-                    <td className="py-3.5 px-4 sm:px-6 text-xs uppercase tracking-wider text-slate-600">Total Monthly Points</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right tabular-nums">
+                    <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total monthly points</td>
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
                       <span className="text-indigo-600 font-bold text-base">
                         {scorecard?.monthly?.earned || 0}
                       </span>
@@ -245,29 +248,85 @@ const TeamScorecard = () => {
                 </tfoot>
               </table>
             </div>
+
+            {/* Mobile Cards View (Below 768px: clean cards, no horizontal scroll) */}
+            <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
+              {scorecard?.monthly?.items?.map((item) => {
+                const badge = statusStyles[item.status] || statusStyles.not_submitted;
+                const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+
+                return (
+                  <div key={item.criterion.id || item.criterion._id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm leading-snug">
+                          {item.criterion.name}
+                        </p>
+                        <p className="text-xs font-bold text-emerald-600 mt-1 tabular-nums">
+                          +{item.criterion.points} pts
+                        </p>
+                      </div>
+                      <Badge variant={badge.variant}>
+                        {badge.label}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
+
+                      {isAssistant && (
+                        <div>
+                          {canSubmit ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => handleOpenSubmit(item)}
+                            >
+                              Submit
+                            </Button>
+                          ) : item.status === 'pending' ? (
+                            <span className="text-xs text-slate-400">Awaiting Head</span>
+                          ) : item.status === 'approved' ? (
+                            <span className="text-xs text-emerald-600 font-semibold">Earned</span>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="p-4 bg-slate-50/80 border-t-2 border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total monthly points</span>
+                <span className="text-sm font-bold tabular-nums">
+                  <span className="text-indigo-600">{scorecard?.monthly?.earned || 0}</span>
+                  <span className="text-slate-400"> / {scorecard?.monthly?.total || 5000}</span>
+                </span>
+              </div>
+            </div>
           </Card>
 
           {/* SECTION 2: One Time Bonus Points */}
-          <Card>
-            <Card.Header
-              title="One Time Bonus Points"
-              subtitle="All-time chapter achievement bonuses"
-              action={
-                <Badge variant="success">
-                  All-Time Achievements
-                </Badge>
-              }
-            />
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-sm">
+          <Card
+            title="One time bonus points"
+            subtitle="All-time chapter achievement bonuses"
+            action={
+              <Badge variant="success">
+                All-time achievements
+              </Badge>
+            }
+            className="overflow-hidden p-0"
+          >
+            {/* Desktop Table View (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm text-slate-600">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    <th className="py-3 px-4 sm:px-6">Criteria Item</th>
+                    <th className="py-3 px-5">Criteria item</th>
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
-                    {isAssistant && <th className="py-3 px-4 text-center">Action</th>}
+                    {isAssistant && <th className="py-3 px-5 text-right">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -277,7 +336,7 @@ const TeamScorecard = () => {
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-4 sm:px-6 font-semibold text-slate-900">
+                        <td className="py-3.5 px-5 font-semibold text-slate-900">
                           {item.criterion.name}
                         </td>
                         <td className="py-3.5 px-4 text-right font-bold tabular-nums text-emerald-600">
@@ -287,15 +346,15 @@ const TeamScorecard = () => {
                           <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <Badge variant={badge.variant} size="xs">
+                          <Badge variant={badge.variant}>
                             {badge.label}
                           </Badge>
                         </td>
                         {isAssistant && (
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="py-3.5 px-5 text-right">
                             {canSubmit ? (
                               <Button
-                                size="xs"
+                                size="sm"
                                 variant="primary"
                                 onClick={() => handleOpenSubmit(item)}
                               >
@@ -314,8 +373,8 @@ const TeamScorecard = () => {
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
-                    <td className="py-3.5 px-4 sm:px-6 text-xs uppercase tracking-wider text-slate-600">Total One-Time Points</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right tabular-nums">
+                    <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total one-time points</td>
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
                       <span className="text-indigo-600 font-bold text-base">
                         {scorecard?.oneTime?.earned || 0}
                       </span>
@@ -327,6 +386,62 @@ const TeamScorecard = () => {
                 </tfoot>
               </table>
             </div>
+
+            {/* Mobile Cards View (Below 768px: clean cards, no horizontal scroll) */}
+            <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
+              {scorecard?.oneTime?.items?.map((item) => {
+                const badge = statusStyles[item.status] || statusStyles.not_submitted;
+                const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+
+                return (
+                  <div key={item.criterion.id || item.criterion._id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm leading-snug">
+                          {item.criterion.name}
+                        </p>
+                        <p className="text-xs font-bold text-emerald-600 mt-1 tabular-nums">
+                          +{item.criterion.points} pts
+                        </p>
+                      </div>
+                      <Badge variant={badge.variant}>
+                        {badge.label}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
+
+                      {isAssistant && (
+                        <div>
+                          {canSubmit ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => handleOpenSubmit(item)}
+                            >
+                              Submit
+                            </Button>
+                          ) : item.status === 'pending' ? (
+                            <span className="text-xs text-slate-400">Awaiting Head</span>
+                          ) : item.status === 'approved' ? (
+                            <span className="text-xs text-emerald-600 font-semibold">Earned</span>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div className="p-4 bg-slate-50/80 border-t-2 border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total one-time points</span>
+                <span className="text-sm font-bold tabular-nums">
+                  <span className="text-indigo-600">{scorecard?.oneTime?.earned || 0}</span>
+                  <span className="text-slate-400"> / {scorecard?.oneTime?.total || 5000}</span>
+                </span>
+              </div>
+            </div>
           </Card>
         </div>
       )}
@@ -336,12 +451,13 @@ const TeamScorecard = () => {
         <Modal
           isOpen={!!submittingCriterion}
           onClose={() => setSubmittingCriterion(null)}
-          title={`Submit Team Goal: ${submittingCriterion?.criterion?.name || ''}`}
+          title={`Submit team goal: ${submittingCriterion?.criterion?.name || ''}`}
+          subtitle="Submit points claim for chapter leadership review"
         >
           <form onSubmit={handleSubmitScorecardItem} className="space-y-4">
             <div className="rounded-lg bg-slate-50 p-3.5 border border-slate-200 flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-500 font-medium">Activity Points</p>
+                <p className="text-xs text-slate-500 font-medium">Activity points</p>
                 <p className="text-base font-bold tabular-nums text-emerald-600">
                   +{submittingCriterion?.criterion?.points || 1000} pts
                 </p>
@@ -367,15 +483,15 @@ const TeamScorecard = () => {
             />
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                Notes / Remarks (Optional)
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Notes or remarks (Optional)
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 placeholder="Add any supporting remarks or completion details..."
-                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
               />
             </div>
 
@@ -391,10 +507,10 @@ const TeamScorecard = () => {
               <Button
                 type="submit"
                 variant="primary"
-                loading={submitting}
+                isLoading={submitting}
                 disabled={submitting || uploadingProof}
               >
-                {uploadingProof ? 'Uploading photo...' : 'Confirm & Submit'}
+                {uploadingProof ? 'Uploading photo...' : 'Confirm and submit'}
               </Button>
             </div>
           </form>

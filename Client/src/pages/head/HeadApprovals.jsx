@@ -97,22 +97,22 @@ const HeadApprovals = () => {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
-        title="Pending Approvals"
+        title="Pending approvals"
         subtitle="Review and approve point entries submitted for your team."
         actions={
-          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto">
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
             <button
               type="button"
               onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'member'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Member Entries</span>
+              <span>Member entries</span>
               {memberEntries.length > 0 && (
-                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700 tabular-nums">
                   {memberEntries.length}
                 </span>
               )}
@@ -121,15 +121,15 @@ const HeadApprovals = () => {
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'team'
                   ? 'bg-white text-indigo-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <span>Team Points</span>
+              <span>Team points</span>
               {teamEntries.length > 0 && (
-                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700 tabular-nums">
                   {teamEntries.length}
                 </span>
               )}
@@ -139,65 +139,63 @@ const HeadApprovals = () => {
       />
 
       {/* Table of Entries in a Card */}
-      <Card>
-        <Card.Body className="p-0">
-          <EntriesTable
-            entries={currentList}
-            loading={loading}
-            prominentProof={true}
-            emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
-            renderActions={(entry) => {
-              const isSelf = activeTab === 'member' && entry.member?._id === user?._id;
-              const isActing = actionLoadingId === entry._id;
-              const isMeetingEntry = entry.source === 'meeting_sheet' && entry.meeting;
-              const meetingId = entry.meeting?._id || entry.meeting;
-              const meetingDateStr = entry.date
-                ? new Date(entry.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-                : '';
+      <Card className="overflow-hidden p-0">
+        <EntriesTable
+          entries={currentList}
+          loading={loading}
+          prominentProof={true}
+          emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
+          renderActions={(entry) => {
+            const isSelf = activeTab === 'member' && entry.member?._id === user?._id;
+            const isActing = actionLoadingId === entry._id;
+            const isMeetingEntry = entry.source === 'meeting_sheet' && entry.meeting;
+            const meetingId = entry.meeting?._id || entry.meeting;
+            const meetingDateStr = entry.date
+              ? new Date(entry.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+              : '';
 
-              return (
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  {isMeetingEntry && (
-                    <Link
-                      to={`/head/meetings/${meetingId}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition whitespace-nowrap"
-                      title="View full meeting attendance sheet"
+            return (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {isMeetingEntry && (
+                  <Link
+                    to={`/head/meetings/${meetingId}`}
+                    className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition whitespace-nowrap"
+                    title="View full meeting attendance sheet"
+                  >
+                    <span>Meeting {meetingDateStr}</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                )}
+
+                {isSelf ? (
+                  <Badge variant="warning">
+                    Self-entry (Admin approval needed)
+                  </Badge>
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      disabled={isActing}
+                      isLoading={isActing}
+                      onClick={() => handleApprove(entry, activeTab === 'team')}
                     >
-                      <span>Meeting {meetingDateStr}</span>
-                      <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  )}
-
-                  {isSelf ? (
-                    <Badge variant="warning" size="xs">
-                      Self-entry (Admin approval needed)
-                    </Badge>
-                  ) : (
-                    <>
-                      <Button
-                        size="xs"
-                        variant="primary"
-                        disabled={isActing}
-                        loading={isActing}
-                        onClick={() => handleApprove(entry, activeTab === 'team')}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="outlineDanger"
-                        disabled={isActing}
-                        onClick={() => setRejectItem(entry)}
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                </div>
-              );
-            }}
-          />
-        </Card.Body>
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outlineDanger"
+                      disabled={isActing}
+                      onClick={() => setRejectItem(entry)}
+                    >
+                      Reject
+                    </Button>
+                  </>
+                )}
+              </div>
+            );
+          }}
+        />
       </Card>
 
       {/* Reject Reason Modal */}
@@ -205,14 +203,14 @@ const HeadApprovals = () => {
         isOpen={Boolean(rejectItem)}
         onClose={() => setRejectItem(null)}
         onConfirm={handleRejectConfirm}
-        title="Reject Point Entry"
+        title="Reject point entry"
         itemDescription={
           rejectItem && (
             <div>
               <p className="font-semibold text-slate-800">
-                {rejectItem.criteria?.name} ({rejectItem.points} pts)
+                {rejectItem.criteria?.name} ({rejectItem.points > 0 ? `+${rejectItem.points}` : rejectItem.points} pts)
               </p>
-              <p className="text-slate-500 mt-0.5">
+              <p className="text-slate-500 mt-0.5 text-xs">
                 Member: {rejectItem.member?.name ? `${rejectItem.member.name} (@${rejectItem.member.username})` : 'Whole Team'}
               </p>
             </div>
