@@ -23,7 +23,7 @@ const AdminTeamDetail = () => {
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
 
   // Assign Leadership States
-  const [selectedLeadId, setSelectedLeadId] = useState('');
+  const [selectedHeadId, setSelectedHeadId] = useState('');
   const [selectedAssistantId, setSelectedAssistantId] = useState('');
 
   // Add Member State
@@ -44,7 +44,7 @@ const AdminTeamDetail = () => {
       if (teamRes.data?.success) {
         setTeam(teamRes.data.data);
         setEditedName(teamRes.data.data.name);
-        setSelectedLeadId(teamRes.data.data.lead?._id || '');
+        setSelectedHeadId(teamRes.data.data.head?._id || '');
         setSelectedAssistantId(teamRes.data.data.assistant?._id || '');
       }
 
@@ -64,7 +64,7 @@ const AdminTeamDetail = () => {
     fetchData();
   }, [id]);
 
-  // Eligible users for Lead & Assistant: active users who are either not in a team or already in THIS team
+  // Eligible users for Head & Assistant: active users who are either not in a team or already in THIS team
   const eligibleLeaders = activeUsers.filter((u) => {
     const userTeamId = u.team?._id || u.team;
     return !userTeamId || userTeamId.toString() === id;
@@ -114,19 +114,19 @@ const AdminTeamDetail = () => {
     }
   };
 
-  // Assign Team Lead
-  const handleAssignLead = async (userId) => {
+  // Assign Team Head
+  const handleAssignHead = async (userId) => {
     if (!userId) return;
     try {
       setSubmitting(true);
-      const res = await api.patch(`/teams/${id}/lead`, { userId });
-      toast.success('Team Lead assigned successfully!');
+      const res = await api.patch(`/teams/${id}/head`, { userId });
+      toast.success('Team Head assigned successfully!');
       setTeam(res.data.data);
-      setSelectedLeadId(userId);
+      setSelectedHeadId(userId);
       fetchData(); // Refresh active users list so role updates
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to assign team lead.');
-      setSelectedLeadId(team.lead?._id || '');
+      toast.error(err.response?.data?.message || 'Failed to assign team head.');
+      setSelectedHeadId(team.head?._id || '');
     } finally {
       setSubmitting(false);
     }
@@ -260,14 +260,14 @@ const AdminTeamDetail = () => {
 
       {/* Leadership Assignment Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {/* Team Lead Card */}
+        {/* Team Head Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
                 Team Leadership
               </span>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Team Lead</h2>
+              <h2 className="text-lg font-bold text-slate-900 mt-0.5">Team Head</h2>
             </div>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,29 +277,29 @@ const AdminTeamDetail = () => {
           </div>
 
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-            {team.lead ? (
+            {team.head ? (
               <div>
-                <p className="text-base font-bold text-slate-900">{team.lead.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{team.lead.phone}</p>
+                <p className="text-base font-bold text-slate-900">{team.head.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{team.head.phone}</p>
                 <div className="mt-2">
-                  <Badge role="teamLead" />
+                  <Badge role="teamHead" />
                 </div>
               </div>
             ) : (
               <p className="text-xs italic text-slate-400">
-                No Team Lead currently assigned to this team.
+                No Team Head currently assigned to this team.
               </p>
             )}
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Assign or Change Team Lead
+              Assign or Change Team Head
             </label>
             <select
-              value={selectedLeadId}
+              value={selectedHeadId}
               disabled={submitting}
-              onChange={(e) => handleAssignLead(e.target.value)}
+              onChange={(e) => handleAssignHead(e.target.value)}
               className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3.5 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-50"
             >
               <option value="">Select an active user...</option>
@@ -310,7 +310,7 @@ const AdminTeamDetail = () => {
               ))}
             </select>
             <p className="text-[11px] text-slate-400 mt-1">
-              Selecting a new lead will automatically change the previous lead back to member.
+              Selecting a new head will automatically change the previous head back to member.
             </p>
           </div>
         </div>
@@ -449,9 +449,9 @@ const AdminTeamDetail = () => {
                     <tr key={member._id} className="hover:bg-slate-50/70 transition">
                       <td className="px-6 py-4 font-semibold text-slate-900 whitespace-nowrap">
                         {member.name}
-                        {team.lead?._id === member._id && (
+                        {team.head?._id === member._id && (
                           <span className="ml-2 inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                            Lead
+                            Head
                           </span>
                         )}
                         {team.assistant?._id === member._id && (
@@ -489,9 +489,9 @@ const AdminTeamDetail = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-slate-900">{member.name}</h4>
-                        {team.lead?._id === member._id && (
+                        {team.head?._id === member._id && (
                           <span className="rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                            Lead
+                            Head
                           </span>
                         )}
                         {team.assistant?._id === member._id && (
@@ -585,7 +585,7 @@ const AdminTeamDetail = () => {
         onClose={() => setMemberToRemove(null)}
         onConfirm={handleRemoveMember}
         title="Remove Member from Team"
-        message={`Are you sure you want to remove ${memberToRemove?.name} from ${team.name}? Their team assignment will be cleared and any lead/assistant duties unassigned.`}
+        message={`Are you sure you want to remove ${memberToRemove?.name} from ${team.name}? Their team assignment will be cleared and any head/assistant duties unassigned.`}
         confirmText="Remove Member"
         isDanger={true}
         isLoading={submitting}

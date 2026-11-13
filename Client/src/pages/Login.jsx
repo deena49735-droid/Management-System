@@ -121,7 +121,7 @@ const Login = () => {
 
           <div className="mt-6 border-t border-slate-100 pt-4 text-center">
             <p className="text-xs text-slate-500">
-              Accounts are created by the chapter admin. Please contact your team lead or admin if you need access.
+              Accounts are created by the chapter admin. Please contact your team head or admin if you need access.
             </p>
           </div>
         </div>

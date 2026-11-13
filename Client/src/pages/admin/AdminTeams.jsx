@@ -167,7 +167,7 @@ const AdminTeams = () => {
                 <thead className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <tr>
                     <th scope="col" className="px-6 py-3.5">Team Name</th>
-                    <th scope="col" className="px-6 py-3.5">Team Lead</th>
+                    <th scope="col" className="px-6 py-3.5">Team Head</th>
                     <th scope="col" className="px-6 py-3.5">Team Assistant</th>
                     <th scope="col" className="px-6 py-3.5 text-center">Members</th>
                     <th scope="col" className="px-6 py-3.5">Status</th>
@@ -185,10 +185,10 @@ const AdminTeams = () => {
                         {team.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-slate-700">
-                        {team.lead ? (
+                        {team.head ? (
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-slate-800">{team.lead.name}</span>
-                            <span className="text-xs text-slate-400">({team.lead.phone})</span>
+                            <span className="font-medium text-slate-800">{team.head.name}</span>
+                            <span className="text-xs text-slate-400">({team.head.phone})</span>
                           </div>
                         ) : (
                           <span className="text-xs italic text-slate-400">Unassigned</span>
@@ -238,9 +238,9 @@ const AdminTeams = () => {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Team Lead</span>
+                      <span className="text-slate-400 block text-[10px] uppercase font-bold">Team Head</span>
                       <span className="font-semibold text-slate-800 mt-0.5 block truncate">
-                        {team.lead?.name || 'Unassigned'}
+                        {team.head?.name || 'Unassigned'}
                       </span>
                     </div>
                     <div>

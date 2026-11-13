@@ -8,7 +8,7 @@ const teamSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    lead: {
+    head: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,

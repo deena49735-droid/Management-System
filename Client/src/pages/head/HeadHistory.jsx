@@ -6,7 +6,7 @@ import Pagination from '../../components/Pagination';
 
 const PAGE_SIZE = 15;
 
-const LeadHistory = () => {
+const HeadHistory = () => {
   const [activeTab, setActiveTab] = useState('member'); // 'member' | 'team'
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,5 +157,5 @@ const LeadHistory = () => {
   );
 };
 
-export default LeadHistory;
+export default HeadHistory;
 

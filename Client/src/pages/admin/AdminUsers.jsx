@@ -298,7 +298,7 @@ const AdminUsers = () => {
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
-            <option value="teamLead">Team Lead</option>
+            <option value="teamHead">Team Head</option>
             <option value="teamAssistant">Team Assistant</option>
             <option value="member">Member</option>
           </select>
@@ -558,7 +558,7 @@ const AdminUsers = () => {
                 className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
               >
                 <option value="member">Member</option>
-                <option value="teamLead">Team Lead</option>
+                <option value="teamHead">Team Head</option>
                 <option value="teamAssistant">Team Assistant</option>
                 <option value="admin">Admin</option>
               </select>
@@ -654,7 +654,7 @@ const AdminUsers = () => {
                 className="w-full min-h-[44px] rounded-xl border border-slate-300 px-3 text-sm bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 disabled:opacity-50"
               >
                 <option value="member">Member</option>
-                <option value="teamLead">Team Lead</option>
+                <option value="teamHead">Team Head</option>
                 <option value="teamAssistant">Team Assistant</option>
                 <option value="admin">Admin</option>
               </select>

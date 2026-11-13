@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import EntriesTable from '../../components/EntriesTable';
 import RejectModal from '../../components/RejectModal';
 
-const LeadApprovals = () => {
+const HeadApprovals = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('member'); // 'member' | 'team'
   const [memberEntries, setMemberEntries] = useState([]);
@@ -196,5 +196,5 @@ const LeadApprovals = () => {
   );
 };
 
-export default LeadApprovals;
+export default HeadApprovals;
 

@@ -28,6 +28,10 @@ const MemberDashboard = () => {
   });
   const [entries, setEntries] = useState([]);
   const [proofCriteria, setProofCriteria] = useState([]);
+  const [memberRank, setMemberRank] = useState(null);
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [teamRank, setTeamRank] = useState(null);
+  const [totalTeams, setTotalTeams] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,17 +47,32 @@ const MemberDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [summaryRes, entriesRes, criteriaRes] = await Promise.all([
-        api.get('/entries/my-summary'),
-        api.get('/entries', { params: statusFilter ? { status: statusFilter } : {} }),
-        api.get('/criteria', { params: { level: 'member', isActive: true } }),
-      ]);
+      const [summaryRes, entriesRes, criteriaRes, teamLeaderboardRes, memberLeaderboardRes] =
+        await Promise.all([
+          api.get('/entries/my-summary'),
+          api.get('/entries', { params: statusFilter ? { status: statusFilter } : {} }),
+          api.get('/criteria', { params: { level: 'member', isActive: true } }),
+          api.get('/leaderboard/teams', { params: { period: 'month' } }),
+          api.get('/leaderboard/members', { params: { period: 'month' } }),
+        ]);
 
       setSummary(summaryRes.data.data || {});
       setEntries(entriesRes.data.data || []);
       // Filter criteria that members are allowed to submit (needsProof === true)
       const allowed = (criteriaRes.data.data || []).filter((c) => c.needsProof === true);
       setProofCriteria(allowed);
+
+      // Extract ranks
+      const teamsList = teamLeaderboardRes.data.data || [];
+      setTotalTeams(teamsList.length);
+      const userTeamId = user?.team?._id || user?.team;
+      const myTeam = teamsList.find((t) => t.teamId === userTeamId);
+      if (myTeam) setTeamRank(myTeam.rank);
+
+      const membersList = memberLeaderboardRes.data.data || [];
+      setTotalMembers(membersList.length);
+      const me = membersList.find((m) => m.userId === user?._id);
+      if (me) setMemberRank(me.rank);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load member dashboard.');
     } finally {
@@ -85,7 +104,7 @@ const MemberDashboard = () => {
         note: entryNote ? entryNote.trim() : undefined,
       });
 
-      toast.success('Activity submitted! Awaiting Team Lead approval.');
+      toast.success('Activity submitted! Awaiting Team Head approval.');
       setIsSubmitOpen(false);
       setSelectedCriteriaId('');
       setEntryNote('');
@@ -134,34 +153,50 @@ const MemberDashboard = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 sm:gap-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+            <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">My Rank</p>
+            <p className="mt-2 text-2xl font-extrabold text-amber-600">
+              {memberRank !== null ? `#${memberRank}` : '—'}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">of {totalMembers} this month</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
+            <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">My Team Rank</p>
+            <p className="mt-2 text-2xl font-extrabold text-blue-600">
+              {teamRank !== null ? `#${teamRank}` : '—'}
+            </p>
+            <p className="mt-1 text-xs text-slate-400">of {totalTeams} this month</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
             <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Total Points</p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-emerald-600">
+            <p className="mt-2 text-2xl font-extrabold text-emerald-600">
               {summary.approvedTotal || 0}
             </p>
             <p className="mt-1 text-xs text-slate-400">Lifetime approved</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
             <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">This Week's Points</p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-indigo-600">
+            <p className="mt-2 text-2xl font-extrabold text-indigo-600">
               {summary.weekTotal || 0}
             </p>
             <p className="mt-1 text-xs text-slate-400">Current week approved</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
             <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Penalties</p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-rose-600">
+            <p className="mt-2 text-2xl font-extrabold text-rose-600">
               {summary.penaltyTotal || 0}
             </p>
             <p className="mt-1 text-xs text-slate-400">Negative deductions</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
             <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Pending Review</p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold text-amber-600">
+            <p className="mt-2 text-2xl font-extrabold text-amber-600">
               {summary.pendingCount || 0}
             </p>
             <p className="mt-1 text-xs text-slate-400">Awaiting approval</p>
@@ -287,7 +322,7 @@ const MemberDashboard = () => {
             <svg className="h-5 w-5 shrink-0 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Photo upload will be added soon. Your Team Lead will verify this submission.</span>
+            <span>Photo upload will be added soon. Your Team Head will verify this submission.</span>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">

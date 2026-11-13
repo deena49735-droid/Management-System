@@ -9,8 +9,8 @@ export const getDashboardPathByRole = (role) => {
   switch (role) {
     case 'admin':
       return '/admin';
-    case 'teamLead':
-      return '/lead';
+    case 'teamHead':
+      return '/head';
     case 'teamAssistant':
       return '/assistant';
     case 'member':

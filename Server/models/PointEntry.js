@@ -90,6 +90,7 @@ const pointEntrySchema = new mongoose.Schema(
 pointEntrySchema.index({ member: 1, date: 1 });
 pointEntrySchema.index({ team: 1, status: 1 });
 pointEntrySchema.index({ weekNumber: 1, month: 1, year: 1 });
+pointEntrySchema.index({ status: 1, team: 1, year: 1, month: 1, weekNumber: 1 });
 
 const PointEntry = mongoose.model('PointEntry', pointEntrySchema);
 

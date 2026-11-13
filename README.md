@@ -25,12 +25,12 @@ The UI must be **mobile-first**, because most users will open it on a phone.
 
 | Role | Value in DB | Can do |
 |---|---|---|
-| Admin | `admin` | Create teams and users, assign leads and assistants, edit criteria and points, view everything, override or reverse any approval, reports and Excel export |
-| Team Lead | `teamLead` | Manage own team, approve or reject member entries and team monthly points for **own team only**. Cannot submit team points |
+| Admin | `admin` | Create teams and users, assign team heads and assistants, edit criteria and points, view everything, override or reverse any approval, reports and Excel export |
+| Team Head | `teamHead` | Manage own team, approve or reject member entries and team monthly points for **own team only**. Cannot submit team points |
 | Team Assistant | `teamAssistant` | Data entry for own team: attendance, late marks, referral and one-to-one counts, submit team monthly points. Cannot approve |
 | Member | `member` | View own points and penalties, upload proof photos, view leaderboard |
 
-Every API route must check the user's role (role-based access control) using `auth` and `roleCheck` middleware. A lead or assistant can only access data of their own team.
+Every API route must check the user's role (role-based access control) using `auth` and `roleCheck` middleware. A team head or assistant can only access data of their own team.
 
 ---
 
@@ -67,7 +67,7 @@ TeamPointEntry (team-level: monthly and one-time)
   team, criteria, points, month, year
   proofImage
   status        pending | approved | rejected
-  submittedBy (assistant), approvedBy (team lead or admin), approvedAt
+  submittedBy (assistant), approvedBy (team head or admin), approvedAt
 ```
 
 ---
@@ -75,7 +75,7 @@ TeamPointEntry (team-level: monthly and one-time)
 ## 4. Database Collections
 
 - **User**: name, phone, password (hashed), role, team
-- **Team**: name, lead, assistant, members[]
+- **Team**: name, head (the Team Head), assistant, members[]
 - **Criteria**: see above
 - **PointEntry**: member-level points and penalties
 - **TeamPointEntry**: team-level monthly and one-time points
@@ -88,12 +88,12 @@ TeamPointEntry (team-level: monthly and one-time)
 
 **Member entries (meeting day and non-meeting day)**
 1. Assistant or member submits an entry. Status is `pending`.
-2. Team Lead approves or rejects.
+2. Team Head approves or rejects.
 3. Points count only after approval.
 
 **Team monthly and one-time points**
 1. Assistant submits (with proof where required). Status is `pending`.
-2. Team Lead of the same team approves or rejects.
+2. Team Head of the same team approves or rejects.
 3. Admin can override or reverse any approval at any time.
 4. Every approval stores `approvedBy` and `approvedAt` for audit.
 
@@ -104,7 +104,7 @@ TeamPointEntry (team-level: monthly and one-time)
 1. Assistant marks each member as present, late or absent.
 2. The app auto-creates penalties (for example, late after 7:59 AM and absent for the weekly meeting).
 3. Assistant ticks the activities done (Early Bird, Full Attire, visitors count, and so on).
-4. Lead reviews and approves.
+4. Team Head reviews and approves.
 
 ---
 
@@ -195,7 +195,7 @@ Traffic light Grey or Red is entered monthly by the admin.
 - **Member dashboard**: total points, this week's points, penalties, upload proof
 - **Leaderboard**: team ranking and top members, filter by week or month
 - **Assistant screen**: attendance sheet and quick-entry form, submit team points
-- **Lead screen**: pending approvals with two tabs (Member entries, Team monthly points)
+- **Team Head screen**: pending approvals with two tabs (Member entries, Team monthly points)
 - **Admin panel**: users, teams, criteria, reports, Excel export
 
 ---
@@ -253,9 +253,10 @@ Build **one phase at a time**. Wait for confirmation before starting the next.
 - Do not delete, rename or rewrite files from earlier phases unless the current prompt says so.
 - After each phase, explain how to run and test it.
 
-FILE RULES (strict):
-- Only edit or create the files needed for this task. Do not create any other file: no docs, summaries, notes, test files, sample files, backups or duplicates.
-- Edit existing files instead of making new versions of them.
-- Do not touch files unrelated to this task.
-- If you think a new file is needed, tell me the file name and why, and wait for my approval first.
-- When finished, list every file you changed or created.
+---
+
+## 12. Naming Rule
+
+The role is called **Team Head** everywhere: screens, buttons, menus, messages, API paths, route paths, database values, field names, variable and file names. The role value in the database is `teamHead`, the Team model field is `head`, the API path is `/api/teams/:id/head`, and the client route is `/head`. Never use "Team Lead", "teamLead" or "lead" for this role anywhere in the code.
+
+The app has exactly four dashboards: Admin, Team Head, Team Assistant and Member.

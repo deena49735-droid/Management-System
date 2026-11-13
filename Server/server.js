@@ -21,6 +21,7 @@ const teamRoutes = require('./routes/teamRoutes');
 const criteriaRoutes = require('./routes/criteriaRoutes');
 const entryRoutes = require('./routes/entryRoutes');
 const teamEntryRoutes = require('./routes/teamEntryRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/criteria', criteriaRoutes);
 app.use('/api/entries', entryRoutes);
 app.use('/api/team-entries', teamEntryRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 // 404 Route Handler for undefined routes
 app.use((req, res) => {

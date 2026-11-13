@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import api from '../../api/axios';
 
-const LeadLayout = () => {
+const HeadLayout = () => {
   const location = useLocation();
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -27,7 +27,7 @@ const LeadLayout = () => {
   const navItems = [
     {
       name: 'Overview',
-      path: '/lead',
+      path: '/head',
       exact: true,
       icon: (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@ const LeadLayout = () => {
     },
     {
       name: 'Approvals',
-      path: '/lead/approvals',
+      path: '/head/approvals',
       badge: pendingCount > 0 ? pendingCount : null,
       icon: (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -47,10 +47,19 @@ const LeadLayout = () => {
     },
     {
       name: 'History',
-      path: '/lead/history',
+      path: '/head/history',
       icon: (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Leaderboard',
+      path: '/leaderboard',
+      icon: (
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
     },
@@ -101,5 +110,5 @@ const LeadLayout = () => {
   );
 };
 
-export default LeadLayout;
+export default HeadLayout;
 

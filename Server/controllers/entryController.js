@@ -105,10 +105,10 @@ exports.createEntry = async (req, res, next) => {
           message: 'Team assistants can only submit entries for members of their own team.',
         });
       }
-    } else if (userRole === 'teamLead') {
+    } else if (userRole === 'teamHead') {
       return res.status(403).json({
         success: false,
-        message: 'Team leads cannot submit member entries directly. Data entry is handled by team assistants.',
+        message: 'Team heads cannot submit member entries directly. Data entry is handled by team assistants.',
       });
     }
 
@@ -196,8 +196,8 @@ exports.getEntries = async (req, res, next) => {
       if (req.query.team && mongoose.Types.ObjectId.isValid(req.query.team)) {
         filter.team = req.query.team;
       }
-    } else if (userRole === 'teamLead' || userRole === 'teamAssistant') {
-      // Lead and assistant only see their own team's entries
+    } else if (userRole === 'teamHead' || userRole === 'teamAssistant') {
+      // Head and assistant only see their own team's entries
       if (!req.user.team) {
         return res.status(200).json({ success: true, data: [] });
       }
@@ -253,7 +253,7 @@ exports.getEntries = async (req, res, next) => {
 /**
  * @desc    Approve a member point entry
  * @route   PATCH /api/entries/:id/approve
- * @access  Private (teamLead of same team, or admin)
+ * @access  Private (teamHead of same team, or admin)
  */
 exports.approveEntry = async (req, res, next) => {
   try {
@@ -274,28 +274,28 @@ exports.approveEntry = async (req, res, next) => {
 
     const userRole = req.user.role;
 
-    // Check authorization: admin or teamLead of the same team
+    // Check authorization: admin or teamHead of the same team
     if (userRole !== 'admin') {
-      if (userRole !== 'teamLead') {
+      if (userRole !== 'teamHead') {
         return res.status(403).json({
           success: false,
-          message: 'Only team leads or admins can approve entries.',
+          message: 'Only team heads or admins can approve entries.',
         });
       }
 
-      // Must be teamLead of the SAME team
+      // Must be teamHead of the SAME team
       if (!req.user.team || entry.team.toString() !== req.user.team.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'Team leads can only approve entries for their own team.',
+          message: 'Team heads can only approve entries for their own team.',
         });
       }
 
-      // Self-approval is blocked for teamLead
+      // Self-approval is blocked for teamHead
       if (entry.member.toString() === req.user._id.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'Team leads cannot approve their own point entries.',
+          message: 'Team heads cannot approve their own point entries.',
         });
       }
 
@@ -334,7 +334,7 @@ exports.approveEntry = async (req, res, next) => {
 /**
  * @desc    Reject a member point entry
  * @route   PATCH /api/entries/:id/reject
- * @access  Private (teamLead of same team, or admin)
+ * @access  Private (teamHead of same team, or admin)
  */
 exports.rejectEntry = async (req, res, next) => {
   try {
@@ -363,28 +363,28 @@ exports.rejectEntry = async (req, res, next) => {
 
     const userRole = req.user.role;
 
-    // Check authorization: admin or teamLead of the same team
+    // Check authorization: admin or teamHead of the same team
     if (userRole !== 'admin') {
-      if (userRole !== 'teamLead') {
+      if (userRole !== 'teamHead') {
         return res.status(403).json({
           success: false,
-          message: 'Only team leads or admins can reject entries.',
+          message: 'Only team heads or admins can reject entries.',
         });
       }
 
-      // Must be teamLead of the SAME team
+      // Must be teamHead of the SAME team
       if (!req.user.team || entry.team.toString() !== req.user.team.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'Team leads can only reject entries for their own team.',
+          message: 'Team heads can only reject entries for their own team.',
         });
       }
 
-      // Self-rejection is also blocked for teamLead
+      // Self-rejection is also blocked for teamHead
       if (entry.member.toString() === req.user._id.toString()) {
         return res.status(403).json({
           success: false,
-          message: 'Team leads cannot reject their own point entries.',
+          message: 'Team heads cannot reject their own point entries.',
         });
       }
 

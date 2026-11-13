@@ -24,8 +24,8 @@ const createUserValidation = [
     .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
-    .isIn(['admin', 'teamLead', 'teamAssistant', 'member'])
-    .withMessage('Role must be one of: admin, teamLead, teamAssistant, member'),
+    .isIn(['admin', 'teamHead', 'teamAssistant', 'member'])
+    .withMessage('Role must be one of: admin, teamHead, teamAssistant, member'),
   body('team')
     .optional({ nullable: true, checkFalsy: true })
     .isMongoId()
@@ -49,8 +49,8 @@ const updateUserValidation = [
     .withMessage('Phone must be a valid 10-digit number'),
   body('role')
     .optional()
-    .isIn(['admin', 'teamLead', 'teamAssistant', 'member'])
-    .withMessage('Role must be one of: admin, teamLead, teamAssistant, member'),
+    .isIn(['admin', 'teamHead', 'teamAssistant', 'member'])
+    .withMessage('Role must be one of: admin, teamHead, teamAssistant, member'),
   body('team')
     .optional({ nullable: true })
     .custom((val) => {

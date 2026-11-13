@@ -2,7 +2,7 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 
-const LeadDashboard = () => {
+const HeadDashboard = () => {
   const { user, logout } = useAuth();
 
   return (
@@ -17,7 +17,7 @@ const LeadDashboard = () => {
                 Phase 2 Placeholder
               </span>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Team Lead Screen
+                Team Head Screen
               </h1>
               <p className="text-sm text-slate-500 mt-1">
                 Approve or reject member activity entries and team monthly points for your own team.
@@ -41,7 +41,7 @@ const LeadDashboard = () => {
 
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Role</p>
-              <p className="mt-1 text-lg font-bold text-blue-700 capitalize">Team Lead</p>
+              <p className="mt-1 text-lg font-bold text-blue-700 capitalize">Team Head</p>
               <p className="text-xs text-slate-500">Team: {user?.team?.name || 'Unassigned'}</p>
             </div>
 
@@ -57,5 +57,5 @@ const LeadDashboard = () => {
   );
 };
 
-export default LeadDashboard;
+export default HeadDashboard;
 

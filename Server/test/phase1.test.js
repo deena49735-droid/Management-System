@@ -150,7 +150,7 @@ describe('Phase 1 Tests', () => {
     });
 
     it('should return 403 if user role is not allowed', () => {
-      const middleware = roleCheck('admin', 'teamLead');
+      const middleware = roleCheck('admin', 'teamHead');
       let statusCalled = null;
       let jsonCalled = null;
       const req = { user: { role: 'member' } };
@@ -176,7 +176,7 @@ describe('Phase 1 Tests', () => {
     });
 
     it('should call next() if user role is allowed', () => {
-      const middleware = roleCheck('admin', 'teamLead');
+      const middleware = roleCheck('admin', 'teamHead');
       const req = { user: { role: 'admin' } };
       const res = {};
       let nextCalled = false;

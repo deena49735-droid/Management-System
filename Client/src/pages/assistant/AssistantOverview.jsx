@@ -9,6 +9,8 @@ const AssistantOverview = () => {
   const { user } = useAuth();
   const [team, setTeam] = useState(null);
   const [myPendingCount, setMyPendingCount] = useState(0);
+  const [teamRank, setTeamRank] = useState(null);
+  const [totalTeams, setTotalTeams] = useState(0);
   const [recentEntries, setRecentEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -16,17 +18,26 @@ const AssistantOverview = () => {
     const fetchOverviewData = async () => {
       try {
         setLoading(true);
-        const [teamRes, entriesRes] = await Promise.all([
+        const [teamRes, entriesRes, leaderboardRes] = await Promise.all([
           api.get('/teams/my'),
           api.get('/entries', { params: { status: 'pending' } }),
+          api.get('/leaderboard/teams', { params: { period: 'month' } }),
         ]);
 
-        setTeam(teamRes.data.data);
+        const teamData = teamRes.data.data;
+        setTeam(teamData);
         const myPending = (entriesRes.data.data || []).filter(
           (e) => e.enteredBy?._id === user?._id
         );
         setMyPendingCount(myPending.length);
         setRecentEntries(entriesRes.data.data?.slice(0, 5) || []);
+
+        const teamsList = leaderboardRes.data.data || [];
+        setTotalTeams(teamsList.length);
+        const myRankEntry = teamsList.find((t) => t.teamId === teamData?._id);
+        if (myRankEntry) {
+          setTeamRank(myRankEntry.rank);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || 'Failed to load assistant dashboard.');
       } finally {
@@ -56,7 +67,7 @@ const AssistantOverview = () => {
   }
 
   const memberCount =
-    (team.members?.length || 0) + (team.lead ? 1 : 0) + (team.assistant ? 1 : 0);
+    (team.members?.length || 0) + (team.head ? 1 : 0) + (team.assistant ? 1 : 0);
 
   return (
     <div className="space-y-6">
@@ -88,11 +99,19 @@ const AssistantOverview = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
           <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Team Name</p>
           <p className="mt-2 text-2xl font-extrabold text-slate-900 truncate">{team.name}</p>
           <p className="mt-1 text-xs text-slate-400">Chapter Team</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
+          <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">My Team Rank</p>
+          <p className="mt-2 text-2xl font-extrabold text-indigo-600">
+            {teamRank !== null ? `#${teamRank} of ${totalTeams}` : '—'}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">This month standings</p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
@@ -104,7 +123,7 @@ const AssistantOverview = () => {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-2xs">
           <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">My Pending Submissions</p>
           <p className="mt-2 text-2xl font-extrabold text-amber-600">{myPendingCount}</p>
-          <p className="mt-1 text-xs text-slate-400">Awaiting Team Lead approval</p>
+          <p className="mt-1 text-xs text-slate-400">Awaiting Team Head approval</p>
         </div>
       </div>
 

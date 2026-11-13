@@ -63,7 +63,7 @@ const AssistantTeamPoints = () => {
         note: note ? note.trim() : undefined,
       });
 
-      toast.success('Team point entry submitted successfully! Awaiting Team Lead approval.');
+      toast.success('Team point entry submitted successfully! Awaiting Team Head approval.');
       setCriteriaId('');
       setNote('');
       setTeamEntries((prev) => [res.data.data, ...prev]);

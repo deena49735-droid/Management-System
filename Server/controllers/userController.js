@@ -66,11 +66,11 @@ exports.createUser = async (req, res, next) => {
 
     // Synchronize team associations if a team was specified
     if (teamDoc) {
-      if (userRole === 'teamLead') {
-        if (teamDoc.lead && teamDoc.lead.toString() !== user._id.toString()) {
-          await User.findByIdAndUpdate(teamDoc.lead, { role: 'member' });
+      if (userRole === 'teamHead') {
+        if (teamDoc.head && teamDoc.head.toString() !== user._id.toString()) {
+          await User.findByIdAndUpdate(teamDoc.head, { role: 'member' });
         }
-        teamDoc.lead = user._id;
+        teamDoc.head = user._id;
       } else if (userRole === 'teamAssistant') {
         if (teamDoc.assistant && teamDoc.assistant.toString() !== user._id.toString()) {
           await User.findByIdAndUpdate(teamDoc.assistant, { role: 'member' });
@@ -308,8 +308,8 @@ exports.updateUser = async (req, res, next) => {
       if (oldTeamId && oldTeamId !== newTeamId) {
         const oldTeam = await Team.findById(oldTeamId);
         if (oldTeam) {
-          if (oldTeam.lead && oldTeam.lead.toString() === user._id.toString()) {
-            oldTeam.lead = null;
+          if (oldTeam.head && oldTeam.head.toString() === user._id.toString()) {
+            oldTeam.head = null;
           }
           if (oldTeam.assistant && oldTeam.assistant.toString() === user._id.toString()) {
             oldTeam.assistant = null;
@@ -328,11 +328,11 @@ exports.updateUser = async (req, res, next) => {
           targetTeam.members.push(user._id);
         }
 
-        if (user.role === 'teamLead') {
-          if (targetTeam.lead && targetTeam.lead.toString() !== user._id.toString()) {
-            await User.findByIdAndUpdate(targetTeam.lead, { role: 'member' });
+        if (user.role === 'teamHead') {
+          if (targetTeam.head && targetTeam.head.toString() !== user._id.toString()) {
+            await User.findByIdAndUpdate(targetTeam.head, { role: 'member' });
           }
-          targetTeam.lead = user._id;
+          targetTeam.head = user._id;
         } else if (user.role === 'teamAssistant') {
           if (targetTeam.assistant && targetTeam.assistant.toString() !== user._id.toString()) {
             await User.findByIdAndUpdate(targetTeam.assistant, { role: 'member' });
@@ -349,11 +349,11 @@ exports.updateUser = async (req, res, next) => {
       // Role changed while remaining in the same team
       const currentTeam = await Team.findById(user.team);
       if (currentTeam) {
-        if (user.role === 'teamLead') {
-          if (currentTeam.lead && currentTeam.lead.toString() !== user._id.toString()) {
-            await User.findByIdAndUpdate(currentTeam.lead, { role: 'member' });
+        if (user.role === 'teamHead') {
+          if (currentTeam.head && currentTeam.head.toString() !== user._id.toString()) {
+            await User.findByIdAndUpdate(currentTeam.head, { role: 'member' });
           }
-          currentTeam.lead = user._id;
+          currentTeam.head = user._id;
           if (currentTeam.assistant && currentTeam.assistant.toString() === user._id.toString()) {
             currentTeam.assistant = null;
           }
@@ -362,13 +362,13 @@ exports.updateUser = async (req, res, next) => {
             await User.findByIdAndUpdate(currentTeam.assistant, { role: 'member' });
           }
           currentTeam.assistant = user._id;
-          if (currentTeam.lead && currentTeam.lead.toString() === user._id.toString()) {
-            currentTeam.lead = null;
+          if (currentTeam.head && currentTeam.head.toString() === user._id.toString()) {
+            currentTeam.head = null;
           }
         } else {
           // Changed to member or admin
-          if (currentTeam.lead && currentTeam.lead.toString() === user._id.toString()) {
-            currentTeam.lead = null;
+          if (currentTeam.head && currentTeam.head.toString() === user._id.toString()) {
+            currentTeam.head = null;
           }
           if (currentTeam.assistant && currentTeam.assistant.toString() === user._id.toString()) {
             currentTeam.assistant = null;

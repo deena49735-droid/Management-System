@@ -209,7 +209,7 @@ const AdminDashboard = () => {
             </span>
           </div>
           <p className="mt-2 text-sm text-slate-500">
-            Create teams, assign team leads and assistants, and manage member rosters.
+            Create teams, assign team heads and assistants, and manage member rosters.
           </p>
         </Link>
       </div>

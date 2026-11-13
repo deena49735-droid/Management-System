@@ -13,10 +13,10 @@ import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminCriteria from './pages/admin/AdminCriteria';
 import AdminEntries from './pages/admin/AdminEntries';
 
-import LeadLayout from './pages/lead/LeadLayout';
-import LeadOverview from './pages/lead/LeadOverview';
-import LeadApprovals from './pages/lead/LeadApprovals';
-import LeadHistory from './pages/lead/LeadHistory';
+import HeadLayout from './pages/head/HeadLayout';
+import HeadOverview from './pages/head/HeadOverview';
+import HeadApprovals from './pages/head/HeadApprovals';
+import HeadHistory from './pages/head/HeadHistory';
 
 import AssistantLayout from './pages/assistant/AssistantLayout';
 import AssistantOverview from './pages/assistant/AssistantOverview';
@@ -25,6 +25,7 @@ import AssistantTeamPoints from './pages/assistant/AssistantTeamPoints';
 import AssistantSubmissions from './pages/assistant/AssistantSubmissions';
 
 import MemberDashboard from './pages/MemberDashboard';
+import Leaderboard from './pages/Leaderboard';
 import NotFound from './pages/NotFound';
 
 /**
@@ -91,18 +92,18 @@ function App() {
             <Route path="entries" element={<AdminEntries />} />
           </Route>
 
-          {/* Protected Team Lead Routes */}
+          {/* Protected Team Head Routes */}
           <Route
-            path="/lead"
+            path="/head"
             element={
-              <ProtectedRoute roles={['teamLead']}>
-                <LeadLayout />
+              <ProtectedRoute roles={['teamHead']}>
+                <HeadLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<LeadOverview />} />
-            <Route path="approvals" element={<LeadApprovals />} />
-            <Route path="history" element={<LeadHistory />} />
+            <Route index element={<HeadOverview />} />
+            <Route path="approvals" element={<HeadApprovals />} />
+            <Route path="history" element={<HeadHistory />} />
           </Route>
 
           {/* Protected Team Assistant Routes */}
@@ -124,8 +125,18 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute roles={['member', 'admin', 'teamLead', 'teamAssistant']}>
+              <ProtectedRoute roles={['member', 'admin', 'teamHead', 'teamAssistant']}>
                 <MemberDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Shared Leaderboard Route for ALL Roles */}
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
+                <Leaderboard />
               </ProtectedRoute>
             }
           />

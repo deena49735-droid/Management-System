@@ -70,6 +70,7 @@ const teamPointEntrySchema = new mongoose.Schema(
 // Compound indexes
 teamPointEntrySchema.index({ team: 1, criteria: 1, month: 1, year: 1 });
 teamPointEntrySchema.index({ team: 1, status: 1 });
+teamPointEntrySchema.index({ status: 1, team: 1, year: 1, month: 1 });
 
 const TeamPointEntry = mongoose.model('TeamPointEntry', teamPointEntrySchema);
 

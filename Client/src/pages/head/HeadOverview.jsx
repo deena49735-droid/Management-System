@@ -5,26 +5,37 @@ import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../components/Badge';
 
-const LeadOverview = () => {
+const HeadOverview = () => {
   const { user } = useAuth();
   const [team, setTeam] = useState(null);
   const [pendingMembersCount, setPendingMembersCount] = useState(0);
   const [pendingTeamCount, setPendingTeamCount] = useState(0);
+  const [teamRank, setTeamRank] = useState(null);
+  const [totalTeams, setTotalTeams] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadOverviewData = async () => {
       try {
         setLoading(true);
-        const [teamRes, memberEntriesRes, teamEntriesRes] = await Promise.all([
+        const [teamRes, memberEntriesRes, teamEntriesRes, leaderboardRes] = await Promise.all([
           api.get('/teams/my'),
           api.get('/entries', { params: { status: 'pending' } }),
           api.get('/team-entries', { params: { status: 'pending' } }),
+          api.get('/leaderboard/teams', { params: { period: 'month' } }),
         ]);
 
-        setTeam(teamRes.data.data);
+        const teamData = teamRes.data.data;
+        setTeam(teamData);
         setPendingMembersCount(memberEntriesRes.data.data?.length || 0);
         setPendingTeamCount(teamEntriesRes.data.data?.length || 0);
+
+        const teamsList = leaderboardRes.data.data || [];
+        setTotalTeams(teamsList.length);
+        const myRankEntry = teamsList.find((t) => t.teamId === teamData?._id);
+        if (myRankEntry) {
+          setTeamRank(myRankEntry.rank);
+        }
       } catch (err) {
         toast.error(err.response?.data?.message || 'Failed to load team data.');
       } finally {
@@ -54,7 +65,7 @@ const LeadOverview = () => {
   }
 
   const allMembers = [
-    ...(team.lead ? [{ ...team.lead, teamRole: 'Team Lead' }] : []),
+    ...(team.head ? [{ ...team.head, teamRole: 'Team Head' }] : []),
     ...(team.assistant ? [{ ...team.assistant, teamRole: 'Team Assistant' }] : []),
     ...(team.members || []).map((m) => ({ ...m, teamRole: 'Member' })),
   ];
@@ -65,7 +76,7 @@ const LeadOverview = () => {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Team Lead Dashboard
+            Team Head Dashboard
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Welcome back, {user?.name}. Managing team <span className="font-semibold text-blue-700">{team.name}</span>.
@@ -73,7 +84,7 @@ const LeadOverview = () => {
         </div>
 
         <Link
-          to="/lead/approvals"
+          to="/head/approvals"
           className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-2xs hover:bg-blue-700 active:bg-blue-800 transition"
         >
           <span>Review Approvals</span>
@@ -86,7 +97,7 @@ const LeadOverview = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
           <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Team Name</p>
           <p className="mt-2 text-xl sm:text-2xl font-extrabold text-slate-900 truncate">{team.name}</p>
@@ -94,11 +105,19 @@ const LeadOverview = () => {
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+          <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">My Team Rank</p>
+          <p className="mt-2 text-xl sm:text-2xl font-extrabold text-indigo-600">
+            {teamRank !== null ? `#${teamRank} of ${totalTeams}` : '—'}
+          </p>
+          <p className="mt-1 text-xs text-slate-400">This month standings</p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
           <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Members Count</p>
           <p className="mt-2 text-xl sm:text-2xl font-extrabold text-blue-700">
             {allMembers.length}
           </p>
-          <p className="mt-1 text-xs text-slate-400">Including Lead & Assistant</p>
+          <p className="mt-1 text-xs text-slate-400">Including Head & Assistant</p>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
@@ -111,7 +130,7 @@ const LeadOverview = () => {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
           <p className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Pending Team Points</p>
-          <p className="mt-2 text-xl sm:text-2xl font-extrabold text-indigo-600">
+          <p className="mt-2 text-xl sm:text-2xl font-extrabold text-purple-600">
             {pendingTeamCount}
           </p>
           <p className="mt-1 text-xs text-slate-400">Monthly / Bonus claims</p>
@@ -171,5 +190,5 @@ const LeadOverview = () => {
   );
 };
 
-export default LeadOverview;
+export default HeadOverview;
 

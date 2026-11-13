@@ -13,7 +13,7 @@ exports.getMyTeam = async (req, res, next) => {
     let teamId = req.user.team;
     if (!teamId) {
       const foundTeam = await Team.findOne({
-        $or: [{ lead: req.user._id }, { assistant: req.user._id }, { members: req.user._id }],
+        $or: [{ head: req.user._id }, { assistant: req.user._id }, { members: req.user._id }],
       });
       if (foundTeam) {
         teamId = foundTeam._id;
@@ -28,7 +28,7 @@ exports.getMyTeam = async (req, res, next) => {
     }
 
     const team = await Team.findById(teamId)
-      .populate('lead', 'name phone role')
+      .populate('head', 'name phone role')
       .populate('assistant', 'name phone role')
       .populate('members', 'name phone role');
 
@@ -79,7 +79,7 @@ exports.createTeam = async (req, res, next) => {
 
     const team = await Team.create({
       name: trimmedName,
-      lead: null,
+      head: null,
       assistant: null,
       members: [],
       isActive: true,
@@ -95,7 +95,7 @@ exports.createTeam = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all teams with populated lead, assistant, and member count
+ * @desc    Get all teams with populated head, assistant, and member count
  * @route   GET /api/teams
  * @access  Private (Admin)
  */
@@ -110,7 +110,7 @@ exports.getTeams = async (req, res, next) => {
     }
 
     const teams = await Team.find(filter)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .sort({ name: 1 });
 
@@ -132,7 +132,7 @@ exports.getTeams = async (req, res, next) => {
 };
 
 /**
- * @desc    Get single team by ID with populated lead, assistant and members
+ * @desc    Get single team by ID with populated head, assistant and members
  * @route   GET /api/teams/:id
  * @access  Private (Admin)
  */
@@ -146,7 +146,7 @@ exports.getTeamById = async (req, res, next) => {
     }
 
     const team = await Team.findById(req.params.id)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .populate('members', 'name phone role isActive');
 
@@ -239,11 +239,11 @@ exports.updateTeam = async (req, res, next) => {
 };
 
 /**
- * @desc    Assign user as team lead
- * @route   PATCH /api/teams/:id/lead
+ * @desc    Assign user as team head
+ * @route   PATCH /api/teams/:id/head
  * @access  Private (Admin)
  */
-exports.assignLead = async (req, res, next) => {
+exports.assignHead = async (req, res, next) => {
   try {
     const { userId } = req.body;
 
@@ -280,7 +280,7 @@ exports.assignLead = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot assign an inactive user as team lead.',
+        message: 'Cannot assign an inactive user as team head.',
       });
     }
 
@@ -292,9 +292,9 @@ exports.assignLead = async (req, res, next) => {
       });
     }
 
-    // If team already had a lead, revert old lead back to role member
-    if (team.lead && team.lead.toString() !== user._id.toString()) {
-      await User.findByIdAndUpdate(team.lead, { role: 'member' });
+    // If team already had a head, revert old head back to role member
+    if (team.head && team.head.toString() !== user._id.toString()) {
+      await User.findByIdAndUpdate(team.head, { role: 'member' });
     }
 
     // If this user was the team's assistant, clear assistant slot
@@ -302,26 +302,26 @@ exports.assignLead = async (req, res, next) => {
       team.assistant = null;
     }
 
-    // Set new lead's role and team
-    user.role = 'teamLead';
+    // Set new head's role and team
+    user.role = 'teamHead';
     user.team = team._id;
     await user.save();
 
     // Update team
-    team.lead = user._id;
+    team.head = user._id;
     if (!team.members.map((m) => m.toString()).includes(user._id.toString())) {
       team.members.push(user._id);
     }
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .populate('members', 'name phone role isActive');
 
     res.status(200).json({
       success: true,
-      message: 'Team lead assigned successfully.',
+      message: 'Team head assigned successfully.',
       data: updatedTeam,
     });
   } catch (error) {
@@ -388,9 +388,9 @@ exports.assignAssistant = async (req, res, next) => {
       await User.findByIdAndUpdate(team.assistant, { role: 'member' });
     }
 
-    // If this user was the team's lead, clear lead slot
-    if (team.lead && team.lead.toString() === user._id.toString()) {
-      team.lead = null;
+    // If this user was the team's head, clear head slot
+    if (team.head && team.head.toString() === user._id.toString()) {
+      team.head = null;
     }
 
     // Set new assistant's role and team
@@ -406,7 +406,7 @@ exports.assignAssistant = async (req, res, next) => {
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .populate('members', 'name phone role isActive');
 
@@ -489,7 +489,7 @@ exports.addMember = async (req, res, next) => {
     await user.save();
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .populate('members', 'name phone role isActive');
 
@@ -535,9 +535,9 @@ exports.removeMember = async (req, res, next) => {
       });
     }
 
-    // If removed member was the lead or assistant, clear the position
-    if (team.lead && team.lead.toString() === userId.toString()) {
-      team.lead = null;
+    // If removed member was the head or assistant, clear the position
+    if (team.head && team.head.toString() === userId.toString()) {
+      team.head = null;
     }
     if (team.assistant && team.assistant.toString() === userId.toString()) {
       team.assistant = null;
@@ -547,18 +547,18 @@ exports.removeMember = async (req, res, next) => {
     team.members = team.members.filter((m) => m.toString() !== userId.toString());
     await team.save();
 
-    // Update user record: unassign team and reset lead/assistant role to member
+    // Update user record: unassign team and reset head/assistant role to member
     const user = await User.findById(userId);
     if (user) {
       user.team = null;
-      if (user.role === 'teamLead' || user.role === 'teamAssistant') {
+      if (user.role === 'teamHead' || user.role === 'teamAssistant') {
         user.role = 'member';
       }
       await user.save();
     }
 
     const updatedTeam = await Team.findById(team._id)
-      .populate('lead', 'name phone role isActive')
+      .populate('head', 'name phone role isActive')
       .populate('assistant', 'name phone role isActive')
       .populate('members', 'name phone role isActive');
 

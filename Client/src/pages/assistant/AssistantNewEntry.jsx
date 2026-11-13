@@ -64,7 +64,7 @@ const AssistantNewEntry = () => {
   // Flatten team members
   const teamMembers = team
     ? [
-        ...(team.lead ? [{ ...team.lead, teamRole: 'Team Lead' }] : []),
+        ...(team.head ? [{ ...team.head, teamRole: 'Team Head' }] : []),
         ...(team.assistant ? [{ ...team.assistant, teamRole: 'Team Assistant' }] : []),
         ...(team.members || []).map((m) => ({ ...m, teamRole: 'Member' })),
       ]
@@ -94,7 +94,7 @@ const AssistantNewEntry = () => {
         note: note ? note.trim() : undefined,
       });
 
-      toast.success('Point entry submitted successfully! Awaiting Lead approval.');
+      toast.success('Point entry submitted successfully! Awaiting Head approval.');
       // Reset form
       setCriteriaId('');
       setQuantity(1);

@@ -69,7 +69,7 @@ router.post('/', createTeamValidation, teamController.createTeam);
 router.get('/', teamController.getTeams);
 router.get('/:id', teamIdValidation, teamController.getTeamById);
 router.put('/:id', updateTeamValidation, teamController.updateTeam);
-router.patch('/:id/lead', assignRoleValidation, teamController.assignLead);
+router.patch('/:id/head', assignRoleValidation, teamController.assignHead);
 router.patch('/:id/assistant', assignRoleValidation, teamController.assignAssistant);
 router.post('/:id/members', assignRoleValidation, teamController.addMember);
 router.delete('/:id/members/:userId', memberParamValidation, teamController.removeMember);

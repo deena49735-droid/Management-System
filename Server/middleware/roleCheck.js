@@ -1,7 +1,7 @@
 /**
  * Role-Based Access Control Middleware
  * Restricts access to users having one of the specified roles
- * @param {...string} roles - Allowed roles (e.g., 'admin', 'teamLead', etc.)
+ * @param {...string} roles - Allowed roles (e.g., 'admin', 'teamHead', etc.)
  */
 const roleCheck = (...roles) => {
   return (req, res, next) => {

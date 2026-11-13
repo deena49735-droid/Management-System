@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "seed:admin": "node seed/createAdmin.js",
     "seed:criteria": "node seed/seedCriteria.js",
+    "migrate:teamHead": "node seed/migrateTeamHead.js",
     "test": "node --test test/phase1.test.js"
   },
   "keywords": [],
