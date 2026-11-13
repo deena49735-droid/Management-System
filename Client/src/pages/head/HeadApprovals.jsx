@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import EntriesTable from '../../components/EntriesTable';
 import RejectModal from '../../components/RejectModal';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Badge from '../../components/Badge';
+import Button from '../../components/Button';
 
 const HeadApprovals = () => {
   const { user } = useAuth();
@@ -90,88 +96,109 @@ const HeadApprovals = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Pending Approvals
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Review and approve point entries submitted for your team.
-        </p>
-      </div>
+      <PageHeader
+        title="Pending Approvals"
+        subtitle="Review and approve point entries submitted for your team."
+        actions={
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab('member')}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeTab === 'member'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>Member Entries</span>
+              {memberEntries.length > 0 && (
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                  {memberEntries.length}
+                </span>
+              )}
+            </button>
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('member')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'member'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>Member Entries</span>
-          {memberEntries.length > 0 && (
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              {memberEntries.length}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'team'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>Team Monthly Points</span>
-          {teamEntries.length > 0 && (
-            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              {teamEntries.length}
-            </span>
-          )}
-        </button>
-      </div>
-
-      {/* Table of Entries */}
-      <EntriesTable
-        entries={currentList}
-        loading={loading}
-        prominentProof={true}
-        emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
-        renderActions={(entry) => {
-          const isSelf = activeTab === 'member' && entry.member?._id === user?._id;
-          const isActing = actionLoadingId === entry._id;
-
-          if (isSelf) {
-            return (
-              <span className="inline-flex items-center rounded-lg bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-                Self-entry (Admin approval needed)
-              </span>
-            );
-          }
-
-          return (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleApprove(entry, activeTab === 'team')}
-                disabled={isActing}
-                className="inline-flex items-center justify-center rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-emerald-700 active:bg-emerald-800 transition disabled:opacity-50"
-              >
-                {isActing ? '...' : 'Approve'}
-              </button>
-              <button
-                onClick={() => setRejectItem(entry)}
-                disabled={isActing}
-                className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition disabled:opacity-50"
-              >
-                Reject
-              </button>
-            </div>
-          );
-        }}
+            <button
+              type="button"
+              onClick={() => setActiveTab('team')}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeTab === 'team'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>Team Points</span>
+              {teamEntries.length > 0 && (
+                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[11px] font-bold text-indigo-700">
+                  {teamEntries.length}
+                </span>
+              )}
+            </button>
+          </div>
+        }
       />
+
+      {/* Table of Entries in a Card */}
+      <Card>
+        <Card.Body className="p-0">
+          <EntriesTable
+            entries={currentList}
+            loading={loading}
+            prominentProof={true}
+            emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
+            renderActions={(entry) => {
+              const isSelf = activeTab === 'member' && entry.member?._id === user?._id;
+              const isActing = actionLoadingId === entry._id;
+              const isMeetingEntry = entry.source === 'meeting_sheet' && entry.meeting;
+              const meetingId = entry.meeting?._id || entry.meeting;
+              const meetingDateStr = entry.date
+                ? new Date(entry.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                : '';
+
+              return (
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {isMeetingEntry && (
+                    <Link
+                      to={`/head/meetings/${meetingId}`}
+                      className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition whitespace-nowrap"
+                      title="View full meeting attendance sheet"
+                    >
+                      <span>Meeting {meetingDateStr}</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
+
+                  {isSelf ? (
+                    <Badge variant="warning" size="xs">
+                      Self-entry (Admin approval needed)
+                    </Badge>
+                  ) : (
+                    <>
+                      <Button
+                        size="xs"
+                        variant="primary"
+                        disabled={isActing}
+                        loading={isActing}
+                        onClick={() => handleApprove(entry, activeTab === 'team')}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="outlineDanger"
+                        disabled={isActing}
+                        onClick={() => setRejectItem(entry)}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                </div>
+              );
+            }}
+          />
+        </Card.Body>
+      </Card>
 
       {/* Reject Reason Modal */}
       <RejectModal
@@ -198,4 +225,3 @@ const HeadApprovals = () => {
 };
 
 export default HeadApprovals;
-

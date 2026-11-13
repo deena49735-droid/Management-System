@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Edit2, ShieldAlert, Plus, Users, UserCheck } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Badge from '../../components/Badge';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
 
 const AdminTeamDetail = () => {
   const { id } = useParams();
@@ -202,61 +206,34 @@ const AdminTeamDetail = () => {
 
   return (
     <div className="space-y-6">
-      {/* Back button and breadcrumb */}
-      <div>
-        <Link
-          to="/admin/teams"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>Back to Teams List</span>
-        </Link>
-      </div>
-
-      {/* Team Header Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-2xs sm:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-                {team.name}
-              </h1>
-              <Badge status={team.isActive} />
-            </div>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
-              Team Roster: <strong className="text-slate-800">{team.members?.length || 0} members</strong>
-            </p>
-          </div>
-
+      {/* Header with Back Button */}
+      <PageHeader
+        backTo="/admin/teams"
+        title={team.name}
+        subtitle={`Team Roster: ${team.members?.length || 0} members`}
+        badge={<Badge status={team.isActive} />}
+        actions={
           <div className="flex flex-wrap items-center gap-2">
-            <button
+            <Button
+              variant="secondary"
+              icon={Edit2}
               onClick={() => {
                 setEditedName(team.name);
                 setIsEditNameModalOpen(true);
               }}
-              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 active:bg-slate-100 transition"
             >
-              <svg className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-              <span>Rename</span>
-            </button>
+              Rename
+            </Button>
 
-            <button
+            <Button
+              variant={team.isActive ? 'outlineDanger' : 'secondary'}
               onClick={() => setIsStatusConfirmOpen(true)}
-              className={`inline-flex min-h-[40px] items-center rounded-xl border px-3.5 py-2 text-xs font-semibold shadow-2xs transition ${
-                team.isActive
-                  ? 'border-rose-200 bg-white text-rose-600 hover:bg-rose-50'
-                  : 'border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50'
-              }`}
             >
               {team.isActive ? 'Deactivate Team' : 'Activate Team'}
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Leadership Assignment Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

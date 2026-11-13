@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Plus } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import EntriesTable from '../../components/EntriesTable';
 import Pagination from '../../components/Pagination';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
 
 const PAGE_SIZE = 15;
 
@@ -49,58 +54,70 @@ const AssistantSubmissions = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          My Recorded Submissions
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Track the approval status of member point entries you have submitted.
-        </p>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
-        <div className="flex flex-wrap items-center gap-2">
-          {['', 'pending', 'approved', 'rejected'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold capitalize transition ${
-                statusFilter === st
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {st === '' ? 'All Statuses' : st}
-            </button>
-          ))}
-        </div>
-
-        <span className="text-xs text-slate-500">
-          Total: <strong className="text-slate-800">{entries.length}</strong> entries
-        </span>
-      </div>
-
-      {/* Entries Table */}
-      <EntriesTable
-        entries={paginatedEntries}
-        loading={loading}
-        emptyMessage="You have not submitted any entries matching this filter."
+      <PageHeader
+        title="My Recorded Submissions"
+        subtitle="Track the approval status of member point entries you have submitted."
+        actions={
+          <Link to="/assistant/entries/new">
+            <Button variant="primary" icon={Plus}>
+              New Entry
+            </Button>
+          </Link>
+        }
       />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center pt-2">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+      {/* Filter Bar */}
+      <Card className="p-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              { key: '', label: 'All' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'approved', label: 'Approved' },
+              { key: 'rejected', label: 'Rejected' },
+            ].map((st) => (
+              <button
+                key={st.key}
+                type="button"
+                onClick={() => setStatusFilter(st.key)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
+                  statusFilter === st.key
+                    ? 'bg-indigo-600 text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {st.label}
+              </button>
+            ))}
+          </div>
+
+          <span className="text-xs text-slate-500 tabular-nums">
+            Total: <strong className="text-slate-800">{entries.length}</strong> entries
+          </span>
         </div>
-      )}
+      </Card>
+
+      {/* Entries Table */}
+      <Card>
+        <Card.Body className="p-0">
+          <EntriesTable
+            entries={paginatedEntries}
+            loading={loading}
+            emptyMessage="You have not submitted any entries matching this filter."
+          />
+        </Card.Body>
+        {totalPages > 1 && (
+          <Card.Footer className="flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </Card.Footer>
+        )}
+      </Card>
     </div>
   );
 };
 
 export default AssistantSubmissions;
-

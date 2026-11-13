@@ -4,6 +4,9 @@ import api from '../../api/axios';
 import EntriesTable from '../../components/EntriesTable';
 import RejectModal from '../../components/RejectModal';
 import Pagination from '../../components/Pagination';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
 
 const PAGE_SIZE = 15;
 
@@ -115,109 +118,113 @@ const AdminEntries = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          All Point Entries
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Review, approve, or override member activity and team bonus point entries.
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('member')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'member'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>Member Entries</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`flex items-center gap-2 border-b-2 px-5 py-3 text-sm font-bold transition ${
-            activeTab === 'team'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          <span>Team Monthly / Bonus Entries</span>
-        </button>
-      </div>
+      <PageHeader
+        title="All Point Entries"
+        subtitle="Review, approve, or override member activity and team bonus point entries."
+        actions={
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setActiveTab('member')}
+              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeTab === 'member'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Member Entries
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('team')}
+              className={`flex-1 sm:flex-initial rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                activeTab === 'team'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Team Monthly / Bonus
+            </button>
+          </div>
+        }
+      />
 
       {/* Filter Controls */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs">
-        <div>
-          <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-            Filter by Team
-          </label>
-          <select
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All Teams</option>
-            {teams.map((t) => (
-              <option key={t._id} value={t._id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <Card className="p-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+              Filter by Team
+            </label>
+            <select
+              value={selectedTeam}
+              onChange={(e) => setSelectedTeam(e.target.value)}
+              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Teams</option>
+              {teams.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-            Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-            Month
-          </label>
-          <select
-            value={monthFilter}
-            onChange={(e) => setMonthFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All Months</option>
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={m}>
-                {new Date(0, m - 1).toLocaleString('en', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+              Month
+            </label>
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Months</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>
+                  {new Date(0, m - 1).toLocaleString('en', { month: 'long' })}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">
-            Year
-          </label>
-          <select
-            value={yearFilter}
-            onChange={(e) => setYearFilter(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All Years</option>
-            <option value="2025">2025</option>
-            <option value="2026">2026</option>
-            <option value="2027">2027</option>
-          </select>
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+              Year
+            </label>
+            <select
+              value={yearFilter}
+              onChange={(e) => setYearFilter(e.target.value)}
+              className="w-full min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Years</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
         </div>
-      </div>
+      </Card>
+
+      {/* Entries Table in Card */}
+      <Card>
+        <Card.Body className="p-0">
 
       {/* Entries Table */}
       <EntriesTable
@@ -272,17 +279,17 @@ const AdminEntries = () => {
           );
         }}
       />
-
-      {/* Pagination */}
+      </Card.Body>
       {totalPages > 1 && (
-        <div className="flex justify-center pt-2">
+        <Card.Footer className="flex justify-center">
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
-        </div>
+        </Card.Footer>
       )}
+    </Card>
 
       {/* Reject Modal */}
       <RejectModal

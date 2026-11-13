@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardPathByRole } from '../components/ProtectedRoute';
+import Button from '../components/Button';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -48,24 +50,24 @@ const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* App Title & Branding */}
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
-            <span className="text-2xl font-extrabold tracking-tight">K</span>
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+            <span className="text-xl font-bold tracking-tight">K</span>
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900">
             Kadambas Game
           </h1>
-          <p className="mt-1.5 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-500">
             Sign in to track points, approvals, and chapter rankings
           </p>
         </div>
 
         {/* Login Card */}
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm border border-slate-200 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="mt-8 rounded-xl bg-white p-6 shadow-xs border border-slate-200 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-semibold text-slate-700 mb-1.5"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
               >
                 Username
               </label>
@@ -78,14 +80,14 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="e.g. admin or username"
-                className="block w-full min-h-[48px] rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-base transition sm:text-sm"
+                className="block w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 transition"
               />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold text-slate-700 mb-1.5"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
               >
                 Password
               </label>
@@ -98,30 +100,30 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="block w-full min-h-[48px] rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 text-base transition sm:text-sm"
+                className="block w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 transition"
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex w-full min-h-[48px] items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-base font-semibold text-white shadow-sm hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  <span>Signing in...</span>
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="primary"
+                loading={isSubmitting}
+                className="w-full"
+                icon={LogIn}
+              >
+                Sign In
+              </Button>
+            </div>
           </form>
 
-          <div className="mt-6 border-t border-slate-100 pt-4 text-center">
-            <p className="text-xs text-slate-500">
-              Accounts are created by the chapter admin. Please contact your team head or admin if you need access.
-            </p>
+          {/* Quick Demo Credentials Reminder */}
+          <div className="mt-6 rounded-lg bg-slate-50 p-3.5 border border-slate-100 text-xs text-slate-500 space-y-1">
+            <p className="font-semibold text-slate-700">Quick Chapter Roles:</p>
+            <p>Admin: <span className="font-mono text-slate-600">admin / admin123</span></p>
+            <p>Team Head: <span className="font-mono text-slate-600">head / head123</span></p>
+            <p>Team Assistant: <span className="font-mono text-slate-600">assistant / assist123</span></p>
+            <p>Member: <span className="font-mono text-slate-600">member / member123</span></p>
           </div>
         </div>
       </div>
@@ -130,4 +132,3 @@ const Login = () => {
 };
 
 export default Login;
-

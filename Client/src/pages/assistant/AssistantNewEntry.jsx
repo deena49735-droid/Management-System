@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import ProofUpload from '../../components/ProofUpload';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
 
 const CATEGORY_ORDER = ['meeting_day', 'non_meeting_day', 'penalty'];
 
@@ -145,10 +148,10 @@ const AssistantNewEntry = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+      <Card className="p-12 text-center max-w-2xl mx-auto">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3" />
         <p className="text-sm font-medium text-slate-500">Loading form options...</p>
-      </div>
+      </Card>
     );
   }
 
@@ -164,24 +167,20 @@ const AssistantNewEntry = () => {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-          Add Member Point Entry
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Submit activity or penalty points for members of <span className="font-semibold text-emerald-700">{team?.name}</span>.
-        </p>
-      </div>
+      <PageHeader
+        title="Add Member Point Entry"
+        subtitle={`Submit activity or penalty points for members of ${team?.name || 'your team'}.`}
+      />
 
       {serverError && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
           <p className="font-semibold">Submission Blocked:</p>
           <p className="mt-0.5">{serverError}</p>
         </div>
       )}
 
       {/* Entry Form */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-2xs">
+      <Card className="p-6 sm:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Team Member Select */}
           <div>
@@ -192,7 +191,7 @@ const AssistantNewEntry = () => {
               value={memberId}
               onChange={(e) => setMemberId(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">— Select a Member —</option>
               {teamMembers.map((m) => (
@@ -215,7 +214,7 @@ const AssistantNewEntry = () => {
                 setQuantity(1);
               }}
               required
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">— Select Activity / Penalty —</option>
               {CATEGORY_ORDER.map(
@@ -239,7 +238,7 @@ const AssistantNewEntry = () => {
 
           {/* Quantity Field (Shown ONLY when basisLabel contains specified keywords) */}
           {showQuantity && (
-            <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                 Quantity ({selectedCriteria?.basisLabel}) <span className="text-rose-500">*</span>
               </label>
@@ -250,7 +249,7 @@ const AssistantNewEntry = () => {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <p className="mt-1 text-xs text-slate-500">
                 Calculated as {selectedCriteria.points} points × {Number(quantity) || 1} units.
@@ -268,7 +267,7 @@ const AssistantNewEntry = () => {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -294,19 +293,19 @@ const AssistantNewEntry = () => {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Details, visitor name, cross-chapter chapter name..."
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           {/* Points Live Preview */}
           {selectedCriteria && (
             <div
-              className={`flex items-center justify-between rounded-xl border p-4 ${
+              className={`flex items-center justify-between rounded-lg border p-4 ${
                 isNegative ? 'border-rose-200 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/50'
               }`}
             >
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Calculated Points Preview
                 </span>
                 <p className="text-xs text-slate-600 mt-0.5">
@@ -314,7 +313,7 @@ const AssistantNewEntry = () => {
                 </p>
               </div>
               <div
-                className={`text-2xl font-extrabold ${
+                className={`text-2xl font-bold tabular-nums ${
                   isNegative ? 'text-rose-600' : 'text-emerald-700'
                 }`}
               >
@@ -325,23 +324,25 @@ const AssistantNewEntry = () => {
 
           {/* Submit Buttons */}
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => navigate('/assistant/submissions')}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
+              disabled={submitting || uploadingProof}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="primary"
+              loading={submitting}
               disabled={submitting || uploadingProof}
-              className="rounded-xl bg-emerald-600 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm hover:bg-emerald-700 transition disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
-            </button>
+              {uploadingProof ? 'Uploading photo...' : 'Submit Entry'}
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 };

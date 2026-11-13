@@ -3,9 +3,12 @@ import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PageHeader from '../components/PageHeader';
+import Badge from '../components/Badge';
+import Button from '../components/Button';
+import Card from '../components/Card';
 
 const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
   const { user } = useAuth();
@@ -96,295 +99,222 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
     }
   };
 
-  const content = (
-    <div className="space-y-10">
+  return (
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Game Criteria</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Official BNI Kadambas Chapter Game points, bonuses, and penalties specification.
-          </p>
-        </div>
-        {isAdmin && (
-          <span className="inline-flex items-center rounded-lg bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200">
-            Admin Editing Enabled
-          </span>
-        )}
-      </div>
+      <PageHeader
+        title="Game Criteria"
+        subtitle="Official BNI Kadambas Chapter Game points, bonuses, and penalties specification."
+        badge={
+          isAdmin ? (
+            <Badge variant="brand">Admin Editing Enabled</Badge>
+          ) : undefined
+        }
+      />
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+        <Card className="p-12 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3"></div>
           <p className="text-sm font-medium text-slate-500">Loading criteria tables...</p>
-        </div>
+        </Card>
       ) : (
-        <div className="space-y-10">
+        <div className="space-y-6">
           {categories.map((cat) => {
             const isPenalty = cat.key === 'penalty';
 
             return (
               <div
                 key={cat.key}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs"
               >
                 {/* Block Title Header */}
                 <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div className="flex items-center gap-2.5">
                     <span
-                      className={`inline-block h-3 w-3 rounded-full ${
+                      className={`inline-block h-2.5 w-2.5 rounded-full ${
                         isPenalty ? 'bg-rose-500' : 'bg-indigo-600'
                       }`}
                     />
-                    <h2 className="text-base sm:text-lg font-bold text-slate-900">{cat.label}</h2>
+                    <h2 className="text-base font-semibold text-slate-900">{cat.label}</h2>
                   </div>
                   <span className="text-xs font-medium text-slate-500">
                     {cat.level === 'team' ? 'Team Level' : 'Member Level'} • {cat.items?.length || 0} Criteria
                   </span>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                  {!isPenalty ? (
-                    // Regular Blocks (Meeting Day, Non-Meeting Day, Monthly Points, One Time Bonus)
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                          <th className="py-3 px-4 sm:px-6">Activity</th>
-                          <th className="py-3 px-4 text-right">Points</th>
-                          <th className="py-3 px-4 sm:px-6">Basis</th>
-                          {isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {cat.items?.map((item) => (
-                          <tr
-                            key={item.id || item.key}
-                            className={`transition hover:bg-slate-50/80 ${
-                              !item.isActive ? 'opacity-50 bg-slate-50/30' : ''
-                            }`}
-                          >
-                            <td className="py-3.5 px-4 sm:px-6 font-medium text-slate-900">
-                              <div className="flex items-center gap-2">
-                                <span>{item.name}</span>
-                                {item.needsProof && (
-                                  <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
-                                    Proof Required
-                                  </span>
-                                )}
-                                {!item.isActive && (
-                                  <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">
-                                    Deactivated
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
-                              +{item.points}
-                            </td>
-                            <td className="py-3.5 px-4 sm:px-6 text-slate-600 text-xs sm:text-sm">
-                              {item.basisLabel || 'Per Member'}
-                            </td>
-                            {isAdmin && (
-                              <td className="py-3.5 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => openEditModal(item)}
-                                    className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition"
-                                    title="Edit Criteria"
-                                  >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={() => setToggleItem(item)}
-                                    className={`rounded-lg p-1.5 transition ${
-                                      item.isActive
-                                        ? 'text-slate-500 hover:bg-slate-100 hover:text-rose-600'
-                                        : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'
-                                    }`}
-                                    title={item.isActive ? 'Deactivate Criteria' : 'Activate Criteria'}
-                                  >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      {item.isActive ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                      ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      )}
-                                    </svg>
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                      {/* TOTAL ROW */}
-                      <tfoot>
-                        <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-900">
-                          <td className="py-3.5 px-4 sm:px-6">
-                            TOTAL - {cat.label}
-                          </td>
-                          <td className="py-3.5 px-4 text-right text-indigo-700 text-base">
-                            {cat.total !== null ? cat.total : 0}
-                          </td>
-                          <td className="py-3.5 px-4 sm:px-6 text-slate-500 text-xs">
-                            Active Criteria Total
-                          </td>
-                          {isAdmin && <td></td>}
-                        </tr>
-                      </tfoot>
-                    </table>
-                  ) : (
-                    // Negative Points Criteria Block (Frequency | Negative Points Criteria | Penalty Points | Basis)
-                    <table className="w-full text-left border-collapse text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                          <th className="py-3 px-4 sm:px-6">Frequency</th>
-                          <th className="py-3 px-4">Negative Points Criteria</th>
-                          <th className="py-3 px-4 text-right">Penalty Points</th>
-                          <th className="py-3 px-4 sm:px-6">Basis</th>
-                          {isAdmin && <th className="py-3 px-4 text-center">Actions</th>}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {/* Weekly Penalties Group */}
-                        <tr className="bg-slate-100/60 font-semibold text-xs text-slate-700">
-                          <td colSpan={isAdmin ? 5 : 4} className="py-2 px-4 sm:px-6">
-                            Weekly Penalties
-                          </td>
-                        </tr>
-                        {cat.weekly?.map((item) => (
-                          <tr
-                            key={item.id || item.key}
-                            className={`transition hover:bg-slate-50/80 ${
-                              !item.isActive ? 'opacity-50 bg-slate-50/30' : ''
-                            }`}
-                          >
-                            <td className="py-3 px-4 sm:px-6 text-slate-500 text-xs font-medium">
-                              Weekly
-                            </td>
-                            <td className="py-3 px-4 font-medium text-slate-900">
-                              <div className="flex items-center gap-2">
-                                <span>{item.name}</span>
-                                {!item.isActive && (
-                                  <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">
-                                    Deactivated
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3 px-4 text-right font-bold text-rose-600">
-                              {item.points < 0 ? item.points : `-${item.points}`}
-                            </td>
-                            <td className="py-3 px-4 sm:px-6 text-slate-600 text-xs sm:text-sm">
-                              {item.basisLabel || 'Per Member'}
-                            </td>
-                            {isAdmin && (
-                              <td className="py-3 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
-                                    onClick={() => openEditModal(item)}
-                                    className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition"
-                                    title="Edit Criteria"
-                                  >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                  </button>
-                                  <button
-                                    onClick={() => setToggleItem(item)}
-                                    className={`rounded-lg p-1.5 transition ${
-                                      item.isActive
-                                        ? 'text-slate-500 hover:bg-slate-100 hover:text-rose-600'
-                                        : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'
-                                    }`}
-                                    title={item.isActive ? 'Deactivate Criteria' : 'Activate Criteria'}
-                                  >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      {item.isActive ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                      ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      )}
-                                    </svg>
-                                  </button>
-                                </div>
-                              </td>
-                            )}
-                          </tr>
-                        ))}
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-600">
+                    <thead className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-5 py-3 w-16 text-center">#</th>
+                        <th className="px-5 py-3">Activity / Parameter</th>
+                        <th className="px-5 py-3 w-36">Basis</th>
+                        <th className="px-5 py-3 w-32">Frequency</th>
+                        <th className="px-5 py-3 text-right w-28">Points</th>
+                        {isAdmin && <th className="px-5 py-3 text-center w-28">Status</th>}
+                        {isAdmin && <th className="px-5 py-3 text-right w-24">Actions</th>}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {cat.items?.map((item) => {
+                        const isInactive = !item.isActive;
 
-                        {/* Monthly Penalties Group */}
-                        <tr className="bg-slate-100/60 font-semibold text-xs text-slate-700">
-                          <td colSpan={isAdmin ? 5 : 4} className="py-2 px-4 sm:px-6">
-                            Monthly Penalties
-                          </td>
-                        </tr>
-                        {cat.monthly?.map((item) => (
+                        return (
                           <tr
-                            key={item.id || item.key}
+                            key={item.id || item._id}
                             className={`transition hover:bg-slate-50/80 ${
-                              !item.isActive ? 'opacity-50 bg-slate-50/30' : ''
+                              isInactive ? 'opacity-60 bg-slate-50/40' : ''
                             }`}
                           >
-                            <td className="py-3 px-4 sm:px-6 text-slate-500 text-xs font-medium">
-                              Monthly
+                            <td className="px-5 py-3 text-center text-xs font-bold tabular-nums text-slate-400">
+                              {item.displayOrder || '—'}
                             </td>
-                            <td className="py-3 px-4 font-medium text-slate-900">
+
+                            <td className="px-5 py-3">
                               <div className="flex items-center gap-2">
-                                <span>{item.name}</span>
-                                {!item.isActive && (
-                                  <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 border border-slate-200">
-                                    Deactivated
-                                  </span>
+                                <span className="font-semibold text-slate-900 text-sm">{item.name}</span>
+                                {item.needsProof && (
+                                  <Badge variant="brand" size="xs">
+                                    Proof Required
+                                  </Badge>
                                 )}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-right font-bold text-rose-600">
-                              {item.points < 0 ? item.points : `-${item.points}`}
+
+                            <td className="px-5 py-3 text-xs text-slate-600">
+                              {item.basisLabel || '—'}
                             </td>
-                            <td className="py-3 px-4 sm:px-6 text-slate-600 text-xs sm:text-sm">
-                              {item.basisLabel || 'Per Member'}
+
+                            <td className="px-5 py-3 text-xs text-slate-600 capitalize">
+                              {item.frequency || 'Weekly'}
                             </td>
+
+                            <td className="px-5 py-3 text-right whitespace-nowrap font-bold tabular-nums">
+                              <span
+                                className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold border ${
+                                  isPenalty
+                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                }`}
+                              >
+                                {item.points > 0 ? `+${item.points}` : item.points} pts
+                              </span>
+                            </td>
+
                             {isAdmin && (
-                              <td className="py-3 px-4 text-center">
-                                <div className="flex items-center justify-center gap-2">
-                                  <button
+                              <td className="px-5 py-3 text-center whitespace-nowrap">
+                                <Badge variant={item.isActive ? 'success' : 'neutral'} size="xs">
+                                  {item.isActive ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </td>
+                            )}
+
+                            {isAdmin && (
+                              <td className="px-5 py-3 text-right whitespace-nowrap">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={() => openEditModal(item)}
-                                    className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 transition"
-                                    title="Edit Criteria"
                                   >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                  </button>
-                                  <button
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={() => setToggleItem(item)}
-                                    className={`rounded-lg p-1.5 transition ${
-                                      item.isActive
-                                        ? 'text-slate-500 hover:bg-slate-100 hover:text-rose-600'
-                                        : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'
-                                    }`}
-                                    title={item.isActive ? 'Deactivate Criteria' : 'Activate Criteria'}
+                                    className={item.isActive ? 'text-rose-600 hover:text-rose-700' : 'text-emerald-600 hover:text-emerald-700'}
                                   >
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      {item.isActive ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                      ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      )}
-                                    </svg>
-                                  </button>
+                                    {item.isActive ? 'Deactivate' : 'Activate'}
+                                  </Button>
                                 </div>
                               </td>
                             )}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
+                  {cat.items?.map((item) => {
+                    const isInactive = !item.isActive;
+
+                    return (
+                      <div
+                        key={item.id || item._id}
+                        className={`p-4 space-y-2.5 transition ${
+                          isInactive ? 'opacity-60 bg-slate-50/40' : ''
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-2">
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[11px] font-bold tabular-nums text-slate-500">
+                              {item.displayOrder || '—'}
+                            </span>
+                            <div>
+                              <p className="font-semibold text-slate-900 text-sm leading-snug">
+                                {item.name}
+                              </p>
+                              {item.needsProof && (
+                                <span className="inline-block mt-1">
+                                  <Badge variant="brand" size="xs">
+                                    Proof Required
+                                  </Badge>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <span
+                            className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-bold tabular-nums border ${
+                              isPenalty
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            }`}
+                          >
+                            {item.points > 0 ? `+${item.points}` : item.points} pts
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-1">
+                          <span>
+                            Basis: <strong className="text-slate-700">{item.basisLabel || '—'}</strong>
+                          </span>
+                          <span className="capitalize">
+                            Freq: <strong className="text-slate-700">{item.frequency || 'Weekly'}</strong>
+                          </span>
+                        </div>
+
+                        {isAdmin && (
+                          <div className="flex items-center justify-between border-t border-slate-100 pt-2.5 mt-2">
+                            <Badge variant={item.isActive ? 'success' : 'neutral'} size="xs">
+                              {item.isActive ? 'Active' : 'Inactive'}
+                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="secondary"
+                                size="xs"
+                                onClick={() => openEditModal(item)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant={item.isActive ? 'outlineDanger' : 'secondary'}
+                                size="xs"
+                                onClick={() => setToggleItem(item)}
+                              >
+                                {item.isActive ? 'Deactivate' : 'Activate'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -392,37 +322,38 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
         </div>
       )}
 
-      {/* Edit Modal (Admin Only) */}
+      {/* Edit Modal (Admin only) */}
       {isAdmin && (
         <Modal
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
           title={`Edit Criteria: ${editingItem?.name || ''}`}
+          maxWidth="max-w-md"
         >
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Criteria Name
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                Criteria Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 required
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Points Value {editingItem?.category === 'penalty' ? '(Negative number)' : ''}
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                Points Value <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
                 value={editForm.points}
                 onChange={(e) => setEditForm({ ...editForm, points: e.target.value })}
                 required
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
@@ -441,21 +372,21 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-              <button
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setEditingItem(null)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                disabled={saving}
-                className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition disabled:opacity-50"
+                variant="primary"
+                loading={saving}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+                Save Changes
+              </Button>
             </div>
           </form>
         </Modal>
@@ -478,22 +409,6 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
       )}
     </div>
   );
-
-  // If accessed directly from /criteria (non-admin layout or standalone), render with Navbar
-  if (!isAdminRoute) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        <Navbar />
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
-          {content}
-        </main>
-      </div>
-    );
-  }
-
-  // Inside /admin/criteria layout
-  return content;
 };
 
 export default GameCriteria;
-

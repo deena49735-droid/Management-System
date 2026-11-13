@@ -125,6 +125,19 @@ const pointEntrySchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    meeting: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Meeting',
+      default: null,
+    },
+    source: {
+      type: String,
+      enum: {
+        values: ['manual', 'meeting_sheet', 'auto_penalty'],
+        message: '{VALUE} is not a valid point entry source',
+      },
+      default: 'manual',
+    },
   },
   {
     timestamps: true,
@@ -150,6 +163,7 @@ pointEntrySchema.index({ member: 1, date: 1 });
 pointEntrySchema.index({ team: 1, status: 1 });
 pointEntrySchema.index({ weekNumber: 1, month: 1, year: 1 });
 pointEntrySchema.index({ status: 1, team: 1, year: 1, month: 1, weekNumber: 1 });
+pointEntrySchema.index({ meeting: 1 });
 
 // Deduplication Indexes (Partial Unique)
 pointEntrySchema.index(

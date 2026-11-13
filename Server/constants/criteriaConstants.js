@@ -37,10 +37,18 @@ const allowsMultipleQuantity = (basisLabel = '') => {
   return /Per Visitor|Per Testimonial|Per Specific Ask|Per Week/i.test(basisLabel);
 };
 
+/**
+ * Meeting Attendance Timing Rules
+ */
+const EARLY_BIRD_TIME = '07:25';
+const LATE_AFTER = '07:59';
+
 module.exports = {
   CATEGORY_ORDER,
   CATEGORY_LABELS,
   CATEGORY_LEVELS,
   allowsMultipleQuantity,
+  EARLY_BIRD_TIME,
+  LATE_AFTER,
 };
 

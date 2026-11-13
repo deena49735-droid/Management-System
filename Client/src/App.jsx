@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute, { getDashboardPathByRole } from './components/ProtectedRoute';
+import AppShell from './components/shell/AppShell';
 
 import Login from './pages/Login';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -28,6 +29,8 @@ import MemberDashboard from './pages/MemberDashboard';
 import Leaderboard from './pages/Leaderboard';
 import TeamScorecard from './pages/TeamScorecard';
 import GameCriteria from './pages/GameCriteria';
+import MeetingsList from './pages/meetings/MeetingsList';
+import MeetingSheet from './pages/meetings/MeetingSheet';
 import NotFound from './pages/NotFound';
 
 /**
@@ -56,19 +59,38 @@ const RootRoute = () => {
 };
 
 function App() {
+  const [toastPosition, setToastPosition] = useState(
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 'bottom-center' : 'top-right'
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setToastPosition(window.innerWidth < 1024 ? 'bottom-center' : 'top-right');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <Toaster
-          position="top-center"
+          position={toastPosition}
+          containerStyle={{
+            top: toastPosition === 'top-right' ? 72 : undefined,
+            bottom: toastPosition === 'bottom-center' ? 24 : undefined,
+          }}
           toastOptions={{
-            duration: 3500,
+            duration: 3000,
             style: {
               background: '#1e293b',
               color: '#fff',
-              fontSize: '14px',
-              borderRadius: '12px',
-              padding: '12px 16px',
+              fontSize: '13px',
+              fontWeight: 500,
+              borderRadius: '8px',
+              padding: '10px 14px',
+              border: '1px solid #334155',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
             },
           }}
         />
@@ -92,6 +114,8 @@ function App() {
             <Route path="teams/:id" element={<AdminTeamDetail />} />
             <Route path="criteria" element={<AdminCriteria />} />
             <Route path="entries" element={<AdminEntries />} />
+            <Route path="meetings" element={<MeetingsList />} />
+            <Route path="meetings/:id" element={<MeetingSheet />} />
           </Route>
 
           {/* Protected Team Head Routes */}
@@ -107,6 +131,8 @@ function App() {
             <Route path="approvals" element={<HeadApprovals />} />
             <Route path="history" element={<HeadHistory />} />
             <Route path="scorecard" element={<TeamScorecard />} />
+            <Route path="meetings" element={<MeetingsList />} />
+            <Route path="meetings/:id" element={<MeetingSheet />} />
           </Route>
 
           {/* Protected Team Assistant Routes */}
@@ -123,6 +149,8 @@ function App() {
             <Route path="scorecard" element={<TeamScorecard />} />
             <Route path="team-points" element={<Navigate to="/assistant/scorecard" replace />} />
             <Route path="submissions" element={<AssistantSubmissions />} />
+            <Route path="meetings" element={<MeetingsList />} />
+            <Route path="meetings/:id" element={<MeetingSheet />} />
           </Route>
 
           {/* Protected Member Route */}
@@ -130,7 +158,9 @@ function App() {
             path="/dashboard"
             element={
               <ProtectedRoute roles={['member', 'admin', 'teamHead', 'teamAssistant']}>
-                <MemberDashboard />
+                <AppShell>
+                  <MemberDashboard />
+                </AppShell>
               </ProtectedRoute>
             }
           />
@@ -140,7 +170,9 @@ function App() {
             path="/criteria"
             element={
               <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
-                <GameCriteria />
+                <AppShell>
+                  <GameCriteria />
+                </AppShell>
               </ProtectedRoute>
             }
           />
@@ -150,7 +182,9 @@ function App() {
             path="/leaderboard"
             element={
               <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
-                <Leaderboard />
+                <AppShell>
+                  <Leaderboard />
+                </AppShell>
               </ProtectedRoute>
             }
           />

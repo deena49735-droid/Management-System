@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Plus, Search, Users } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import Badge from '../../components/Badge';
+import PageHeader from '../../components/PageHeader';
+import Card from '../../components/Card';
+import Button from '../../components/Button';
 
 const AdminTeams = () => {
   const navigate = useNavigate();
@@ -84,59 +88,54 @@ const AdminTeams = () => {
   return (
     <div className="space-y-6">
       {/* Header and Add Team Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Team Management</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Create chapter teams, assign leadership positions, and manage member rosters.
-          </p>
-        </div>
-
-        <button
-          onClick={() => {
-            setFormError('');
-            setTeamName('');
-            setIsAddModalOpen(true);
-          }}
-          className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-indigo-700 active:bg-indigo-800 transition"
-        >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span>Add Team</span>
-        </button>
-      </div>
+      <PageHeader
+        title="Team Management"
+        subtitle="Create chapter teams, assign leadership positions, and manage member rosters."
+        actions={
+          <Button
+            variant="primary"
+            icon={Plus}
+            onClick={() => {
+              setFormError('');
+              setTeamName('');
+              setIsAddModalOpen(true);
+            }}
+          >
+            Add Team
+          </Button>
+        }
+      />
 
       {/* Search and Filters */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
-        <div className="relative flex-1">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+      <Card className="p-4">
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <Search className="h-4 w-4" />
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search teams by name..."
+              className="w-full min-h-[40px] rounded-lg border border-slate-300 pl-9 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+            />
           </div>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search teams by name..."
-            className="w-full min-h-[40px] rounded-xl border border-slate-300 pl-9 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-          />
-        </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="min-h-[40px] rounded-xl border border-slate-300 px-3 text-xs sm:text-sm text-slate-700 bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
-        >
-          <option value="">All Statuses</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
-      </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="min-h-[40px] rounded-lg border border-slate-300 px-3 text-xs sm:text-sm text-slate-700 bg-white focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-600/20"
+          >
+            <option value="">All Statuses</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </Card>
 
       {/* Teams List */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+      <Card className="overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-12 text-slate-500">
             <div className="h-8 w-8 animate-spin rounded-full border-3 border-indigo-600 border-t-transparent" />
@@ -264,7 +263,7 @@ const AdminTeams = () => {
             </div>
           </>
         )}
-      </div>
+      </Card>
 
       {/* Add Team Modal */}
       <Modal

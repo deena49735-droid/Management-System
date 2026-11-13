@@ -5,6 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import ProofUpload from '../components/ProofUpload';
 import ProofImage from '../components/ProofImage';
+import PageHeader from '../components/PageHeader';
+import Card from '../components/Card';
+import Badge from '../components/Badge';
+import Button from '../components/Button';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -25,23 +29,19 @@ const YEARS = [2024, 2025, 2026, 2027, 2028];
 
 const statusStyles = {
   approved: {
-    bg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    variant: 'success',
     label: 'Approved',
   },
   pending: {
-    bg: 'bg-amber-50 text-amber-700 border-amber-200',
-    dot: 'bg-amber-500',
+    variant: 'warning',
     label: 'Pending',
   },
   rejected: {
-    bg: 'bg-rose-50 text-rose-700 border-rose-200',
-    dot: 'bg-rose-500',
+    variant: 'danger',
     label: 'Rejected',
   },
   not_submitted: {
-    bg: 'bg-slate-100 text-slate-600 border-slate-200',
-    dot: 'bg-slate-400',
+    variant: 'neutral',
     label: 'Not Submitted',
   },
 };
@@ -124,69 +124,63 @@ const TeamScorecard = () => {
   const isAssistant = user?.role === 'teamAssistant' || user?.role === 'admin';
 
   return (
-    <div className="space-y-8">
-      {/* Header & Month/Year Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            {scorecard?.team?.name ? `${scorecard.team.name} Scorecard` : 'Team Scorecard'}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Monthly criteria points and one-time bonus achievements tracking.
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Header with Back button */}
+      <PageHeader
+        title={scorecard?.team?.name ? `${scorecard.team.name} Scorecard` : 'Team Scorecard'}
+        subtitle="Monthly criteria points and one-time bonus achievements tracking."
+        actions={
+          <div className="flex items-center gap-2">
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="h-10 min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-2xs focus:border-indigo-500 focus:outline-hidden"
-          >
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-2xs focus:border-indigo-500 focus:outline-hidden"
-          >
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+            <select
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="h-10 min-h-[40px] rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {YEARS.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+        }
+      />
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent"></div>
+        <Card className="p-12 text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent mx-auto mb-3"></div>
           <p className="text-sm font-medium text-slate-500">Loading scorecard...</p>
-        </div>
+        </Card>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* SECTION 1: Monthly Points */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-block h-3 w-3 rounded-full bg-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-slate-900">Monthly Points</h2>
-              </div>
-              <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
-                {MONTHS.find((m) => m.value === month)?.label} {year}
-              </span>
-            </div>
+          <Card>
+            <Card.Header
+              title="Monthly Points"
+              subtitle="Target criteria evaluated each calendar month"
+              action={
+                <Badge variant="brand">
+                  {MONTHS.find((m) => m.value === month)?.label} {year}
+                </Badge>
+              }
+            />
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <th className="py-3 px-4 sm:px-6">Criteria Item</th>
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
@@ -201,32 +195,30 @@ const TeamScorecard = () => {
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-4 sm:px-6 font-medium text-slate-900">
+                        <td className="py-3.5 px-4 sm:px-6 font-semibold text-slate-900">
                           {item.criterion.name}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
+                        <td className="py-3.5 px-4 text-right font-bold tabular-nums text-emerald-600">
                           +{item.criterion.points}
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badge.bg}`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+                          <Badge variant={badge.variant} size="xs">
                             {badge.label}
-                          </span>
+                          </Badge>
                         </td>
                         {isAssistant && (
                           <td className="py-3.5 px-4 text-center">
                             {canSubmit ? (
-                              <button
+                              <Button
+                                size="xs"
+                                variant="primary"
                                 onClick={() => handleOpenSubmit(item)}
-                                className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-indigo-700 transition"
                               >
                                 Submit
-                              </button>
+                              </Button>
                             ) : item.status === 'pending' ? (
                               <span className="text-xs text-slate-400">Awaiting Head</span>
                             ) : item.status === 'approved' ? (
@@ -239,10 +231,10 @@ const TeamScorecard = () => {
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-900">
-                    <td className="py-3.5 px-4 sm:px-6">TOTAL</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right">
-                      <span className="text-indigo-600 font-extrabold text-base">
+                  <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
+                    <td className="py-3.5 px-4 sm:px-6 text-xs uppercase tracking-wider text-slate-600">Total Monthly Points</td>
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right tabular-nums">
+                      <span className="text-indigo-600 font-bold text-base">
                         {scorecard?.monthly?.earned || 0}
                       </span>
                       <span className="text-slate-400 font-medium text-sm">
@@ -253,24 +245,24 @@ const TeamScorecard = () => {
                 </tfoot>
               </table>
             </div>
-          </div>
+          </Card>
 
           {/* SECTION 2: One Time Bonus Points */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 bg-slate-50/80 px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="inline-block h-3 w-3 rounded-full bg-emerald-600" />
-                <h2 className="text-base sm:text-lg font-bold text-slate-900">One Time Bonus Points</h2>
-              </div>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                All-Time Achievements
-              </span>
-            </div>
+          <Card>
+            <Card.Header
+              title="One Time Bonus Points"
+              subtitle="All-time chapter achievement bonuses"
+              action={
+                <Badge variant="success">
+                  All-Time Achievements
+                </Badge>
+              }
+            />
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  <tr className="border-b border-slate-200 bg-slate-50/75 text-xs font-semibold uppercase tracking-wider text-slate-500">
                     <th className="py-3 px-4 sm:px-6">Criteria Item</th>
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
@@ -285,32 +277,30 @@ const TeamScorecard = () => {
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-4 sm:px-6 font-medium text-slate-900">
+                        <td className="py-3.5 px-4 sm:px-6 font-semibold text-slate-900">
                           {item.criterion.name}
                         </td>
-                        <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
+                        <td className="py-3.5 px-4 text-right font-bold tabular-nums text-emerald-600">
                           +{item.criterion.points}
                         </td>
                         <td className="py-3.5 px-4 text-center">
                           <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badge.bg}`}
-                          >
-                            <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+                          <Badge variant={badge.variant} size="xs">
                             {badge.label}
-                          </span>
+                          </Badge>
                         </td>
                         {isAssistant && (
                           <td className="py-3.5 px-4 text-center">
                             {canSubmit ? (
-                              <button
+                              <Button
+                                size="xs"
+                                variant="primary"
                                 onClick={() => handleOpenSubmit(item)}
-                                className="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-indigo-700 transition"
                               >
                                 Submit
-                              </button>
+                              </Button>
                             ) : item.status === 'pending' ? (
                               <span className="text-xs text-slate-400">Awaiting Head</span>
                             ) : item.status === 'approved' ? (
@@ -323,10 +313,10 @@ const TeamScorecard = () => {
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-900">
-                    <td className="py-3.5 px-4 sm:px-6">TOTAL</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right">
-                      <span className="text-indigo-600 font-extrabold text-base">
+                  <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
+                    <td className="py-3.5 px-4 sm:px-6 text-xs uppercase tracking-wider text-slate-600">Total One-Time Points</td>
+                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-4 text-right tabular-nums">
+                      <span className="text-indigo-600 font-bold text-base">
                         {scorecard?.oneTime?.earned || 0}
                       </span>
                       <span className="text-slate-400 font-medium text-sm">
@@ -337,7 +327,7 @@ const TeamScorecard = () => {
                 </tfoot>
               </table>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
@@ -349,10 +339,10 @@ const TeamScorecard = () => {
           title={`Submit Team Goal: ${submittingCriterion?.criterion?.name || ''}`}
         >
           <form onSubmit={handleSubmitScorecardItem} className="space-y-4">
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 flex items-center justify-between">
+            <div className="rounded-lg bg-slate-50 p-3.5 border border-slate-200 flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-500 font-medium">Activity Points</p>
-                <p className="text-base font-bold text-emerald-600">
+                <p className="text-base font-bold tabular-nums text-emerald-600">
                   +{submittingCriterion?.criterion?.points || 1000} pts
                 </p>
               </div>
@@ -377,7 +367,7 @@ const TeamScorecard = () => {
             />
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                 Notes / Remarks (Optional)
               </label>
               <textarea
@@ -385,26 +375,27 @@ const TeamScorecard = () => {
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 placeholder="Add any supporting remarks or completion details..."
-                className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-800 shadow-2xs focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full min-h-[44px] rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-200">
-              <button
+            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setSubmittingCriterion(null)}
                 disabled={submitting || uploadingProof}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="primary"
+                loading={submitting}
                 disabled={submitting || uploadingProof}
-                className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700 transition disabled:opacity-50"
               >
-                {submitting ? 'Submitting...' : uploadingProof ? 'Uploading photo...' : 'Confirm & Submit'}
-              </button>
+                {uploadingProof ? 'Uploading photo...' : 'Confirm & Submit'}
+              </Button>
             </div>
           </form>
         </Modal>
@@ -414,4 +405,3 @@ const TeamScorecard = () => {
 };
 
 export default TeamScorecard;
-
