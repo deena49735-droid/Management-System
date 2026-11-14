@@ -30,13 +30,19 @@ const auth = async (req, res, next) => {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired. Please sign in again.',
+        });
+      }
       return res.status(401).json({
         success: false,
         message: 'Access denied. Invalid or expired token.',
       });
     }
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select('-password');
 
     if (!user) {
       return res.status(401).json({
@@ -46,9 +52,9 @@ const auth = async (req, res, next) => {
     }
 
     if (!user.isActive) {
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
-        message: 'Account is deactivated. Please contact an administrator.',
+        message: 'Your account is not active. Please contact your admin.',
       });
     }
 

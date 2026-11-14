@@ -5,9 +5,10 @@ const Team = require('../models/Team');
 /**
  * Helper to generate JWT token
  * @param {Object} user - User document
+ * @param {string} [expiresIn] - Token expiration duration
  * @returns {string} JWT token
  */
-const generateToken = (user) => {
+const generateToken = (user, expiresIn) => {
   return jwt.sign(
     {
       id: user._id,
@@ -15,7 +16,7 @@ const generateToken = (user) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      expiresIn: expiresIn || process.env.JWT_EXPIRES_IN || '12h',
     }
   );
 };
@@ -27,7 +28,7 @@ const generateToken = (user) => {
  */
 exports.login = async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, remember = false } = req.body;
 
     // Validate request inputs
     if (!username || !password) {
@@ -51,9 +52,9 @@ exports.login = async (req, res, next) => {
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
-        message: 'Account is deactivated. Please contact an administrator.',
+        message: 'Your account is not active. Please contact your admin.',
       });
     }
 
@@ -66,8 +67,14 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    // Generate JWT token
-    const token = generateToken(user);
+    // Token lifetime: JWT_REMEMBER_EXPIRES_IN only when remember is true AND role is not admin
+    const isRemember = Boolean(remember) && user.role !== 'admin';
+    const tokenLifetime = isRemember
+      ? (process.env.JWT_REMEMBER_EXPIRES_IN || '30d')
+      : (process.env.JWT_EXPIRES_IN || '12h');
+
+    // Generate JWT token with resolved lifetime
+    const token = generateToken(user, tokenLifetime);
 
     // Return response without password
     res.status(200).json({
@@ -99,12 +106,21 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     // req.user is set by auth middleware
-    const user = await User.findById(req.user._id).populate('team', 'name');
+    const user = await User.findById(req.user._id)
+      .select('-password')
+      .populate('team', 'name');
 
     if (!user) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: 'User not found.',
+        message: 'User no longer exists.',
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your account is not active. Please contact your admin.',
       });
     }
 

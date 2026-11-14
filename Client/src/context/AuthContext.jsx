@@ -1,30 +1,24 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { TOKEN_KEY, USER_KEY } from '../utils/constants';
+import { TOKEN_KEY, getStoredToken, setStoredToken, clearStoredAuth } from '../utils/constants';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Read token from localStorage on app start
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || null);
+  // Read token from storage (sessionStorage or localStorage) on app start
+  const [token, setToken] = useState(() => getStoredToken());
 
-  // Read saved user profile from localStorage on app start (if available)
-  const [user, setUser] = useState(() => {
-    try {
-      const savedUser = localStorage.getItem(USER_KEY);
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch {
-      return null;
-    }
-  });
+  // User object is NEVER trusted or restored from storage; always verified via /auth/me
+  const [user, setUser] = useState(null);
 
   // Loading state remains true until restore session call completes
   const [loading, setLoading] = useState(true);
 
-  // Restore user session on app start if token exists
+  // 1. Restore and verify user session on app start via GET /auth/me
   useEffect(() => {
     const restoreSession = async () => {
-      const storedToken = localStorage.getItem(TOKEN_KEY);
+      const storedToken = getStoredToken();
 
       if (!storedToken) {
         // No token found, finish loading immediately
@@ -33,24 +27,28 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        // Validate token and fetch fresh user profile
+        // Validate token with server and fetch fresh user profile
         const response = await api.get('/auth/me');
 
         if (response.data?.user) {
           setUser(response.data.user);
-          localStorage.setItem(USER_KEY, JSON.stringify(response.data.user));
           setToken(storedToken);
         } else {
-          logout();
+          clearStoredAuth();
+          setToken(null);
+          setUser(null);
         }
       } catch (error) {
-        console.error('Failed to restore session:', error?.response?.data?.message || error.message);
-        // Only log out if backend explicitly rejected credentials with 401
+        clearStoredAuth();
+        setToken(null);
+        setUser(null);
+
+        // If backend explicitly returned 401 (expired session or inactive account)
         if (error.response?.status === 401) {
-          logout();
+          const msg = error.response?.data?.message || 'Session expired. Please sign in again.';
+          toast.error(msg);
         }
       } finally {
-        // Always set loading to false after check completes (success or failure)
         setLoading(false);
       }
     };
@@ -58,17 +56,31 @@ export const AuthProvider = ({ children }) => {
     restoreSession();
   }, []);
 
-  // Login handler
-  const login = async (username, password) => {
+  // 2. Multi-tab sync: Listen to storage events to log out this tab if logged out in another
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === TOKEN_KEY && !e.newValue) {
+        clearStoredAuth();
+        setToken(null);
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Login handler accepting optional remember boolean
+  const login = async (username, password, remember = false) => {
     const response = await api.post('/auth/login', {
       username: username ? username.trim().toLowerCase() : '',
       password,
+      remember: Boolean(remember),
     });
     const { token: receivedToken, user: receivedUser } = response.data;
 
-    // Save token and user to localStorage with consistent keys
-    localStorage.setItem(TOKEN_KEY, receivedToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(receivedUser));
+    // Store ONLY the token according to remember preference (sessionStorage or localStorage)
+    setStoredToken(receivedToken, remember);
 
     setToken(receivedToken);
     setUser(receivedUser);
@@ -76,10 +88,9 @@ export const AuthProvider = ({ children }) => {
     return receivedUser;
   };
 
-  // Logout handler
+  // Logout handler clearing both storages
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    clearStoredAuth();
     setToken(null);
     setUser(null);
   };
