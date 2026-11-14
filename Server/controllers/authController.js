@@ -30,6 +30,14 @@ exports.login = async (req, res, next) => {
   try {
     const { username, password, remember = false } = req.body;
 
+    // Validate credentials types before any trim or database lookup
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid credentials format.',
+      });
+    }
+
     // Validate request inputs
     if (!username || !password) {
       return res.status(400).json({

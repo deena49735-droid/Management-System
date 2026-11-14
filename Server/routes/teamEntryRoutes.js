@@ -69,6 +69,8 @@ const adminTeamAdjustValidation = [
     .isInt()
     .withMessage('Points must be a signed integer (positive or negative)'),
   body('reason')
+    .isString()
+    .withMessage('Reason must be a string')
     .trim()
     .notEmpty()
     .withMessage('A mandatory reason is required for manual adjustments'),
@@ -98,6 +100,8 @@ const rejectValidation = [
     .isMongoId()
     .withMessage('Invalid team entry ID format'),
   body('reason')
+    .isString()
+    .withMessage('Reason must be a string')
     .trim()
     .notEmpty()
     .withMessage('Rejection reason is required'),
@@ -109,6 +113,8 @@ const reverseValidation = [
     .isMongoId()
     .withMessage('Invalid team entry ID format'),
   body('reason')
+    .isString()
+    .withMessage('Reason must be a string')
     .trim()
     .notEmpty()
     .withMessage('Reversal reason is required'),

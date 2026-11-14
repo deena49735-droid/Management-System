@@ -130,7 +130,7 @@ exports.createCriteria = async (req, res, next) => {
 
     const { key, name, category, points, basis, basisLabel, displayOrder, frequency, level, needsProof, isActive } =
       req.body;
-    const normalizedKey = key.trim().toLowerCase();
+    const normalizedKey = typeof key === 'string' ? key.trim().toLowerCase() : '';
 
     const existing = await Criteria.findOne({ key: normalizedKey });
     if (existing) {
@@ -142,11 +142,11 @@ exports.createCriteria = async (req, res, next) => {
 
     const criteria = await Criteria.create({
       key: normalizedKey,
-      name: name.trim(),
+      name: typeof name === 'string' ? name.trim() : '',
       category,
       points: Number(points),
       basis: basis || 'per_member',
-      basisLabel: basisLabel ? basisLabel.trim() : 'Per Member',
+      basisLabel: typeof basisLabel === 'string' ? basisLabel.trim() : 'Per Member',
       displayOrder: displayOrder !== undefined ? Number(displayOrder) : 1,
       frequency: frequency || 'weekly',
       level,
@@ -193,13 +193,13 @@ exports.updateCriteria = async (req, res, next) => {
       });
     }
 
-    if (req.body.name) criteria.name = req.body.name.trim();
+    if (typeof req.body.name === 'string') criteria.name = req.body.name.trim();
     if (req.body.points !== undefined) criteria.points = Number(req.body.points);
     if (req.body.needsProof !== undefined) criteria.needsProof = Boolean(req.body.needsProof);
     if (req.body.isActive !== undefined) criteria.isActive = Boolean(req.body.isActive);
     if (req.body.category) criteria.category = req.body.category;
     if (req.body.basis) criteria.basis = req.body.basis;
-    if (req.body.basisLabel) criteria.basisLabel = req.body.basisLabel.trim();
+    if (typeof req.body.basisLabel === 'string') criteria.basisLabel = req.body.basisLabel.trim();
     if (req.body.displayOrder !== undefined) criteria.displayOrder = Number(req.body.displayOrder);
     if (req.body.frequency) criteria.frequency = req.body.frequency;
 

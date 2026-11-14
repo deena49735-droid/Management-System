@@ -223,7 +223,7 @@ exports.createEntry = async (req, res, next) => {
           frequency,
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
-          note: note ? note.trim() : '',
+          note: typeof note === 'string' && note.trim() ? note.trim() : '',
           status: 'pending',
           enteredBy: req.user._id,
           isAdminAdjustment: false,
@@ -244,7 +244,7 @@ exports.createEntry = async (req, res, next) => {
           previousStatus: null,
           newStatus: 'pending',
           points: calculatedPoints,
-          reason: note ? note.trim() : '',
+          reason: typeof note === 'string' && note.trim() ? note.trim() : '',
           metadata: {
             criteriaKey: criteriaDoc.key,
             quantity: qty,
@@ -498,7 +498,7 @@ exports.rejectEntry = async (req, res, next) => {
     }
 
     const { reason } = req.body;
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -695,7 +695,7 @@ exports.adminDirectAward = async (req, res, next) => {
           frequency,
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
-          note: note ? note.trim() : 'Admin Direct Award',
+          note: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Award',
           status: 'approved',
           enteredBy: req.user._id,
           approvedBy: req.user._id,
@@ -718,7 +718,7 @@ exports.adminDirectAward = async (req, res, next) => {
           previousStatus: null,
           newStatus: 'approved',
           points: calculatedPoints,
-          reason: note ? note.trim() : 'Admin Direct Award',
+          reason: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Award',
           metadata: {
             criteriaKey: criteriaDoc.key,
             quantity: qty,
@@ -763,7 +763,7 @@ exports.adminManualAdjustment = async (req, res, next) => {
   try {
     const { member, points, reason, date, note } = req.body;
 
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({ success: false, message: 'A mandatory reason is required for manual adjustments.' });
     }
@@ -809,7 +809,7 @@ exports.adminManualAdjustment = async (req, res, next) => {
           year,
           frequency: 'weekly',
           proofImage: null,
-          note: note ? note.trim() : reason.trim(),
+          note: typeof note === 'string' && note.trim() ? note.trim() : (typeof reason === 'string' ? reason.trim() : ''),
           status: 'approved',
           enteredBy: req.user._id,
           approvedBy: req.user._id,
@@ -881,7 +881,7 @@ exports.reverseEntry = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Point entry not found.' });
     }
 
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({ success: false, message: 'A reason is required to reverse an entry.' });
     }

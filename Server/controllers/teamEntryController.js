@@ -198,7 +198,7 @@ exports.createTeamEntry = async (req, res, next) => {
           frequency,
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
-          note: note ? note.trim() : '',
+          note: typeof note === 'string' && note.trim() ? note.trim() : '',
           status: 'pending',
           submittedBy: req.user._id,
           isAdminAdjustment: false,
@@ -219,7 +219,7 @@ exports.createTeamEntry = async (req, res, next) => {
           previousStatus: null,
           newStatus: 'pending',
           points: criteriaDoc.points,
-          reason: note ? note.trim() : '',
+          reason: typeof note === 'string' && note.trim() ? note.trim() : '',
           metadata: {
             criteriaKey: criteriaDoc.key,
             frequency,
@@ -462,7 +462,7 @@ exports.rejectTeamEntry = async (req, res, next) => {
     }
 
     const { reason } = req.body;
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -646,7 +646,7 @@ exports.adminDirectTeamAward = async (req, res, next) => {
           frequency,
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
-          note: note ? note.trim() : 'Admin Direct Team Award',
+          note: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Team Award',
           status: 'approved',
           submittedBy: req.user._id,
           approvedBy: req.user._id,
@@ -669,7 +669,7 @@ exports.adminDirectTeamAward = async (req, res, next) => {
           previousStatus: null,
           newStatus: 'approved',
           points: criteriaDoc.points,
-          reason: note ? note.trim() : 'Admin Direct Team Award',
+          reason: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Team Award',
           metadata: {
             criteriaKey: criteriaDoc.key,
             frequency,
@@ -712,7 +712,7 @@ exports.adminManualTeamAdjustment = async (req, res, next) => {
   try {
     const { team, points, reason, month, year, note } = req.body;
 
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({ success: false, message: 'A mandatory reason is required for manual adjustments.' });
     }
@@ -748,7 +748,7 @@ exports.adminManualTeamAdjustment = async (req, res, next) => {
           year: entryYear,
           frequency: 'monthly',
           proofImage: null,
-          note: note ? note.trim() : reason.trim(),
+          note: typeof note === 'string' && note.trim() ? note.trim() : (typeof reason === 'string' ? reason.trim() : ''),
           status: 'approved',
           submittedBy: req.user._id,
           approvedBy: req.user._id,
@@ -819,7 +819,7 @@ exports.reverseTeamEntry = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Team point entry not found.' });
     }
 
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({ success: false, message: 'A reason is required to reverse an entry.' });
     }

@@ -421,7 +421,7 @@ exports.updateMeeting = async (req, res, next) => {
 
       meeting.rows = rows.map((r) => ({
         member: r.member,
-        arrivalTime: r.arrivalTime ? r.arrivalTime.trim() : '',
+        arrivalTime: typeof r.arrivalTime === 'string' ? r.arrivalTime.trim() : '',
         attendance: r.attendance || 'present',
         walkedOut: Boolean(r.walkedOut),
         attire: r.attire || 'none',
@@ -836,7 +836,7 @@ exports.sendBackMeeting = async (req, res, next) => {
     }
 
     const { reason } = req.body;
-    if (!reason || !reason.trim()) {
+    if (!reason || typeof reason !== 'string' || !reason.trim()) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,

@@ -49,6 +49,27 @@ exports.getMyTeam = async (req, res, next) => {
 };
 
 /**
+ * @desc    Get minimal active team options for dropdowns/filters
+ * @route   GET /api/teams/options
+ * @access  Private (any authenticated user)
+ */
+exports.getTeamOptions = async (req, res, next) => {
+  try {
+    const teams = await Team.find({ isActive: true })
+      .select('_id name')
+      .sort({ name: 1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: teams,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Create a new team (admin only)
  * @route   POST /api/teams
  * @access  Private (Admin)
@@ -64,7 +85,7 @@ exports.createTeam = async (req, res, next) => {
     }
 
     const { name } = req.body;
-    const trimmedName = name.trim();
+    const trimmedName = typeof name === 'string' ? name.trim() : '';
 
     // Check if team name already exists (case-insensitive)
     const existingTeam = await Team.findOne({
@@ -102,7 +123,7 @@ exports.createTeam = async (req, res, next) => {
 exports.getTeams = async (req, res, next) => {
   try {
     const filter = {};
-    if (req.query.search) {
+    if (typeof req.query.search === 'string' && req.query.search.trim()) {
       filter.name = { $regex: req.query.search.trim(), $options: 'i' };
     }
     if (req.query.isActive !== undefined) {
@@ -199,7 +220,7 @@ exports.updateTeam = async (req, res, next) => {
       });
     }
 
-    if (req.body.name) {
+    if (typeof req.body.name === 'string') {
       const trimmedName = req.body.name.trim();
       if (!trimmedName) {
         return res.status(400).json({

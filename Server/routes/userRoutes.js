@@ -12,10 +12,14 @@ router.use(auth, roleCheck('admin'));
 // Validation rules for user creation
 const createUserValidation = [
   body('name')
+    .isString()
+    .withMessage('Name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Name is required'),
   body('username')
+    .isString()
+    .withMessage('Username must be a string')
     .trim()
     .notEmpty()
     .withMessage('Username is required')
@@ -24,6 +28,8 @@ const createUserValidation = [
     .matches(/^[a-z0-9._]+$/)
     .withMessage('Username can only contain lowercase letters, numbers, dot, and underscore'),
   body('phone')
+    .isString()
+    .withMessage('Phone must be a string')
     .trim()
     .matches(/^[0-9]{10}$/)
     .withMessage('Phone must be a valid 10-digit number'),
@@ -47,11 +53,15 @@ const updateUserValidation = [
     .withMessage('Invalid user ID format'),
   body('name')
     .optional()
+    .isString()
+    .withMessage('Name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Name cannot be empty'),
   body('username')
     .optional()
+    .isString()
+    .withMessage('Username must be a string')
     .trim()
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
@@ -59,6 +69,8 @@ const updateUserValidation = [
     .withMessage('Username can only contain lowercase letters, numbers, dot, and underscore'),
   body('phone')
     .optional()
+    .isString()
+    .withMessage('Phone must be a string')
     .trim()
     .matches(/^[0-9]{10}$/)
     .withMessage('Phone must be a valid 10-digit number'),

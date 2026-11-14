@@ -12,12 +12,17 @@ router.use(auth);
 // GET /api/teams/my - accessible to any logged-in user who belongs to a team (placed before /:id)
 router.get('/my', teamController.getMyTeam);
 
+// GET /api/teams/options - minimal active team options for any authenticated role (placed before /:id)
+router.get('/options', teamController.getTeamOptions);
+
 // Protect all subsequent team management routes with admin role check
 router.use(roleCheck('admin'));
 
 // Validation rules for creating a team
 const createTeamValidation = [
   body('name')
+    .isString()
+    .withMessage('Team name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Team name is required'),
@@ -30,6 +35,8 @@ const updateTeamValidation = [
     .withMessage('Invalid team ID format'),
   body('name')
     .optional()
+    .isString()
+    .withMessage('Team name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Team name cannot be empty'),

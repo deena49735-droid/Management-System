@@ -19,8 +19,8 @@ exports.createUser = async (req, res, next) => {
     }
 
     const { name, username, phone, password, role, team } = req.body;
-    const trimmedPhone = phone.trim();
-    const trimmedUsername = (username || '').trim().toLowerCase();
+    const trimmedPhone = typeof phone === 'string' ? phone.trim() : '';
+    const trimmedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
 
     // Check if username is already registered
     const existingUsername = await User.findOne({ username: trimmedUsername });
@@ -66,7 +66,7 @@ exports.createUser = async (req, res, next) => {
     // Create the user
     const userRole = role || 'member';
     const user = await User.create({
-      name: name.trim(),
+      name: typeof name === 'string' ? name.trim() : '',
       username: trimmedUsername,
       phone: trimmedPhone,
       password,
@@ -102,6 +102,25 @@ exports.createUser = async (req, res, next) => {
       data: populatedUser,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      if (field === 'username') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this username already exists.',
+        });
+      }
+      if (field === 'phone') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists.',
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this detail already exists.',
+      });
+    }
     next(error);
   }
 };
@@ -115,7 +134,7 @@ exports.getUsers = async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 10));
-    const search = req.query.search ? req.query.search.trim() : '';
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
     const filter = {};
 
@@ -254,7 +273,7 @@ exports.updateUser = async (req, res, next) => {
     }
 
     // Update username if provided and check uniqueness
-    if (req.body.username) {
+    if (typeof req.body.username === 'string') {
       const trimmedUsername = req.body.username.trim().toLowerCase();
       if (!/^[a-z0-9._]{3,30}$/.test(trimmedUsername)) {
         return res.status(400).json({
@@ -280,7 +299,7 @@ exports.updateUser = async (req, res, next) => {
     }
 
     // Update phone if provided and check uniqueness
-    if (req.body.phone) {
+    if (typeof req.body.phone === 'string') {
       const trimmedPhone = req.body.phone.trim();
       if (!/^[0-9]{10}$/.test(trimmedPhone)) {
         return res.status(400).json({
@@ -305,7 +324,7 @@ exports.updateUser = async (req, res, next) => {
     }
 
     // Update name
-    if (req.body.name) {
+    if (typeof req.body.name === 'string') {
       user.name = req.body.name.trim();
     }
 
@@ -425,6 +444,25 @@ exports.updateUser = async (req, res, next) => {
       data: updatedUser,
     });
   } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      if (field === 'username') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this username already exists.',
+        });
+      }
+      if (field === 'phone') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists.',
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this detail already exists.',
+      });
+    }
     next(error);
   }
 };

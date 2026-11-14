@@ -124,11 +124,14 @@ const HeadOverview = () => {
     );
   }
 
-  const allMembers = [
+  const rawMembers = [
     ...(team?.head ? [{ ...team.head, teamRole: 'Team Head' }] : []),
     ...(team?.assistant ? [{ ...team.assistant, teamRole: 'Team Assistant' }] : []),
     ...(team?.members || []).map((m) => ({ ...m, teamRole: 'Member' })),
   ];
+  const allMembers = Array.from(
+    new Map(rawMembers.filter((m) => m && m._id).map((m) => [m._id, m])).values()
+  );
 
   return (
     <div className="space-y-6">

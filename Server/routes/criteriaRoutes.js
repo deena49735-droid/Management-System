@@ -15,10 +15,14 @@ router.get('/', auth, criteriaController.getCriteria);
 // Validation rules for criteria creation
 const createValidation = [
   body('key')
+    .isString()
+    .withMessage('Key must be a string')
     .trim()
     .notEmpty()
     .withMessage('Key is required'),
   body('name')
+    .isString()
+    .withMessage('Name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Name is required'),
@@ -56,6 +60,8 @@ const updateValidation = [
     .withMessage('Invalid criteria ID format'),
   body('name')
     .optional()
+    .isString()
+    .withMessage('Name must be a string')
     .trim()
     .notEmpty()
     .withMessage('Name cannot be empty'),
@@ -73,6 +79,8 @@ const updateValidation = [
     .withMessage('isActive must be a boolean'),
   body('basisLabel')
     .optional()
+    .isString()
+    .withMessage('basisLabel must be a string')
     .trim(),
   body('displayOrder')
     .optional()

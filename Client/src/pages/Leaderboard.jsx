@@ -56,7 +56,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const res = await api.get('/teams');
+        const res = await api.get('/teams/options');
         setAllTeams(res.data.data || []);
       } catch (err) {
         console.error('Failed to load teams for filter:', err);

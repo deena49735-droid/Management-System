@@ -73,7 +73,7 @@ const validateMeetingRow = (row, criteriaHelper) => {
   }
 
   if (attendance === 'absent') {
-    if (row.arrivalTime && row.arrivalTime.trim() !== '') {
+    if (typeof row.arrivalTime === 'string' && row.arrivalTime.trim() !== '') {
       errors.push('Absent members cannot have an arrival time.');
     }
     if (row.walkedOut) {
@@ -136,7 +136,7 @@ const deriveRowPoints = (row, criteriaHelper) => {
   const { byKey, byId } = criteriaHelper;
   const items = [];
   let attendance = row.attendance || 'present';
-  const arrivalTime = row.arrivalTime ? row.arrivalTime.trim() : '';
+  const arrivalTime = typeof row.arrivalTime === 'string' ? row.arrivalTime.trim() : '';
 
   // 1. Arrival time & attendance derivation
   if (attendance === 'absent') {

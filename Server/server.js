@@ -28,6 +28,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
 const teamEntryController = require('./controllers/teamEntryController');
 const auth = require('./middleware/auth');
+const rejectOperators = require('./middleware/rejectOperators');
 
 const app = express();
 
@@ -53,6 +54,9 @@ app.use(
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Reject NoSQL injection operators ($) or dot notation (.) in keys at any depth
+app.use(rejectOperators);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -132,7 +136,19 @@ app.use((err, req, res, next) => {
       });
     }
 
-    const field = Object.keys(err.keyValue || {})[0] || 'field';
+    const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || 'field';
+    if (field === 'username') {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this username already exists.',
+      });
+    }
+    if (field === 'phone') {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this phone number already exists.',
+      });
+    }
     return res.status(409).json({
       success: false,
       message: `A record with this ${field} already exists.`,
