@@ -51,7 +51,7 @@ const RejectModal = ({
               if (error) setError('');
             }}
             placeholder="Explain why this entry is being rejected..."
-            className={`w-full min-h-[44px] rounded-lg border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition ${
+            className={`w-full min-h-[44px] rounded-lg border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 transition ${
               error ? 'border-rose-400 bg-rose-50/30' : 'border-slate-300 bg-white'
             }`}
             autoFocus

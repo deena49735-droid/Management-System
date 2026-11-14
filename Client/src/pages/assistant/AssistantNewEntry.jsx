@@ -198,7 +198,7 @@ const AssistantNewEntry = () => {
                 value={memberId}
                 onChange={(e) => setMemberId(e.target.value)}
                 required
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="">— Select a member —</option>
                 {teamMembers.map((m) => (
@@ -218,7 +218,7 @@ const AssistantNewEntry = () => {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               />
             </div>
           </div>
@@ -235,7 +235,7 @@ const AssistantNewEntry = () => {
                 setQuantity(1);
               }}
               required
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             >
               <option value="">— Select activity or penalty —</option>
               {CATEGORY_ORDER.map(
@@ -259,7 +259,7 @@ const AssistantNewEntry = () => {
 
           {/* Quantity Field */}
           {showQuantity && (
-            <div className="rounded-lg border border-indigo-100 bg-indigo-50/40 p-4">
+            <div className="rounded-lg border border-brand-100 bg-brand-50/40 p-4">
               <Input
                 label={`Quantity (${selectedCriteria?.basisLabel})`}
                 type="number"
@@ -295,7 +295,7 @@ const AssistantNewEntry = () => {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. Details, visitor name, cross-chapter details..."
-              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 

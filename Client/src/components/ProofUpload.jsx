@@ -147,21 +147,21 @@ const ProofUpload = ({
 
       {/* Uploading Progress State */}
       {uploading && (
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-4 space-y-2">
+        <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-4 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-indigo-900 flex items-center gap-1.5">
-              <svg className="h-4 w-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24">
+            <span className="font-semibold text-slate-900 flex items-center gap-1.5">
+              <svg className="h-4 w-4 animate-spin text-brand-600" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
               {stage === 'compressing' ? 'Optimizing photo (max 1 MB)...' : `Uploading photo... ${progress}%`}
             </span>
-            <span className="text-indigo-600 font-bold">{progress}%</span>
+            <span className="text-brand-600 font-bold">{progress}%</span>
           </div>
 
-          <div className="h-2 w-full overflow-hidden rounded-full bg-indigo-100">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-brand-100">
             <div
-              className="h-full bg-indigo-600 transition-all duration-300 ease-out"
+              className="h-full bg-brand-600 transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -221,11 +221,11 @@ const ProofUpload = ({
             disabled={disabled}
             className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
               required
-                ? 'border-indigo-300 bg-indigo-50/30 hover:bg-indigo-50/60'
+                ? 'border-brand-300 bg-brand-50/30 hover:bg-brand-50/60'
                 : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/70'
             } disabled:opacity-50 cursor-pointer`}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-2xs text-indigo-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-2xs text-brand-600">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />

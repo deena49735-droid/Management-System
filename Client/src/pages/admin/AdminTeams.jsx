@@ -122,14 +122,14 @@ const AdminTeams = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search teams by name..."
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All statuses</option>
             <option value="true">Active</option>
@@ -209,7 +209,7 @@ const AdminTeams = () => {
                         <Badge status={team.isActive} />
                       </td>
                       <td className="px-5 py-3.5 text-right whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-800">
                           Manage <ArrowRight className="h-3.5 w-3.5" />
                         </span>
                       </td>
@@ -255,7 +255,7 @@ const AdminTeams = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1 text-xs font-semibold text-indigo-600">
+                  <div className="flex items-center justify-between pt-1 text-xs font-semibold text-brand-600">
                     <span className="text-slate-400 font-normal">Tap to manage leadership & members</span>
                     <span className="inline-flex items-center gap-1">
                       Manage <ArrowRight className="h-3.5 w-3.5" />

@@ -46,7 +46,7 @@ const PageHeader = ({
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex h-10 min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100 transition shrink-0 focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="inline-flex h-10 min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100 transition shrink-0 focus-visible:ring-2 focus-visible:ring-brand-500"
               title="Go back"
               aria-label="Go back to previous page"
             >

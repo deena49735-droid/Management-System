@@ -82,7 +82,7 @@ const AssistantSubmissions = () => {
                 onClick={() => setStatusFilter(st.key)}
                 className={`h-10 min-h-[40px] rounded-lg px-3.5 text-xs font-semibold capitalize transition ${
                   statusFilter === st.key
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-brand-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >

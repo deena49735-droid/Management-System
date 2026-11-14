@@ -172,7 +172,7 @@ const AssistantOverview = () => {
           label="Team Members"
           value={memberCount}
           icon={Users}
-          variant="blue"
+          variant="brand"
           hint={`Active squad roster`}
           loading={loading}
         />
@@ -189,7 +189,7 @@ const AssistantOverview = () => {
           label="Team Rank"
           value={teamRank ? `#${teamRank}` : '—'}
           icon={Trophy}
-          variant="indigo"
+          variant="brand"
           hint={totalTeams > 0 ? `Out of ${totalTeams} teams` : 'This month'}
           loading={loading}
         />
@@ -208,25 +208,25 @@ const AssistantOverview = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <Link
           to="/assistant/meetings"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <Calendar className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+              <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
                 New Meeting Sheet
               </p>
               <p className="text-xs text-slate-500">Weekly attendance & points</p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />
         </Link>
 
         <Link
           to="/assistant/entries/new"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -244,20 +244,20 @@ const AssistantOverview = () => {
 
         <Link
           to="/assistant/scorecard"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <BarChart3 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+              <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
                 Team Scorecard
               </p>
               <p className="text-xs text-slate-500">Monthly targets & bonus</p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />
         </Link>
       </div>
 
@@ -268,7 +268,7 @@ const AssistantOverview = () => {
         action={
           <Link
             to="/assistant/submissions"
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
           >
             <span>View all submissions</span>
             <ArrowRight className="h-3.5 w-3.5" />

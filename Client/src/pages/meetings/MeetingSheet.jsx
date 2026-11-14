@@ -467,12 +467,12 @@ const MeetingSheet = () => {
 
       {/* Self-approval pending notice for Team Head */}
       {meeting.status === 'submitted' && meeting.ledgerStatus?.headPendingCount > 0 && (
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 p-4 text-xs text-indigo-900 space-y-1">
-          <div className="flex items-center gap-2 font-semibold text-indigo-800">
+        <div className="rounded-xl border border-brand-200 bg-brand-50/80 p-4 text-xs text-brand-900 space-y-1">
+          <div className="flex items-center gap-2 font-semibold text-brand-800">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span>Self-approval notice</span>
           </div>
-          <p className="pl-6 text-indigo-800">
+          <p className="pl-6 text-brand-800">
             {meeting.ledgerStatus.headPendingCount} point {meeting.ledgerStatus.headPendingCount === 1 ? 'entry' : 'entries'} belong to you as Team Head. Per Stage 1A rules, team entries can be approved, but your own entry requires Admin approval.
           </p>
         </div>
@@ -488,7 +488,7 @@ const MeetingSheet = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search member in sheet..."
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
@@ -593,7 +593,7 @@ const MeetingSheet = () => {
                   </Button>
                   <Button
                     type="button"
-                    variant="primary"
+                    variant="success"
                     onClick={() => setIsApproveModalOpen(true)}
                     disabled={sendingBack || approving}
                   >
@@ -712,7 +712,7 @@ const MeetingSheet = () => {
             </Button>
             <Button
               type="button"
-              variant="primary"
+              variant="success"
               onClick={handleApproveConfirm}
               isLoading={approving}
             >

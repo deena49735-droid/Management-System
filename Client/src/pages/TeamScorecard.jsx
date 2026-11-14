@@ -137,7 +137,7 @@ const TeamScorecard = () => {
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
-              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               {MONTHS.map((m) => (
                 <option key={m.value} value={m.value}>
@@ -149,7 +149,7 @@ const TeamScorecard = () => {
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               {YEARS.map((y) => (
                 <option key={y} value={y}>
@@ -173,7 +173,7 @@ const TeamScorecard = () => {
             title="Monthly points"
             subtitle="Target criteria evaluated each calendar month"
             action={
-              <Badge variant="indigo">
+              <Badge variant="neutral">
                 {MONTHS.find((m) => m.value === month)?.label} {year}
               </Badge>
             }
@@ -237,7 +237,7 @@ const TeamScorecard = () => {
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
                     <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total monthly points</td>
                     <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
-                      <span className="text-indigo-600 font-bold text-base">
+                      <span className="text-brand-600 font-bold text-base">
                         {scorecard?.monthly?.earned || 0}
                       </span>
                       <span className="text-slate-400 font-medium text-sm">
@@ -299,7 +299,7 @@ const TeamScorecard = () => {
               <div className="p-4 bg-slate-50/80 border-t-2 border-slate-200 flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total monthly points</span>
                 <span className="text-sm font-bold tabular-nums">
-                  <span className="text-indigo-600">{scorecard?.monthly?.earned || 0}</span>
+                  <span className="text-brand-600">{scorecard?.monthly?.earned || 0}</span>
                   <span className="text-slate-400"> / {scorecard?.monthly?.total || 5000}</span>
                 </span>
               </div>
@@ -375,7 +375,7 @@ const TeamScorecard = () => {
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
                     <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total one-time points</td>
                     <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
-                      <span className="text-indigo-600 font-bold text-base">
+                      <span className="text-brand-600 font-bold text-base">
                         {scorecard?.oneTime?.earned || 0}
                       </span>
                       <span className="text-slate-400 font-medium text-sm">
@@ -437,7 +437,7 @@ const TeamScorecard = () => {
               <div className="p-4 bg-slate-50/80 border-t-2 border-slate-200 flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total one-time points</span>
                 <span className="text-sm font-bold tabular-nums">
-                  <span className="text-indigo-600">{scorecard?.oneTime?.earned || 0}</span>
+                  <span className="text-brand-600">{scorecard?.oneTime?.earned || 0}</span>
                   <span className="text-slate-400"> / {scorecard?.oneTime?.total || 5000}</span>
                 </span>
               </div>
@@ -491,7 +491,7 @@ const TeamScorecard = () => {
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
                 placeholder="Add any supporting remarks or completion details..."
-                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               />
             </div>
 

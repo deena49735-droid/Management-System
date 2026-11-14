@@ -112,7 +112,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
         subtitle="Official BNI Kadambas Chapter Game points, bonuses, and penalties specification."
         badge={
           isAdmin ? (
-            <Badge variant="indigo">Admin editing enabled</Badge>
+            <Badge variant="neutral">Admin editing enabled</Badge>
           ) : undefined
         }
       />
@@ -143,7 +143,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                   <div className="flex items-center gap-2.5">
                     <span
                       className={`inline-block h-2.5 w-2.5 rounded-full ${
-                        isPenalty ? 'bg-rose-500' : 'bg-indigo-600'
+                        isPenalty ? 'bg-rose-500' : 'bg-brand-600'
                       }`}
                     />
                     <h2 className="text-base font-semibold text-slate-900">{cat.label}</h2>
@@ -186,7 +186,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-slate-900 text-sm">{item.name}</span>
                                 {item.needsProof && (
-                                  <Badge variant="indigo">
+                                  <Badge variant="neutral">
                                     Proof required
                                   </Badge>
                                 )}
@@ -259,7 +259,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                             Total, {cat.label}
                           </td>
                           <td className="px-5 py-3.5 text-right whitespace-nowrap tabular-nums">
-                            <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                            <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-brand-50 text-brand-700 border-brand-200">
                               {cat.total.toLocaleString()} pts
                             </span>
                           </td>
@@ -293,7 +293,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                               </p>
                               {item.needsProof && (
                                 <span className="inline-block mt-1">
-                                  <Badge variant="indigo">
+                                  <Badge variant="neutral">
                                     Proof required
                                   </Badge>
                                 </span>
@@ -354,7 +354,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
                         Total, {cat.label}
                       </span>
-                      <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200 tabular-nums">
+                      <span className="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border bg-brand-50 text-brand-700 border-brand-200 tabular-nums">
                         {cat.total.toLocaleString()} pts
                       </span>
                     </div>
@@ -397,7 +397,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                   id="needsProof"
                   checked={editForm.needsProof}
                   onChange={(e) => setEditForm({ ...editForm, needsProof: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
                 />
                 <label htmlFor="needsProof" className="text-sm font-medium text-slate-700 cursor-pointer">
                   Proof photo upload required

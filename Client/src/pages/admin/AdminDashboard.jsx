@@ -154,7 +154,7 @@ const AdminDashboard = () => {
           label="Total Users"
           value={stats.totalUsers}
           icon={Users}
-          variant="indigo"
+          variant="brand"
           hint="Registered chapter members"
           loading={loading}
         />
@@ -175,7 +175,7 @@ const AdminDashboard = () => {
           label="Teams"
           value={stats.totalTeams}
           icon={Shield}
-          variant="blue"
+          variant="brand"
           hint="Active competitive squads"
           loading={loading}
         />
@@ -194,43 +194,43 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <Link
           to="/admin/users"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors">
+              <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
                 Add User
               </p>
               <p className="text-xs text-slate-500">Create & manage accounts</p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />
         </Link>
 
         <Link
           to="/admin/teams"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <ShieldPlus className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+              <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
                 Add Team
               </p>
               <p className="text-xs text-slate-500">Configure teams & heads</p>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />
         </Link>
 
         <Link
           to="/criteria"
-          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xs transition"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
         >
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -256,7 +256,7 @@ const AdminDashboard = () => {
           action={
             <Link
               to="/leaderboard"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
             >
               <span>View all</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -294,15 +294,14 @@ const AdminDashboard = () => {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                            idx === 0
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${idx === 0
                               ? 'bg-amber-100 text-amber-800'
                               : idx === 1
-                              ? 'bg-slate-200 text-slate-700'
-                              : idx === 2
-                              ? 'bg-amber-50 text-amber-700'
-                              : 'bg-slate-100 text-slate-500'
-                          }`}
+                                ? 'bg-slate-200 text-slate-700'
+                                : idx === 2
+                                  ? 'bg-amber-50 text-amber-700'
+                                  : 'bg-slate-100 text-slate-500'
+                            }`}
                         >
                           {team.rank || idx + 1}
                         </span>
@@ -317,13 +316,12 @@ const AdminDashboard = () => {
 
                     <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          idx === 0
+                        className={`h-full rounded-full transition-all duration-300 ${idx === 0
                             ? 'bg-amber-500'
                             : idx === 1
-                            ? 'bg-indigo-500'
-                            : 'bg-blue-400'
-                        }`}
+                              ? 'bg-brand-500'
+                              : 'bg-brand-200'
+                          }`}
                         style={{ width: `${percent}%` }}
                       />
                     </div>
@@ -341,7 +339,7 @@ const AdminDashboard = () => {
           action={
             <Link
               to="/admin/meetings"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
             >
               <span>View all</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -372,7 +370,7 @@ const AdminDashboard = () => {
                   className="group flex items-center justify-between py-2.5 first:pt-0 last:pb-0 hover:bg-slate-50 -mx-2 px-2 rounded-lg transition"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition truncate">
+                    <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition truncate">
                       {formatDate(m.date)}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5 truncate">
@@ -382,9 +380,8 @@ const AdminDashboard = () => {
 
                   <div className="flex items-center gap-3 shrink-0">
                     <span
-                      className={`text-xs font-semibold tabular-nums ${
-                        m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
-                      }`}
+                      className={`text-xs font-semibold tabular-nums ${m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
+                        }`}
                     >
                       {m.totalPoints < 0 ? m.totalPoints : `+${m.totalPoints}`} pts
                     </span>
@@ -404,7 +401,7 @@ const AdminDashboard = () => {
         action={
           <Link
             to="/admin/teams"
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+            className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
           >
             <span>Manage teams</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -419,7 +416,7 @@ const AdminDashboard = () => {
             title="No teams configured"
             description="Create chapter teams to begin assigning members and heads."
             actionLabel="Create Team"
-            onAction={() => {}}
+            onAction={() => { }}
           />
         ) : (
           <div className="overflow-x-auto -mx-5 -my-5 sm:-mx-6 sm:-my-6">
@@ -468,7 +465,7 @@ const AdminDashboard = () => {
                       <td className="px-5 py-3.5 text-right whitespace-nowrap">
                         <Link
                           to={`/admin/teams/${t._id}`}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-800 transition"
                         >
                           <span>View team</span>
                           <ArrowRight className="h-3.5 w-3.5" />

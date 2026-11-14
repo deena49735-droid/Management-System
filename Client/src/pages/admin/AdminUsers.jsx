@@ -301,7 +301,7 @@ const AdminUsers = () => {
               value={searchTerm}
               onChange={handleSearchChange}
               placeholder="Search by name, username or phone..."
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
@@ -313,7 +313,7 @@ const AdminUsers = () => {
                 setRoleFilter(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All roles</option>
               <option value="admin">Admin</option>
@@ -329,7 +329,7 @@ const AdminUsers = () => {
                 setStatusFilter(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+              className="flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All statuses</option>
               <option value="true">Active</option>
@@ -380,7 +380,7 @@ const AdminUsers = () => {
                               <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                                 <span>{item.name}</span>
                                 {isSelf && (
-                                  <span className="inline-flex items-center rounded-md bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 border border-purple-200">
+                                  <span className="inline-flex items-center rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 border border-brand-200">
                                     You
                                   </span>
                                 )}
@@ -455,7 +455,7 @@ const AdminUsers = () => {
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="font-semibold text-slate-900 text-sm">{item.name}</h3>
                             {isSelf && (
-                              <span className="rounded-md bg-purple-50 px-1.5 py-0.2 text-[10px] font-semibold text-purple-700 border border-purple-200">
+                              <span className="rounded-md bg-brand-50 px-1.5 py-0.2 text-[10px] font-semibold text-brand-700 border border-brand-200">
                                 You
                               </span>
                             )}
@@ -582,7 +582,7 @@ const AdminUsers = () => {
               <select
                 value={addForm.role}
                 onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="member">Member</option>
                 <option value="teamHead">Team Head</option>
@@ -598,7 +598,7 @@ const AdminUsers = () => {
               <select
                 value={addForm.team}
                 onChange={(e) => setAddForm({ ...addForm, team: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="">No team</option>
                 {teams.map((t) => (
@@ -678,7 +678,7 @@ const AdminUsers = () => {
                 value={editForm.role}
                 disabled={currentUser?._id === editingUser?._id}
                 onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
               >
                 <option value="member">Member</option>
                 <option value="teamHead">Team Head</option>
@@ -699,7 +699,7 @@ const AdminUsers = () => {
               <select
                 value={editForm.team}
                 onChange={(e) => setEditForm({ ...editForm, team: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="">No team</option>
                 {teams.map((t) => (
@@ -721,7 +721,7 @@ const AdminUsers = () => {
               onChange={(e) =>
                 setEditForm({ ...editForm, isActive: e.target.value === 'true' })
               }
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="true">Active</option>
               <option value="false">Inactive</option>

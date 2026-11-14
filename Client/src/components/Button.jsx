@@ -3,7 +3,9 @@ import { Loader2 } from 'lucide-react';
 
 const variantStyles = {
   primary:
-    'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 border-transparent shadow-xs focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2',
+    'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 border-transparent shadow-xs focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
+  success:
+    'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 border-transparent shadow-xs focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2',
   secondary:
     'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 active:bg-slate-100 shadow-xs focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2',
   danger:

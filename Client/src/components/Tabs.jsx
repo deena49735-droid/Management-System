@@ -34,7 +34,7 @@ const Tabs = ({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700'
+                      ? 'bg-brand-50 text-brand-700'
                       : 'bg-slate-200 text-slate-600'
                   }`}
                 >
@@ -63,7 +63,7 @@ const Tabs = ({
               onClick={() => onChange(tab.id)}
               className={`flex items-center gap-2 border-b-2 py-3.5 text-sm font-semibold whitespace-nowrap transition-colors focus:outline-hidden ${
                 isActive
-                  ? 'border-indigo-600 text-indigo-600'
+                  ? 'border-brand-600 text-brand-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
               }`}
             >
@@ -73,7 +73,7 @@ const Tabs = ({
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                     isActive
-                      ? 'bg-indigo-50 text-indigo-700'
+                      ? 'bg-brand-50 text-brand-700'
                       : 'bg-slate-100 text-slate-600'
                   }`}
                 >

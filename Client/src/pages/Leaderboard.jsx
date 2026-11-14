@@ -168,7 +168,7 @@ const Leaderboard = () => {
                 }}
                 className={`flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg px-3.5 text-xs font-semibold transition ${
                   period === p.key
-                    ? 'bg-indigo-600 text-white shadow-xs'
+                    ? 'bg-brand-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                 }`}
               >
@@ -183,7 +183,7 @@ const Leaderboard = () => {
               <select
                 value={selectedWeek}
                 onChange={(e) => setSelectedWeek(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 {Array.from({ length: 53 }, (_, i) => i + 1).map((w) => (
                   <option key={w} value={w}>
@@ -197,7 +197,7 @@ const Leaderboard = () => {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
@@ -212,7 +212,7 @@ const Leaderboard = () => {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+                className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 <option value="2025">2025</option>
                 <option value="2026">2026</option>
@@ -225,7 +225,7 @@ const Leaderboard = () => {
               <select
                 value={selectedTeamFilter}
                 onChange={(e) => setSelectedTeamFilter(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 <option value="">All teams</option>
                 {allTeams.map((t) => (
@@ -276,7 +276,7 @@ const Leaderboard = () => {
                         : isSecond
                         ? 'border-slate-300 bg-gradient-to-b from-slate-50/80 to-white'
                         : 'border-orange-200 bg-gradient-to-b from-orange-50/60 to-white'
-                    } ${isUserRow ? 'ring-2 ring-indigo-500 bg-indigo-50/30' : ''}`}
+                    } ${isUserRow ? 'ring-2 ring-brand-500 bg-brand-50/30' : ''}`}
                   >
                     {/* Rank Badge + Indicator */}
                     <div className="flex items-center justify-between">
@@ -293,7 +293,7 @@ const Leaderboard = () => {
                       </span>
 
                       {isUserRow && (
-                        <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
                           {activeTab === 'members' ? 'You' : 'Your team'}
                         </span>
                       )}
@@ -364,7 +364,7 @@ const Leaderboard = () => {
                           key={`cell-${entry.teamId}`}
                           fill={
                             entry.teamId === userTeamId
-                              ? '#4f46e5' // indigo for user team
+                              ? '#B91C1C' // brand-600 for user team
                               : entry.total >= 0
                               ? '#10b981' // emerald
                               : '#f43f5e' // rose
@@ -410,7 +410,7 @@ const Leaderboard = () => {
                     }}
                     className={`rounded-xl border p-4 shadow-2xs transition ${
                       isUserRow
-                        ? 'border-indigo-300 bg-indigo-50/50'
+                        ? 'border-brand-300 bg-brand-50/50'
                         : 'border-slate-200 bg-white'
                     }`}
                   >
@@ -426,7 +426,7 @@ const Leaderboard = () => {
                               {row.name}
                             </p>
                             {isUserRow && (
-                              <span className="rounded-md bg-indigo-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
+                              <span className="rounded-md bg-brand-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
                                 {activeTab === 'members' ? 'You' : 'Your team'}
                               </span>
                             )}
@@ -469,7 +469,7 @@ const Leaderboard = () => {
                         </div>
                         <div>
                           <span className="block text-[11px] text-slate-400">Team bonus:</span>
-                          <span className="font-semibold tabular-nums text-indigo-700">+{row.teamPoints}</span>
+                          <span className="font-semibold tabular-nums text-brand-700">+{row.teamPoints}</span>
                         </div>
                         <div>
                           <span className="block text-[11px] text-slate-400">Penalties:</span>
@@ -538,7 +538,7 @@ const Leaderboard = () => {
                             activeTab === 'teams' ? 'cursor-pointer' : ''
                           } ${
                             isUserRow
-                              ? 'bg-indigo-50/50 font-medium'
+                              ? 'bg-brand-50/50 font-medium'
                               : 'hover:bg-slate-50/80'
                           }`}
                         >
@@ -566,7 +566,7 @@ const Leaderboard = () => {
                                 <span className="text-xs font-normal text-slate-400">@{row.username}</span>
                               )}
                               {isUserRow && (
-                                <span className="rounded-md bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                                <span className="rounded-md bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
                                   {activeTab === 'members' ? 'You' : 'Your team'}
                                 </span>
                               )}
@@ -582,7 +582,7 @@ const Leaderboard = () => {
                               <td className="px-4 py-3 text-right text-emerald-700 font-semibold tabular-nums whitespace-nowrap">
                                 +{row.memberPoints}
                               </td>
-                              <td className="px-4 py-3 text-right text-indigo-700 font-semibold tabular-nums whitespace-nowrap">
+                              <td className="px-4 py-3 text-right text-brand-700 font-semibold tabular-nums whitespace-nowrap">
                                 +{row.teamPoints}
                               </td>
                               <td className="px-4 py-3 text-right text-rose-600 font-semibold tabular-nums whitespace-nowrap">
@@ -630,7 +630,7 @@ const Leaderboard = () => {
                                   </span>
                                   <span>
                                     Team bonus:{' '}
-                                    <strong className="text-indigo-700 tabular-nums">+{row.teamPoints}</strong>
+                                    <strong className="text-brand-700 tabular-nums">+{row.teamPoints}</strong>
                                   </span>
                                   <span>
                                     Penalties:{' '}

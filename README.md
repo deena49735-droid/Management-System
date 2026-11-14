@@ -190,14 +190,9 @@ Total criteria rows: 14 + 10 + 5 + 5 + 11 = 45.
 
 ---
 
-## 7. Automatic Penalties (node-cron)
+## 7. Automatic Penalties
 
-Scheduled jobs create penalty entries, for example:
-- 0 referrals in the week: -50
-- 0 one-to-ones in the week: -50
-- Kitty fee unpaid before the 15th: -500
-
-Traffic light Grey or Red is entered monthly by the admin.
+Automatic penalties are NOT created by a timer. They are derived from data that people enter and submit: the meeting sheet (section 16), the weekly counts on it, and the monthly status sheet (section 17). All generated entries are `pending` (source `meeting_sheet` or `monthly_status`) and need the Team Head's approval, exactly like manual entries. Nothing is ever auto-approved.
 
 ---
 
@@ -283,12 +278,18 @@ Users log in with **username and password**. The phone number is only a contact 
 
 ## 14. UI Standards
 
-- Keep the existing colour palette. Do not introduce new brand colours. Use neutral greys plus the existing green (positive), red (negative) and amber (pending) for status.
+- Brand colour is **red** (it replaced the old blue/indigo). Define it once as tokens (brand-50 #FEF2F2, brand-100 #FEE2E2, brand-200 #FECACA, brand-500 #DC2626, brand-600 #B91C1C primary, brand-700 #991B1B hover, brand-800 #7F1D1D). Never hard-code colours in components, always use the tokens. Do not introduce other brand colours. Use neutral greys plus green (success, approve), amber (pending) and red (danger, negative points, rejected) for status.
+- Because the brand is red, red must never be the only signal for danger: negative points always show a minus sign, errors show an icon and text, destructive buttons are outlined and need a confirmation, and Approve actions use the green success style, not the brand red.
 - Professional, clean, business-style interface: consistent spacing scale, one font family, subtle shadows, consistent border radius, clear visual hierarchy.
 - Mobile-first and fully responsive (360px to 1440px+). No horizontal page scroll. Tables become cards on mobile. Tap targets at least 44px.
 - Reuse shared components (Button, Input, Select, Card, StatCard, Table, Badge, Modal, Tabs, EmptyState, Skeleton, Pagination). Do not copy styles into each page.
 - Accessible: labels on every field, visible focus states, sufficient contrast.
 - Use lucide-react icons. No emoji as icons.
+
+- Every page except the role's own dashboard shows a **Back** button in the page header (goes to the previous page, or to the role's dashboard if there is no history).
+- No developer wording in the UI (no "CRUD", "API", "endpoint"). Use plain business language.
+- Toast messages must never cover the header or the menu.
+- Restyling is visual only: it must never change an API call, route, permission or business rule.
 
 ---
 
@@ -303,3 +304,41 @@ Users log in with **username and password**. The phone number is only a contact 
 - **Data flow**: criteria (rules) -> point entries (ledger, pending/approved/rejected) -> MongoDB aggregation -> leaderboard and dashboards. Totals are never stored, they are always calculated from approved entries.
 - **Indexes**: User.username (unique), Criteria.key (unique), PointEntry (status, team, year, month, weekNumber), TeamPointEntry (status, team, year, month).
 - **Deployment**: client on Vercel or Netlify, API on Render or Railway, database on Atlas.
+
+---
+
+## 16. Meeting Sheet (Phase 6B)
+
+One **meeting sheet** per team per meeting date (unique team + date). The Team Assistant fills it, the Team Head approves it, the admin can see and override everything.
+
+- **Status flow**: draft -> submitted -> approved. A Team Head can send a submitted sheet back to draft with a reason.
+- **Rows**: every active person of the team (Team Head, Team Assistant and members). Each row has: arrival time (optional, HH:mm), attendance (present, late or absent), walked out (yes or no), attire (full attire, missing pin and badge, or none), and a list of activities with a quantity.
+- **Automatic rules** (times live in one server constants file: EARLY_BIRD_TIME = 07:25, LATE_AFTER = 07:59): arrival time 07:25 or earlier = present + Early Bird; 07:26 to 07:59 = present; after 07:59 = late. Absent members get only the absent penalty and no activities.
+- **Entries created on submit** (all status pending, source meeting_sheet, linked to the meeting): Early Bird, Late after 7:59 AM, Absent for Weekly BNI Meeting, Walking Out During Meeting, Full Attire, Missing Pin & Badge, plus the chosen activities from Meeting Day Activities. Criteria that need proof (the ask sheet photo) are not on the sheet. Quantity follows the quantity rules in section 6.
+- **Approval**: the Team Head approves the whole sheet at once. Entries where the approver is the member stay pending for the admin (self-approval is blocked). Pending entries of a sheet that is edited and re-submitted are replaced, approved entries are never deleted.
+- **Menus**: Team Assistant gets "Meeting sheet", Team Head gets "Meetings", Admin gets "Meetings". Members do not get a new menu item.
+- **Weekly counts (Phase 6C)**: each row also has `referrals` and `oneToOnes` (whole numbers, empty until entered). A sheet cannot be submitted until every row has both. A count of 0 creates the "0 Referral for the Week" or "0 One-to-One for the Week" penalty. Only one sheet per team per week.
+
+---
+
+## 17. Monthly Status Sheet (Phase 6C)
+
+One sheet per team per month (unique team + month + year), same flow as the meeting sheet: Team Assistant fills it, Team Head approves or sends it back, admin can override. It is created automatically the first time someone opens that month (no cron job needed).
+
+Each row (every active person of the team) has:
+- `kittyUnpaidWeeks`: number of weeks the kitty fee stayed unpaid after the 15th (0 to 5). Creates "Kitty Fee Unpaid Before 15th" with quantity = weeks.
+- `mspComplete`: yes or no. "No" creates "MSP Incomplete".
+- `trafficLight`: green, amber, red or grey. Red creates "Traffic Light Score - Red", grey creates "Traffic Light Score - Grey". Green and amber create no member penalty.
+
+Rules: a sheet can only be submitted when every row is complete. Entries are created as pending (source `monthly_status`, date = last day of that month) and are replaced when an unapproved sheet is re-submitted. Approved entries are never deleted. The team-level monthly points (kitty fee on time, MSP completion, traffic light green score) stay in the Team scorecard and are not affected.
+
+Menus: "Monthly status" for Team Assistant, Team Head and Admin.
+
+---
+
+## 18. Seed and Reset Scripts
+
+- `seed:criteria` and `seed:admin` (existing): the 45 criteria from the PDF, and the first admin user.
+- `seed:demo`: creates demo teams, users, meeting sheets and entries for testing. Demo usernames all start with `demo.` and the password comes from `DEMO_PASSWORD`. Proof photos are never seeded.
+- `reset:fresh`: deletes all data except the admin user(s) and the 45 criteria, so the app starts fresh. It does not delete files from Cloudinary.
+- Safety: both scripts run only when `ALLOW_DESTRUCTIVE_SEED=true` is set in the local `.env`, never when `NODE_ENV=production`, and `reset:fresh` also needs `--confirm=<database name>`. Never set `ALLOW_DESTRUCTIVE_SEED` on a hosted server.

@@ -249,12 +249,12 @@ const AdminTeamDetail = () => {
         <Card className="space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
+              <span className="text-xs font-semibold uppercase tracking-wider text-brand-600">
                 Team leadership
               </span>
               <h2 className="text-base font-semibold text-slate-900 mt-0.5">Team Head</h2>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 border border-brand-100">
               <Shield className="h-5 w-5" />
             </div>
           </div>
@@ -286,7 +286,7 @@ const AdminTeamDetail = () => {
               value={selectedHeadId}
               disabled={submitting}
               onChange={(e) => handleAssignHead(e.target.value)}
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
@@ -342,7 +342,7 @@ const AdminTeamDetail = () => {
               value={selectedAssistantId}
               disabled={submitting}
               onChange={(e) => handleAssignAssistant(e.target.value)}
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-50 disabled:text-slate-400"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
               <option value="">Select an active user...</option>
               {eligibleLeaders.map((u) => (
@@ -376,7 +376,7 @@ const AdminTeamDetail = () => {
                 value={selectedMemberToAdd}
                 onChange={(e) => setSelectedMemberToAdd(e.target.value)}
                 disabled={submitting || eligibleNewMembers.length === 0}
-                className="h-11 min-h-[44px] rounded-lg border border-slate-200 px-3 text-sm bg-white focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition disabled:bg-slate-100 sm:w-64"
+                className="h-11 min-h-[44px] rounded-lg border border-slate-200 px-3 text-sm bg-white focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-100 sm:w-64"
               >
                 <option value="">
                   {eligibleNewMembers.length === 0
@@ -433,7 +433,7 @@ const AdminTeamDetail = () => {
                             <div className="flex items-center gap-1.5">
                               <span>{member.name}</span>
                               {team.head?._id === member._id && (
-                                <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
+                                <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-700 border border-slate-200">
                                   Head
                                 </span>
                               )}
@@ -483,7 +483,7 @@ const AdminTeamDetail = () => {
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h4 className="font-semibold text-slate-900 text-sm">{member.name}</h4>
                           {team.head?._id === member._id && (
-                            <span className="rounded-md bg-blue-50 px-1.5 py-0.2 text-[10px] font-semibold text-blue-700 border border-blue-200">
+                            <span className="rounded-md bg-slate-100 px-1.5 py-0.2 text-[10px] font-semibold text-slate-700 border border-slate-200">
                               Head
                             </span>
                           )}
@@ -558,13 +558,11 @@ const AdminTeamDetail = () => {
         onClose={() => setIsStatusConfirmOpen(false)}
         onConfirm={handleToggleStatus}
         title={team.isActive ? 'Deactivate team?' : 'Activate team?'}
-        message={`Are you sure you want to ${
-          team.isActive ? 'deactivate' : 'activate'
-        } "${team.name}"? ${
-          team.isActive
+        message={`Are you sure you want to ${team.isActive ? 'deactivate' : 'activate'
+          } "${team.name}"? ${team.isActive
             ? 'Inactive teams cannot have new members or entries assigned to them.'
             : 'The team will be available for game activities and entries.'
-        }`}
+          }`}
         confirmText={team.isActive ? 'Deactivate' : 'Activate'}
         confirmVariant={team.isActive ? 'danger' : 'primary'}
         loading={submitting}

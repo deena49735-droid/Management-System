@@ -154,7 +154,7 @@ const MeetingsList = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -166,7 +166,7 @@ const MeetingsList = () => {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All months</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -180,7 +180,7 @@ const MeetingsList = () => {
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All years</option>
             <option value="2026">2026</option>
@@ -195,7 +195,7 @@ const MeetingsList = () => {
                 setMonthFilter('');
                 setYearFilter('');
               }}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 ml-auto h-10 min-h-[40px] px-2 flex items-center"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 ml-auto h-10 min-h-[40px] px-2 flex items-center"
             >
               Clear filters
             </button>
@@ -254,7 +254,7 @@ const MeetingsList = () => {
 
                 <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400">
                   <span>By: {m.submittedBy?.name || m.createdBy?.name || 'Assistant'}</span>
-                  <span className="font-semibold text-indigo-600 inline-flex items-center gap-1">
+                  <span className="font-semibold text-brand-600 inline-flex items-center gap-1">
                     Open sheet <ArrowRight className="h-3 w-3" />
                   </span>
                 </div>
@@ -359,7 +359,7 @@ const MeetingsList = () => {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               required
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
@@ -373,7 +373,7 @@ const MeetingsList = () => {
                 value={selectedTeamId}
                 onChange={(e) => setSelectedTeamId(e.target.value)}
                 required
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-indigo-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="">Select team...</option>
                 {teams.map((t) => (

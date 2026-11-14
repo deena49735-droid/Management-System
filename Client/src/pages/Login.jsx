@@ -64,10 +64,10 @@ const Login = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
         {/* Left Column: Brand Panel (Desktop only or prominent on lg) */}
-        <div className="hidden lg:flex lg:col-span-5 bg-indigo-600 p-10 flex-col justify-between text-white relative overflow-hidden">
+        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-brand-700 to-brand-800 p-10 flex-col justify-between text-white relative overflow-hidden">
           {/* Subtle decorative circles */}
-          <div className="absolute -top-12 -left-12 h-44 w-44 rounded-full bg-indigo-500/30 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-indigo-700/50 blur-3xl pointer-events-none" />
+          <div className="absolute -top-12 -left-12 h-44 w-44 rounded-full bg-brand-600/30 blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-16 -right-16 h-56 w-56 rounded-full bg-brand-900/50 blur-3xl pointer-events-none" />
 
           {/* Top Branding */}
           <div className="relative z-10">
@@ -77,7 +77,7 @@ const Login = () => {
             <h1 className="text-2xl font-bold tracking-tight text-white">
               Kadambas Game
             </h1>
-            <p className="mt-2 text-sm text-indigo-100 leading-relaxed">
+            <p className="mt-2 text-sm text-brand-100 leading-relaxed">
               Performance tracking, chapter attendance, and team points management system.
             </p>
           </div>
@@ -85,36 +85,36 @@ const Login = () => {
           {/* Feature Points */}
           <div className="relative z-10 space-y-4 my-8">
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-indigo-200 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white shrink-0">
                 <ShieldCheck className="h-4 w-4" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-white">Transparent points ledger</h2>
-                <p className="text-xs text-indigo-200 mt-0.5">
+                <p className="text-xs text-brand-200 mt-0.5">
                   Audited activity points and team scores calculated from approved records.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-indigo-200 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white shrink-0">
                 <CalendarCheck className="h-4 w-4" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-white">Weekly meeting sheets</h2>
-                <p className="text-xs text-indigo-200 mt-0.5">
+                <p className="text-xs text-brand-200 mt-0.5">
                   Mobile-ready attendance, attire checks, and automated penalty rules.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-indigo-200 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 text-white shrink-0">
                 <Trophy className="h-4 w-4" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-white">Real-time leaderboards</h2>
-                <p className="text-xs text-indigo-200 mt-0.5">
+                <p className="text-xs text-brand-200 mt-0.5">
                   Live chapter rankings, team scorecards, and individual achievements.
                 </p>
               </div>
@@ -122,10 +122,10 @@ const Login = () => {
           </div>
 
           {/* Footer note */}
-          <div className="relative z-10 pt-4 border-t border-indigo-500/40 text-xs text-indigo-200 flex items-center justify-between">
+          <div className="relative z-10 pt-4 border-t border-brand-600/40 text-xs text-brand-200 flex items-center justify-between">
             <span>Kadambas Chapter</span>
             <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-3.5 w-3.5 text-indigo-300" /> Secure platform
+              <CheckCircle2 className="h-3.5 w-3.5 text-white" /> Secure platform
             </span>
           </div>
         </div>
@@ -134,7 +134,7 @@ const Login = () => {
         <div className="col-span-1 lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center">
           {/* Mobile-only branding header */}
           <div className="lg:hidden text-center mb-6">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-xs">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-brand-600 text-white shadow-xs">
               <span className="text-xl font-bold tracking-tight">K</span>
             </div>
             <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
@@ -188,7 +188,7 @@ const Login = () => {
                       if (errorMessage) setErrorMessage('');
                     }}
                     placeholder="Enter your username"
-                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
                   />
                 </div>
               </div>
@@ -216,7 +216,7 @@ const Login = () => {
                       if (errorMessage) setErrorMessage('');
                     }}
                     placeholder="Enter your password"
-                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-600 focus:outline-hidden focus:ring-2 focus:ring-indigo-100 transition"
+                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
                   />
                   <button
                     type="button"

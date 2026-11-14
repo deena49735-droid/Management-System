@@ -199,7 +199,7 @@ const MeetingMemberRow = ({
             value={arrivalTime}
             onChange={handleTimeChange}
             disabled={isReadOnly || attendance === 'absent'}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-blue-500 focus:outline-hidden disabled:bg-slate-100 disabled:text-slate-400"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-brand-600 focus:outline-hidden disabled:bg-slate-100 disabled:text-slate-400"
           />
         </div>
 
@@ -317,7 +317,7 @@ const MeetingMemberRow = ({
             <button
               type="button"
               onClick={() => onOpenActivityPicker(row.member, memberName)}
-              className="inline-flex items-center gap-1 rounded-lg border border-dashed border-blue-300 bg-blue-50/50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100/70 hover:border-blue-400 transition"
+              className="inline-flex items-center gap-1 rounded-lg border border-dashed border-brand-300 bg-brand-50/50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100/70 hover:border-brand-400 transition"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

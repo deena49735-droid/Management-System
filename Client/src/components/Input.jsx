@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertCircle } from 'lucide-react';
 
 const Input = React.forwardRef(
   (
@@ -43,15 +44,18 @@ const Input = React.forwardRef(
               Icon ? 'pl-10' : ''
             } ${
               errorText
-                ? 'border-rose-300 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
-                : 'border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100'
+                ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
+                : 'border-slate-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20'
             } disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed ${className}`}
             {...props}
           />
         </div>
 
         {errorText ? (
-          <p className="text-xs text-rose-600 mt-1 font-medium">{errorText}</p>
+          <p className="text-xs text-rose-600 mt-1 font-medium flex items-center gap-1.5">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <span>{errorText}</span>
+          </p>
         ) : helperText ? (
           <p className="text-xs text-slate-500 mt-1">{helperText}</p>
         ) : null}

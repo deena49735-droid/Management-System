@@ -86,7 +86,7 @@ const ActivityPickerModal = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search meeting day activities..."
-              className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-hidden focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100"
             />
           </div>
         </div>
@@ -147,7 +147,7 @@ const ActivityPickerModal = ({
                     <button
                       type="button"
                       onClick={() => handleSelect(act)}
-                      className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-blue-700 active:bg-blue-800 transition"
+                      className="inline-flex items-center justify-center rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-700 active:bg-brand-800 transition"
                     >
                       Add (+{totalPoints})
                     </button>

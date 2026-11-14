@@ -1,11 +1,12 @@
 import React from 'react';
 
 const tintVariants = {
-  indigo: 'bg-indigo-50 text-indigo-600',
+  brand: 'bg-brand-50 text-brand-600',
+  indigo: 'bg-brand-50 text-brand-600',
+  blue: 'bg-brand-50 text-brand-600',
   emerald: 'bg-emerald-50 text-emerald-600',
   rose: 'bg-rose-50 text-rose-600',
   amber: 'bg-amber-50 text-amber-600',
-  blue: 'bg-blue-50 text-blue-600',
   slate: 'bg-slate-100 text-slate-600',
 };
 
@@ -13,14 +14,14 @@ const StatCard = ({
   label,
   value,
   icon: Icon,
-  variant = 'indigo',
+  variant = 'brand',
   hint,
   hintType = 'neutral',
   loading = false,
   className = '',
   onClick,
 }) => {
-  const iconStyle = tintVariants[variant] || tintVariants.indigo;
+  const iconStyle = tintVariants[variant] || tintVariants.brand;
 
   return (
     <div

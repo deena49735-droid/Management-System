@@ -180,7 +180,7 @@ const HeadOverview = () => {
           label="Team Members"
           value={allMembers.length}
           icon={Users}
-          variant="blue"
+          variant="brand"
           hint={`Including head & assistant`}
           loading={loading}
         />
@@ -198,7 +198,7 @@ const HeadOverview = () => {
           label="My Team Rank"
           value={teamRank ? `#${teamRank}` : '—'}
           icon={Trophy}
-          variant="indigo"
+          variant="brand"
           hint={totalTeams > 0 ? `Out of ${totalTeams} teams` : 'This month'}
           loading={loading}
         />
@@ -222,7 +222,7 @@ const HeadOverview = () => {
           action={
             <Link
               to="/head/approvals"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
             >
               <span>View all ({pendingApprovalsCount})</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -284,7 +284,7 @@ const HeadOverview = () => {
           action={
             <Link
               to="/head/meetings"
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
             >
               <span>View all</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -315,7 +315,7 @@ const HeadOverview = () => {
                   className="group flex items-center justify-between py-2.5 first:pt-0 last:pb-0 hover:bg-slate-50 -mx-2 px-2 rounded-lg transition"
                 >
                   <div className="min-w-0 pr-3">
-                    <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition truncate">
+                    <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition truncate">
                       {formatDate(m.date)}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5 truncate">
@@ -381,13 +381,7 @@ const HeadOverview = () => {
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <span
-                        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold ${
-                          m.teamRole === 'Team Head'
-                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : m.teamRole === 'Team Assistant'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
+                        className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200"
                       >
                         {m.teamRole}
                       </span>
