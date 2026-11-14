@@ -18,8 +18,8 @@ The UI must be mobile-first, because most users will open it on a phone.
 2. Roles and Permissions
 Role	Value in DB	Can do
 Admin	admin	Create teams and users, assign team heads and assistants, edit criteria and points, view everything, override or reverse any approval, reports and Excel export
-Team Head	teamHead	Manage own team, approve or reject member entries and team monthly points for own team only. Cannot submit team points
-Team Assistant	teamAssistant	Data entry for own team: attendance, late marks, referral and one-to-one counts, submit team monthly points. Cannot approve
+Team Head	teamHead	Manage own team and add members to it, approve or reject member entries and team monthly points for own team only. Cannot submit team points
+Team Assistant	teamAssistant	Data entry for own team: attendance, late marks, referral and one-to-one counts, submit team monthly points. Can add members to own team and approve or reject member entries of own team (see the approval rule in section 5). Cannot approve team monthly points
 Member	member	View own points and penalties, upload proof photos, view leaderboard
 
 Every API route must check the user's role (role-based access control) using auth and roleCheck middleware. A team head or assistant can only access data of their own team.
@@ -68,13 +68,15 @@ Notification (optional): approval and rejection messages
 Member entries (meeting day and non-meeting day)
 
 Assistant or member submits an entry. Status is pending.
-Team Head approves or rejects.
-Points count only after approval.
+Team Head or Team Assistant of the same team approves or rejects (reject needs a reason). Admin can approve or reject anything.
+Approval rule: nobody approves or rejects an entry that they entered themselves (enteredBy) or that is about themselves (member). Admin is exempt. Two approvers acting at the same time: the first one wins, the second gets a clear "already processed" message.
+Points count only after approval. Only the admin can reject an entry that is already approved (override).
+Member management: a Team Head or Team Assistant can create new members for their own team (role is always member) and add existing unassigned members to it. They can never create or change heads, assistants or admins, or touch another team.
 
 Team monthly and one-time points
 
 Assistant submits (with proof where required). Status is pending.
-Team Head of the same team approves or rejects.
+Team Head of the same team approves or rejects (the Team Assistant cannot approve team monthly points).
 Admin can override or reverse any approval at any time.
 Every approval stores approvedBy and approvedAt for audit.
 5.1 Meeting Day Flow

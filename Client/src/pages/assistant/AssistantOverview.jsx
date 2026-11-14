@@ -12,6 +12,7 @@ import {
   RefreshCw,
   AlertCircle,
   FileCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -21,6 +22,7 @@ import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import Button from '../../components/Button';
+import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
 import { Skeleton, SkeletonCard } from '../../components/Skeleton';
 
@@ -51,6 +53,7 @@ const AssistantOverview = () => {
 
   const [team, setTeam] = useState(null);
   const [myPendingCount, setMyPendingCount] = useState(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [teamRank, setTeamRank] = useState(null);
   const [totalTeams, setTotalTeams] = useState(0);
   const [teamPointsMonth, setTeamPointsMonth] = useState(0);
@@ -73,7 +76,13 @@ const AssistantOverview = () => {
       setTeam(teamData);
 
       const allEntries = entriesRes.data?.data || [];
-      // Filter submissions entered by this assistant or for this team
+      // Submissions this assistant can approve/reject
+      const actionablePending = allEntries.filter(
+        (e) => e.status === 'pending' && e.canActOnMine !== false
+      );
+      setPendingApprovalsCount(actionablePending.length);
+
+      // Filter submissions entered by this assistant
       const myEntries = allEntries.filter(
         (e) => (e.enteredBy?._id || e.enteredBy) === user?._id
       );
@@ -176,15 +185,17 @@ const AssistantOverview = () => {
           hint={`Active squad roster`}
           loading={loading}
         />
-        <StatCard
-          label="My Pending Submissions"
-          value={myPendingCount}
-          icon={Clock}
-          variant="amber"
-          hint={myPendingCount > 0 ? 'Awaiting Team Head approval' : 'All entries approved'}
-          hintType={myPendingCount > 0 ? 'warning' : 'neutral'}
-          loading={loading}
-        />
+        <Link to="/assistant/approvals" className="block focus:outline-hidden">
+          <StatCard
+            label="Pending Approvals"
+            value={pendingApprovalsCount}
+            icon={CheckCircle2}
+            variant="amber"
+            hint={pendingApprovalsCount > 0 ? 'Awaiting your review' : 'All clear'}
+            hintType={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
+            loading={loading}
+          />
+        </Link>
         <StatCard
           label="Team Rank"
           value={teamRank ? `#${teamRank}` : '—'}
@@ -319,6 +330,53 @@ const AssistantOverview = () => {
                     {(entry.points || 0) < 0 ? entry.points : `+${entry.points}`} pts
                   </span>
                   <Badge status={entry.status} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 4. Section: Team Members */}
+      <Card
+        title="Team Members"
+        subtitle={`Roster for ${team?.name || 'Team'} (${memberCount} active members)`}
+        action={
+          <Link
+            to="/assistant/team"
+            className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
+          >
+            <span>Manage team</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        }
+      >
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {[
+              ...(team?.head ? [{ ...team.head, roleLabel: 'Head' }] : []),
+              ...(team?.assistant ? [{ ...team.assistant, roleLabel: 'Assistant' }] : []),
+              ...(team?.members || []).map((m) => ({ ...m, roleLabel: 'Member' })),
+            ].map((m, idx) => (
+              <div key={m._id || idx} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-2.5 min-w-0 pr-3">
+                  <Avatar name={m.name} size="sm" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">{m.name}</p>
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">@{m.username} • {m.phone}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge role={m.role} />
                 </div>
               </div>
             ))}

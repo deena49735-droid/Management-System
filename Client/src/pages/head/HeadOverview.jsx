@@ -347,6 +347,15 @@ const HeadOverview = () => {
       <Card
         title="Team Members"
         subtitle={`Roster for ${team?.name} (${allMembers.length} active members)`}
+        action={
+          <Link
+            to="/head/team"
+            className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
+          >
+            <span>Manage team</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        }
       >
         {loading ? (
           <SkeletonTable rows={4} cols={4} />

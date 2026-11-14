@@ -357,7 +357,14 @@ const MeetingSheet = () => {
     try {
       setApproving(true);
       const res = await api.post(`/meetings/${id}/approve`);
-      toast.success(res.data.message || 'Meeting sheet approved.');
+      if (res.data?.needsAdmin) {
+        const remaining = res.data?.remainingPendingCount || 1;
+        toast.success(
+          `${remaining} ${remaining === 1 ? 'entry' : 'entries'} must be approved by another person (the Team Assistant or the admin).`
+        );
+      } else {
+        toast.success(res.data?.message || 'Meeting sheet approved.');
+      }
       setIsApproveModalOpen(false);
       fetchMeeting();
     } catch (err) {

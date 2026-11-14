@@ -31,6 +31,7 @@ import TeamScorecard from './pages/TeamScorecard';
 import GameCriteria from './pages/GameCriteria';
 import MeetingsList from './pages/meetings/MeetingsList';
 import MeetingSheet from './pages/meetings/MeetingSheet';
+import MyTeam from './pages/team/MyTeam';
 import NotFound from './pages/NotFound';
 
 /**
@@ -129,6 +130,7 @@ function App() {
           >
             <Route index element={<HeadOverview />} />
             <Route path="approvals" element={<HeadApprovals />} />
+            <Route path="team" element={<MyTeam />} />
             <Route path="history" element={<HeadHistory />} />
             <Route path="scorecard" element={<TeamScorecard />} />
             <Route path="meetings" element={<MeetingsList />} />
@@ -145,6 +147,8 @@ function App() {
             }
           >
             <Route index element={<AssistantOverview />} />
+            <Route path="approvals" element={<HeadApprovals />} />
+            <Route path="team" element={<MyTeam />} />
             <Route path="entries/new" element={<AssistantNewEntry />} />
             <Route path="scorecard" element={<TeamScorecard />} />
             <Route path="team-points" element={<Navigate to="/assistant/scorecard" replace />} />

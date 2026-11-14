@@ -38,6 +38,7 @@ const roleMenus = {
   teamHead: [
     { name: 'Dashboard', path: '/head', exact: true, icon: LayoutDashboard },
     { name: 'Approvals', path: '/head/approvals', icon: CheckCircle2, hasBadge: true },
+    { name: 'My team', path: '/head/team', icon: Users },
     { name: 'History', path: '/head/history', icon: History },
     { name: 'Meetings', path: '/head/meetings', icon: Calendar },
     { name: 'Team scorecard', path: '/head/scorecard', icon: BarChart3 },
@@ -46,6 +47,8 @@ const roleMenus = {
   ],
   teamAssistant: [
     { name: 'Dashboard', path: '/assistant', exact: true, icon: LayoutDashboard },
+    { name: 'Approvals', path: '/assistant/approvals', icon: CheckCircle2, hasBadge: true },
+    { name: 'My team', path: '/assistant/team', icon: Users },
     { name: 'Add entry', path: '/assistant/entries/new', icon: PlusCircle },
     { name: 'Meeting sheet', path: '/assistant/meetings', icon: Calendar },
     { name: 'Team scorecard', path: '/assistant/scorecard', icon: BarChart3 },
@@ -72,7 +75,8 @@ const getPageTitle = (pathname) => {
     return 'Meeting Sheet';
   }
   if (pathname === '/head') return 'Team Head Dashboard';
-  if (pathname === '/head/approvals') return 'Pending Approvals';
+  if (pathname === '/head/approvals' || pathname === '/assistant/approvals') return 'Pending Approvals';
+  if (pathname === '/head/team' || pathname === '/assistant/team') return 'My Team';
   if (pathname === '/head/history') return 'Approval History';
   if (pathname.includes('/scorecard')) return 'Team Scorecard';
   if (pathname === '/assistant') return 'Assistant Dashboard';
@@ -98,7 +102,7 @@ const AppShell = ({ children }) => {
   const navItems = roleMenus[currentRole] || roleMenus.member;
   const pageTitle = getPageTitle(location.pathname);
 
-  // Fetch pending count for team head badge
+  // Fetch pending count for team head and assistant badge
   useEffect(() => {
     if (currentRole === 'teamHead') {
       const fetchPendingCount = async () => {
@@ -110,6 +114,18 @@ const AppShell = ({ children }) => {
           const total =
             (memberRes.data?.data?.length || 0) + (teamRes.data?.data?.length || 0);
           setPendingApprovalsCount(total);
+        } catch {
+          // Ignore background fetch failure
+        }
+      };
+      fetchPendingCount();
+    } else if (currentRole === 'teamAssistant') {
+      const fetchPendingCount = async () => {
+        try {
+          const memberRes = await api.get('/entries', { params: { status: 'pending' } });
+          const entries = memberRes.data?.data || [];
+          const actionable = entries.filter((e) => e.canActOnMine !== false);
+          setPendingApprovalsCount(actionable.length);
         } catch {
           // Ignore background fetch failure
         }

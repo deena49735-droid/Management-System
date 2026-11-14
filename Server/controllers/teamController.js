@@ -442,6 +442,252 @@ exports.assignAssistant = async (req, res, next) => {
 };
 
 /**
+ * Shared helper to synchronize User.team and Team.members
+ */
+const syncAddMemberToTeam = async (teamId, userId) => {
+  await Team.findByIdAndUpdate(teamId, { $addToSet: { members: userId } });
+  await User.findByIdAndUpdate(userId, { team: teamId });
+};
+
+/**
+ * @desc    Create a new member for caller's own team (teamHead / teamAssistant only)
+ * @route   POST /api/teams/my/members
+ * @access  Private (teamHead, teamAssistant)
+ */
+exports.createMyTeamMember = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array().map((e) => e.msg).join(', '),
+      });
+    }
+
+    if (!req.user.team) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not belong to a team.',
+      });
+    }
+
+    const team = await Team.findById(req.user.team);
+    if (!team) {
+      return res.status(403).json({
+        success: false,
+        message: 'Team not found.',
+      });
+    }
+
+    if (!team.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot add members to an inactive team.',
+      });
+    }
+
+    const { name, username, phone, password } = req.body;
+    const trimmedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
+    const trimmedPhone = typeof phone === 'string' ? phone.trim() : '';
+
+    // Check duplicate username
+    const existingUsername = await User.findOne({ username: trimmedUsername });
+    if (existingUsername) {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this username already exists.',
+      });
+    }
+
+    // Check duplicate phone
+    const existingPhone = await User.findOne({ phone: trimmedPhone });
+    if (existingPhone) {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this phone number already exists.',
+      });
+    }
+
+    // Create user: role is always "member", team is caller's team, isActive true
+    const newUser = await User.create({
+      name: typeof name === 'string' ? name.trim() : '',
+      username: trimmedUsername,
+      phone: trimmedPhone,
+      password,
+      role: 'member',
+      team: team._id,
+      isActive: true,
+      createdBy: req.user._id,
+    });
+
+    // Synchronize Team.members and User.team
+    await syncAddMemberToTeam(team._id, newUser._id);
+
+    const populatedUser = await User.findById(newUser._id).populate('team', 'name');
+
+    return res.status(201).json({
+      success: true,
+      message: 'Member created successfully.',
+      data: populatedUser,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      if (field === 'username') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this username already exists.',
+        });
+      }
+      if (field === 'phone') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists.',
+        });
+      }
+    }
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get available unassigned active members
+ * @route   GET /api/teams/my/available-members
+ * @access  Private (teamHead, teamAssistant)
+ */
+exports.getAvailableMembers = async (req, res, next) => {
+  try {
+    if (!req.user.team) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not belong to a team.',
+      });
+    }
+
+    const filter = {
+      role: 'member',
+      isActive: true,
+      team: null,
+    };
+
+    if (req.query.search && typeof req.query.search === 'string') {
+      const term = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (term) {
+        filter.$or = [
+          { name: { $regex: term, $options: 'i' } },
+          { username: { $regex: term, $options: 'i' } },
+        ];
+      }
+    }
+
+    const available = await User.find(filter)
+      .select('_id name username')
+      .sort({ name: 1 })
+      .limit(20)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: available,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Add existing unassigned active member to caller's team
+ * @route   POST /api/teams/my/members/add
+ * @access  Private (teamHead, teamAssistant)
+ */
+exports.addExistingMemberToMyTeam = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array().map((e) => e.msg).join(', '),
+      });
+    }
+
+    if (!req.user.team) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not belong to a team.',
+      });
+    }
+
+    const team = await Team.findById(req.user.team);
+    if (!team) {
+      return res.status(403).json({
+        success: false,
+        message: 'Team not found.',
+      });
+    }
+
+    if (!team.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot add members to an inactive team.',
+      });
+    }
+
+    const { userId } = req.body;
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid userId is required.',
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot add an inactive user to a team.',
+      });
+    }
+
+    if (user.role !== 'member') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only users with the member role can be added to the team.',
+      });
+    }
+
+    if (user.team || team.members.map((m) => m.toString()).includes(user._id.toString())) {
+      return res.status(409).json({
+        success: false,
+        message: 'This user already belongs to a team.',
+      });
+    }
+
+    await syncAddMemberToTeam(team._id, user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Member added to team successfully.',
+      data: {
+        _id: user._id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        team: team._id,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Add member to team
  * @route   POST /api/teams/:id/members
  * @access  Private (Admin)
@@ -502,12 +748,8 @@ exports.addMember = async (req, res, next) => {
       });
     }
 
-    // Synchronize both sides
-    team.members.push(user._id);
-    await team.save();
-
-    user.team = team._id;
-    await user.save();
+    // Synchronize both sides with shared helper
+    await syncAddMemberToTeam(team._id, user._id);
 
     const updatedTeam = await Team.findById(team._id)
       .populate('head', 'name username phone role isActive')

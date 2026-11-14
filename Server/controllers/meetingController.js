@@ -759,7 +759,7 @@ exports.approveMeeting = async (req, res, next) => {
       await meeting.save({ session });
     } else {
       needsAdmin = true;
-      responseMessage = `Approved ${approvedCount} entries. ${remainingPendingCount} entry requires admin approval due to self-approval rules.`;
+      responseMessage = `Approved ${approvedCount} entries. ${remainingPendingCount} ${remainingPendingCount === 1 ? 'entry' : 'entries'} must be approved by another person (the Team Assistant or the admin).`;
       // Meeting stays 'submitted' until admin approves remaining
       await meeting.save({ session });
     }

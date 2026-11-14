@@ -340,9 +340,34 @@ exports.getEntries = async (req, res, next) => {
       .skip(skip)
       .limit(limit);
 
+    let dataToSend = entries;
+    if (['admin', 'teamHead', 'teamAssistant'].includes(userRole)) {
+      dataToSend = entries.map((entry) => {
+        const obj = entry.toObject ? entry.toObject() : { ...entry };
+        if (entry.status !== 'pending') {
+          obj.canActOnMine = false;
+        } else if (userRole === 'admin') {
+          obj.canActOnMine = true;
+        } else {
+          const sameTeam =
+            req.user.team &&
+            entry.team &&
+            (entry.team._id || entry.team).toString() === req.user.team.toString();
+          const notEnteredByMe =
+            entry.enteredBy &&
+            (entry.enteredBy._id || entry.enteredBy).toString() !== req.user._id.toString();
+          const notAboutMe =
+            entry.member &&
+            (entry.member._id || entry.member).toString() !== req.user._id.toString();
+          obj.canActOnMine = Boolean(sameTeam && notEnteredByMe && notAboutMe);
+        }
+        return obj;
+      });
+    }
+
     res.status(200).json({
       success: true,
-      data: entries,
+      data: dataToSend,
       pagination: {
         page,
         limit,
@@ -360,7 +385,7 @@ exports.getEntries = async (req, res, next) => {
 /**
  * @desc    Approve a member point entry
  * @route   PATCH /api/entries/:id/approve
- * @access  Private (teamHead of same team, or admin)
+ * @access  Private (teamHead / teamAssistant of same team, or admin)
  */
 exports.approveEntry = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -394,25 +419,25 @@ exports.approveEntry = async (req, res, next) => {
 
     const userRole = req.user.role;
 
-    if (userRole !== 'admin') {
-      if (userRole !== 'teamHead') {
-        await session.abortTransaction();
-        return res.status(403).json({
-          success: false,
-          message: 'Only team heads or admins can approve entries.',
-        });
-      }
+    if (userRole !== 'admin' && userRole !== 'teamHead' && userRole !== 'teamAssistant') {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'Only team heads, team assistants, or admins can approve entries.',
+      });
+    }
 
+    if (userRole !== 'admin') {
       if (!req.user.team || entry.team.toString() !== req.user.team.toString()) {
         await session.abortTransaction();
         return res.status(403).json({
           success: false,
-          message: 'Team heads can only approve entries for their own team.',
+          message: 'You can only approve entries for your own team.',
         });
       }
 
-      // STRICT SELF-APPROVAL CHECK:
-      // A user cannot approve their own submitted entry or an entry where they are the recipient member.
+      // STRICT APPROVAL RULE:
+      // A user cannot approve an entry they entered or that is about them.
       const isRecipient = entry.member.toString() === req.user._id.toString();
       const isSubmitter = entry.enteredBy.toString() === req.user._id.toString();
 
@@ -420,38 +445,45 @@ exports.approveEntry = async (req, res, next) => {
         await session.abortTransaction();
         return res.status(403).json({
           success: false,
-          message: 'Self-approval is strictly prohibited. An admin must approve this entry.',
-        });
-      }
-
-      if (entry.status === 'approved') {
-        await session.abortTransaction();
-        return res.status(400).json({
-          success: false,
-          message: 'This entry is already approved.',
+          message: 'You cannot approve or reject entries that you entered or that are about you.',
         });
       }
     }
 
-    const previousStatus = entry.status;
-    entry.status = 'approved';
-    entry.approvedBy = req.user._id;
-    entry.approvedAt = new Date();
-    entry.rejectionReason = null;
-    await entry.save({ session });
+    // Atomic update conditioned on status 'pending'
+    const updatedEntry = await PointEntry.findOneAndUpdate(
+      { _id: entry._id, status: 'pending' },
+      {
+        $set: {
+          status: 'approved',
+          approvedBy: req.user._id,
+          approvedAt: new Date(),
+          rejectionReason: null,
+        },
+      },
+      { new: true, session }
+    );
+
+    if (!updatedEntry) {
+      await session.abortTransaction();
+      return res.status(409).json({
+        success: false,
+        message: 'This entry was already processed.',
+      });
+    }
 
     await AuditLog.create(
       [
         {
           action: 'ENTRY_APPROVE',
           targetType: 'PointEntry',
-          targetId: entry._id,
+          targetId: updatedEntry._id,
           performedBy: req.user._id,
-          previousStatus,
+          previousStatus: 'pending',
           newStatus: 'approved',
-          points: entry.points,
+          points: updatedEntry.points,
           reason: '',
-          metadata: { approvedAt: entry.approvedAt },
+          metadata: { approvedAt: updatedEntry.approvedAt },
         },
       ],
       { session }
@@ -459,7 +491,7 @@ exports.approveEntry = async (req, res, next) => {
 
     await session.commitTransaction();
 
-    const populatedEntry = await PointEntry.findById(entry._id)
+    const populatedEntry = await PointEntry.findById(updatedEntry._id)
       .populate('member', 'name username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
@@ -482,7 +514,7 @@ exports.approveEntry = async (req, res, next) => {
 /**
  * @desc    Reject a member point entry
  * @route   PATCH /api/entries/:id/reject
- * @access  Private (teamHead of same team, or admin)
+ * @access  Private (teamHead / teamAssistant of same team, or admin)
  */
 exports.rejectEntry = async (req, res, next) => {
   const session = await mongoose.startSession();
@@ -525,20 +557,33 @@ exports.rejectEntry = async (req, res, next) => {
 
     const userRole = req.user.role;
 
-    if (userRole !== 'admin') {
-      if (userRole !== 'teamHead') {
-        await session.abortTransaction();
-        return res.status(403).json({
-          success: false,
-          message: 'Only team heads or admins can reject entries.',
-        });
-      }
+    if (userRole !== 'admin' && userRole !== 'teamHead' && userRole !== 'teamAssistant') {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'Only team heads, team assistants, or admins can reject entries.',
+      });
+    }
 
+    if (userRole !== 'admin') {
       if (!req.user.team || entry.team.toString() !== req.user.team.toString()) {
         await session.abortTransaction();
         return res.status(403).json({
           success: false,
-          message: 'Team heads can only reject entries for their own team.',
+          message: 'You can only reject entries for your own team.',
+        });
+      }
+
+      // STRICT REJECTION RULE:
+      // A user cannot reject an entry they entered or that is about them.
+      const isRecipient = entry.member.toString() === req.user._id.toString();
+      const isSubmitter = entry.enteredBy.toString() === req.user._id.toString();
+
+      if (isRecipient || isSubmitter) {
+        await session.abortTransaction();
+        return res.status(403).json({
+          success: false,
+          message: 'You cannot approve or reject entries that you entered or that are about you.',
         });
       }
 
@@ -551,25 +596,46 @@ exports.rejectEntry = async (req, res, next) => {
       }
     }
 
-    const previousStatus = entry.status;
-    entry.status = 'rejected';
-    entry.rejectionReason = reason.trim();
-    entry.approvedBy = req.user._id;
-    entry.approvedAt = new Date();
-    await entry.save({ session });
+    // Atomic update condition:
+    // Only admin can reject an approved entry (override); head and assistant can act only on pending ones.
+    const filterCondition =
+      userRole === 'admin'
+        ? { _id: entry._id, status: { $in: ['pending', 'approved'] } }
+        : { _id: entry._id, status: 'pending' };
+
+    const updatedEntry = await PointEntry.findOneAndUpdate(
+      filterCondition,
+      {
+        $set: {
+          status: 'rejected',
+          rejectionReason: reason.trim(),
+          approvedBy: req.user._id,
+          approvedAt: new Date(),
+        },
+      },
+      { new: true, session }
+    );
+
+    if (!updatedEntry) {
+      await session.abortTransaction();
+      return res.status(409).json({
+        success: false,
+        message: 'This entry was already processed.',
+      });
+    }
 
     await AuditLog.create(
       [
         {
           action: 'ENTRY_REJECT',
           targetType: 'PointEntry',
-          targetId: entry._id,
+          targetId: updatedEntry._id,
           performedBy: req.user._id,
-          previousStatus,
+          previousStatus: entry.status,
           newStatus: 'rejected',
-          points: entry.points,
+          points: updatedEntry.points,
           reason: reason.trim(),
-          metadata: { rejectedAt: entry.approvedAt },
+          metadata: { rejectedAt: updatedEntry.approvedAt },
         },
       ],
       { session }
@@ -577,7 +643,7 @@ exports.rejectEntry = async (req, res, next) => {
 
     await session.commitTransaction();
 
-    const populatedEntry = await PointEntry.findById(entry._id)
+    const populatedEntry = await PointEntry.findById(updatedEntry._id)
       .populate('member', 'name username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
