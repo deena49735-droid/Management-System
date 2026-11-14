@@ -130,7 +130,7 @@ const ProofUpload = ({
           Photo Proof {required && <span className="text-rose-500 font-bold">*</span>}
         </label>
         {required && (
-          <span className="text-[11px] font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
+          <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
             Proof Required
           </span>
         )}
@@ -183,7 +183,7 @@ const ProofUpload = ({
             <p className="text-xs font-semibold text-slate-800 truncate">
               Proof image attached
             </p>
-            <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
+            <p className="text-xs text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -196,7 +196,7 @@ const ProofUpload = ({
               type="button"
               onClick={handleChooseClick}
               disabled={disabled}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
             >
               Replace
             </button>
@@ -204,7 +204,7 @@ const ProofUpload = ({
               type="button"
               onClick={handleRemove}
               disabled={disabled}
-              className="rounded-lg border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 transition disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition disabled:opacity-50"
             >
               Remove
             </button>
@@ -219,7 +219,7 @@ const ProofUpload = ({
             type="button"
             onClick={handleChooseClick}
             disabled={disabled}
-            className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
+            className={`flex w-full min-h-[88px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
               required
                 ? 'border-brand-300 bg-brand-50/30 hover:bg-brand-50/60'
                 : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/70'
@@ -235,7 +235,7 @@ const ProofUpload = ({
               <p className="text-xs font-semibold text-slate-800">
                 Take photo / Choose image
               </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 JPEG, PNG, or WebP (auto-optimized to ~1 MB)
               </p>
             </div>

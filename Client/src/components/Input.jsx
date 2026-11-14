@@ -40,7 +40,7 @@ const Input = React.forwardRef(
           <input
             ref={ref}
             id={inputId}
-            className={`w-full h-11 min-h-[44px] rounded-lg border bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-hidden ${
+            className={`w-full h-11 min-h-[44px] rounded-lg border bg-white px-3.5 text-base md:text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-hidden ${
               Icon ? 'pl-10' : ''
             } ${
               errorText

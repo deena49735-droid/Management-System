@@ -94,7 +94,7 @@ const EntriesTable = ({
                   </div>
                 </div>
                 {entry.enteredBy && (
-                  <span className="text-slate-400 text-[11px]">
+                  <span className="text-slate-400 text-xs">
                     By: {entry.enteredBy.name || entry.submittedBy?.name || 'System'}
                   </span>
                 )}
@@ -187,7 +187,7 @@ const EntriesTable = ({
                   <td className="px-5 py-3.5 whitespace-nowrap text-xs text-slate-500">
                     {formatDate(entry.date || entry.createdAt)}
                     {entry.weekNumber ? (
-                      <span className="block text-[11px] text-slate-400">Wk {entry.weekNumber}</span>
+                      <span className="block text-xs text-slate-400">Wk {entry.weekNumber}</span>
                     ) : null}
                   </td>
                   <td className="px-4 py-3.5 text-center whitespace-nowrap">

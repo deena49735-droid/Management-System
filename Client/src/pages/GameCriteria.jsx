@@ -284,7 +284,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-2.5 min-w-0">
-                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[11px] font-bold tabular-nums text-slate-600">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold tabular-nums text-slate-600">
                               {item.displayOrder || '—'}
                             </span>
                             <div className="min-w-0">
@@ -391,15 +391,15 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
             />
 
             {editingItem?.level === 'member' && editingItem?.category !== 'penalty' && (
-              <div className="flex items-center gap-2.5 pt-1">
+              <div className="flex items-center gap-2.5 min-h-[44px]">
                 <input
                   type="checkbox"
                   id="needsProof"
                   checked={editForm.needsProof}
                   onChange={(e) => setEditForm({ ...editForm, needsProof: e.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                 />
-                <label htmlFor="needsProof" className="text-sm font-medium text-slate-700 cursor-pointer">
+                <label htmlFor="needsProof" className="text-sm font-medium text-slate-700 cursor-pointer py-2">
                   Proof photo upload required
                 </label>
               </div>

@@ -43,6 +43,7 @@
 
 :root {
   --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
 }
 
 ::selection {
@@ -58,7 +59,9 @@ html, body {
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
 }
 
 /* Ensure tabular figures for stats and numbers */

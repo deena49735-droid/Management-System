@@ -90,8 +90,8 @@ const MeetingsList = () => {
     user?.role === 'admin'
       ? '/admin/meetings'
       : user?.role === 'teamHead'
-      ? '/head/meetings'
-      : '/assistant/meetings';
+        ? '/head/meetings'
+        : '/assistant/meetings';
 
   const handleCreateMeeting = async (e) => {
     e.preventDefault();
@@ -154,7 +154,7 @@ const MeetingsList = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+            className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
@@ -166,7 +166,7 @@ const MeetingsList = () => {
           <select
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+            className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All months</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -180,7 +180,7 @@ const MeetingsList = () => {
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+            className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All years</option>
             <option value="2026">2026</option>
@@ -195,7 +195,7 @@ const MeetingsList = () => {
                 setMonthFilter('');
                 setYearFilter('');
               }}
-              className="text-xs font-semibold text-brand-600 hover:text-brand-800 ml-auto h-10 min-h-[40px] px-2 flex items-center"
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 ml-auto min-h-[44px] px-2 flex items-center"
             >
               Clear filters
             </button>
@@ -244,15 +244,14 @@ const MeetingsList = () => {
                   </div>
 
                   <span
-                    className={`font-bold tabular-nums ${
-                      m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
-                    }`}
+                    className={`font-bold tabular-nums ${m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
+                      }`}
                   >
                     {m.totalPoints < 0 ? m.totalPoints : `+${m.totalPoints}`} pts
                   </span>
                 </div>
 
-                <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400">
+                <div className="pt-2 border-t border-slate-50 flex items-center justify-between text-xs text-slate-400">
                   <span>By: {m.submittedBy?.name || m.createdBy?.name || 'Assistant'}</span>
                   <span className="font-semibold text-brand-600 inline-flex items-center gap-1">
                     Open sheet <ArrowRight className="h-3 w-3" />
@@ -302,11 +301,10 @@ const MeetingsList = () => {
                     </td>
                     <td className="px-4 py-3.5 text-right tabular-nums">
                       <span
-                        className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-bold border ${
-                          m.totalPoints < 0
+                        className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-bold border ${m.totalPoints < 0
                             ? 'bg-rose-50 text-rose-700 border-rose-200'
                             : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}
+                          }`}
                       >
                         {m.totalPoints < 0 ? m.totalPoints : `+${m.totalPoints}`} pts
                       </span>
@@ -314,7 +312,7 @@ const MeetingsList = () => {
                     <td className="px-5 py-3.5 text-xs text-slate-500">
                       <span>{m.submittedBy?.name || m.createdBy?.name || 'System'}</span>
                       {m.submittedAt && (
-                        <span className="block text-[11px] text-slate-400">
+                        <span className="block text-xs text-slate-400">
                           {formatDate(m.submittedAt)}
                         </span>
                       )}
@@ -329,8 +327,8 @@ const MeetingsList = () => {
                           ? 'Edit sheet'
                           : m.status === 'submitted' &&
                             (user?.role === 'teamHead' || user?.role === 'admin')
-                          ? 'Review sheet'
-                          : 'View sheet'}
+                            ? 'Review sheet'
+                            : 'View sheet'}
                       </Button>
                     </td>
                   </tr>
@@ -359,7 +357,7 @@ const MeetingsList = () => {
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
               required
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
@@ -373,7 +371,7 @@ const MeetingsList = () => {
                 value={selectedTeamId}
                 onChange={(e) => setSelectedTeamId(e.target.value)}
                 required
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="">Select team...</option>
                 {teams.map((t) => (

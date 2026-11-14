@@ -22,7 +22,7 @@ const Tabs = ({
               type="button"
               aria-selected={isActive}
               onClick={() => onChange(tab.id)}
-              className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`flex min-h-[44px] items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
                   ? 'bg-white text-slate-900 shadow-2xs font-bold'
                   : 'text-slate-600 hover:text-slate-900'
@@ -32,7 +32,7 @@ const Tabs = ({
               <span>{tab.label}</span>
               {tab.badge !== undefined && tab.badge !== null && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  className={`rounded-full px-2 py-0.5 text-xs font-bold ${
                     isActive
                       ? 'bg-brand-50 text-brand-700'
                       : 'bg-slate-200 text-slate-600'

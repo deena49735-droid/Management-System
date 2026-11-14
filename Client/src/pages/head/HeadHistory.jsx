@@ -59,7 +59,7 @@ const HeadHistory = () => {
             <button
               type="button"
               onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'member'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -70,7 +70,7 @@ const HeadHistory = () => {
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'team'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -92,7 +92,7 @@ const HeadHistory = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All statuses</option>
               <option value="approved">Approved</option>
@@ -108,7 +108,7 @@ const HeadHistory = () => {
             <select
               value={monthFilter}
               onChange={(e) => setMonthFilter(e.target.value)}
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All months</option>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -126,7 +126,7 @@ const HeadHistory = () => {
             <select
               value={yearFilter}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All years</option>
               <option value="2025">2025</option>

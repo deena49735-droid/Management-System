@@ -17,7 +17,7 @@ const variantStyles = {
 };
 
 const sizeStyles = {
-  sm: 'h-9 min-h-[36px] px-3 text-xs',
+  sm: 'min-h-[44px] md:min-h-[36px] h-11 md:h-9 px-3 text-xs',
   md: 'h-11 min-h-[44px] px-4 text-sm',
   lg: 'h-12 min-h-[48px] px-5 text-base',
 };

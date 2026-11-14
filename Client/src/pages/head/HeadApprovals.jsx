@@ -104,7 +104,7 @@ const HeadApprovals = () => {
             <button
               type="button"
               onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'member'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -112,7 +112,7 @@ const HeadApprovals = () => {
             >
               <span>Member entries</span>
               {memberEntries.length > 0 && (
-                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700 tabular-nums">
+                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700 tabular-nums">
                   {memberEntries.length}
                 </span>
               )}
@@ -121,7 +121,7 @@ const HeadApprovals = () => {
             <button
               type="button"
               onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                 activeTab === 'team'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -129,7 +129,7 @@ const HeadApprovals = () => {
             >
               <span>Team points</span>
               {teamEntries.length > 0 && (
-                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-700 tabular-nums">
+                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-700 tabular-nums">
                   {teamEntries.length}
                 </span>
               )}
@@ -159,7 +159,7 @@ const HeadApprovals = () => {
                 {isMeetingEntry && (
                   <Link
                     to={`/head/meetings/${meetingId}`}
-                    className="inline-flex items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 transition whitespace-nowrap"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-100 transition whitespace-nowrap"
                     title="View full meeting attendance sheet"
                   >
                     <span>Meeting {meetingDateStr}</span>

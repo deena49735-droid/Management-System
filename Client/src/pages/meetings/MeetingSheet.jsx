@@ -427,7 +427,7 @@ const MeetingSheet = () => {
       : '/assistant/meetings';
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-28 sm:pb-24">
       {/* Header with Back button */}
       <PageHeader
         backTo={basePath}
@@ -488,7 +488,7 @@ const MeetingSheet = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search member in sheet..."
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-base md:text-sm text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
@@ -534,11 +534,11 @@ const MeetingSheet = () => {
       </div>
 
       {/* Sticky Bottom Actions Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 sm:px-6 shadow-xl">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 sm:px-6 shadow-xl pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:pl-60">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           {/* Total Points Live Display */}
           <div>
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Meeting total
             </p>
             <p
@@ -739,7 +739,7 @@ const MeetingSheet = () => {
             value={sendBackReason}
             onChange={(e) => setSendBackReason(e.target.value)}
             placeholder="Enter mandatory reason for sending back..."
-            className="w-full rounded-lg border border-slate-200 bg-white p-3 text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-hidden focus:ring-2 focus:ring-rose-100 transition"
+            className="w-full rounded-lg border border-slate-200 bg-white p-3 text-base md:text-xs text-slate-800 placeholder-slate-400 focus:border-rose-500 focus:outline-hidden focus:ring-2 focus:ring-rose-100 transition"
           />
 
           <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">

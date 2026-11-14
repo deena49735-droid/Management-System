@@ -122,14 +122,14 @@ const AdminTeams = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search teams by name..."
-              className="w-full h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+            className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
           >
             <option value="">All statuses</option>
             <option value="true">Active</option>
@@ -242,13 +242,13 @@ const AdminTeams = () => {
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-lg border border-slate-100">
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Team Head</span>
+                      <span className="text-slate-400 block text-xs uppercase font-semibold">Team Head</span>
                       <span className="font-medium text-slate-800 mt-0.5 block truncate">
                         {team.head ? team.head.name : 'Unassigned'}
                       </span>
                     </div>
                     <div>
-                      <span className="text-slate-400 block text-[10px] uppercase font-semibold">Assistant</span>
+                      <span className="text-slate-400 block text-xs uppercase font-semibold">Assistant</span>
                       <span className="font-medium text-slate-800 mt-0.5 block truncate">
                         {team.assistant ? team.assistant.name : 'Unassigned'}
                       </span>

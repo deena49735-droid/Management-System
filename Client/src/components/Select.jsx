@@ -35,7 +35,7 @@ const Select = React.forwardRef(
           <select
             ref={ref}
             id={selectId}
-            className={`w-full h-11 min-h-[44px] appearance-none rounded-lg border bg-white pl-3.5 pr-10 text-sm text-slate-900 transition-colors focus:outline-hidden ${
+            className={`w-full h-11 min-h-[44px] appearance-none rounded-lg border bg-white pl-3.5 pr-10 text-base md:text-sm text-slate-900 transition-colors focus:outline-hidden ${
               errorText
                 ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-100'
                 : 'border-slate-200 focus:border-brand-600 focus:ring-2 focus:ring-brand-500/20'

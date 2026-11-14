@@ -138,7 +138,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly}
               onClick={() => handleAttendanceChange('present')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition ${
                 attendance === 'present'
                   ? 'bg-white text-emerald-700 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -150,7 +150,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly}
               onClick={() => handleAttendanceChange('late')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition ${
                 attendance === 'late'
                   ? 'bg-white text-amber-700 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -162,7 +162,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly}
               onClick={() => handleAttendanceChange('absent')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition ${
                 attendance === 'absent'
                   ? 'bg-white text-rose-700 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -183,11 +183,11 @@ const MeetingMemberRow = ({
             {attendance !== 'absent' && arrivalTime && (
               <span>
                 {arrivalTime <= EARLY_BIRD_TIME ? (
-                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
                     Early bird (+20)
                   </span>
                 ) : arrivalTime > LATE_AFTER ? (
-                  <span className="inline-flex items-center rounded-md bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200">
+                  <span className="inline-flex items-center rounded-md bg-rose-50 px-1.5 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
                     Late (-100)
                   </span>
                 ) : null}
@@ -199,7 +199,7 @@ const MeetingMemberRow = ({
             value={arrivalTime}
             onChange={handleTimeChange}
             disabled={isReadOnly || attendance === 'absent'}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-brand-600 focus:outline-hidden disabled:bg-slate-100 disabled:text-slate-400"
+            className="w-full h-11 min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-base md:text-xs font-medium text-slate-800 focus:border-brand-600 focus:outline-hidden disabled:bg-slate-100 disabled:text-slate-400"
           />
         </div>
 
@@ -213,7 +213,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly || attendance === 'absent'}
               onClick={() => handleAttireChange('full')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition disabled:opacity-40 ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition disabled:opacity-40 ${
                 attire === 'full'
                   ? 'bg-white text-emerald-700 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -226,7 +226,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly || attendance === 'absent'}
               onClick={() => handleAttireChange('missing_pin_badge')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition disabled:opacity-40 ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition disabled:opacity-40 ${
                 attire === 'missing_pin_badge'
                   ? 'bg-white text-rose-700 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -239,7 +239,7 @@ const MeetingMemberRow = ({
               type="button"
               disabled={isReadOnly || attendance === 'absent'}
               onClick={() => handleAttireChange('none')}
-              className={`rounded-lg py-1.5 text-xs font-bold transition disabled:opacity-40 ${
+              className={`rounded-lg min-h-[44px] flex items-center justify-center py-1.5 text-xs font-bold transition disabled:opacity-40 ${
                 attire === 'none'
                   ? 'bg-white text-slate-800 shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800'
@@ -257,7 +257,7 @@ const MeetingMemberRow = ({
             Walked Out
           </label>
           <label
-            className={`flex items-center justify-between rounded-xl border px-3 py-2 text-xs font-semibold cursor-pointer transition ${
+            className={`flex items-center justify-between min-h-[44px] rounded-xl border px-3 py-2 text-xs font-semibold cursor-pointer transition ${
               walkedOut
                 ? 'border-rose-200 bg-rose-50/80 text-rose-800'
                 : 'border-slate-200 bg-slate-50 text-slate-600'
@@ -317,7 +317,7 @@ const MeetingMemberRow = ({
             <button
               type="button"
               onClick={() => onOpenActivityPicker(row.member, memberName)}
-              className="inline-flex items-center gap-1 rounded-lg border border-dashed border-brand-300 bg-brand-50/50 px-2.5 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100/70 hover:border-brand-400 transition"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-dashed border-brand-300 bg-brand-50/50 px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-100/70 hover:border-brand-400 transition"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

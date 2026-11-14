@@ -41,7 +41,7 @@ const Modal = ({
 
       {/* Modal Dialog Content (bottom sheet on mobile, centered 12px radius on desktop) */}
       <div
-        className={`relative w-full ${maxWidth} rounded-t-2xl sm:rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden my-0 sm:my-8 z-10 transition-all max-h-[90vh] sm:max-h-[85vh] flex flex-col ${className}`}
+        className={`relative w-full ${maxWidth} rounded-t-2xl sm:rounded-xl bg-white shadow-xl border border-slate-200 overflow-hidden my-0 sm:my-8 z-10 transition-all max-h-[90dvh] sm:max-h-[85dvh] pb-[env(safe-area-inset-bottom)] sm:pb-0 flex flex-col ${className}`}
         role="dialog"
         aria-modal="true"
       >

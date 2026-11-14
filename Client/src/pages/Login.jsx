@@ -62,7 +62,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-dvh bg-slate-50 flex flex-col justify-center py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
         {/* Left Column: Brand Panel (Desktop only or prominent on lg) */}
         <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-brand-700 to-brand-800 p-10 flex-col justify-between text-white relative overflow-hidden">
@@ -181,6 +181,8 @@ const Login = () => {
                     name="username"
                     type="text"
                     autoComplete="username"
+                    autoCapitalize="none"
+                    autoCorrect="off"
                     autoFocus
                     required
                     value={username}
@@ -189,7 +191,7 @@ const Login = () => {
                       if (errorMessage) setErrorMessage('');
                     }}
                     placeholder="Enter your username"
-                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
                   />
                 </div>
               </div>
@@ -217,12 +219,12 @@ const Login = () => {
                       if (errorMessage) setErrorMessage('');
                     }}
                     placeholder="Enter your password"
-                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
+                    className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-12 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 focus:outline-hidden"
+                    className="absolute inset-y-0 right-0 flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-400 hover:text-slate-600 focus:outline-hidden"
                     title={showPassword ? 'Hide password' : 'Show password'}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -236,18 +238,20 @@ const Login = () => {
               </div>
 
               {/* Keep me signed in option */}
-              <div className="flex items-start gap-2 pt-0.5">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition cursor-pointer"
-                />
-                <label htmlFor="remember" className="text-xs text-slate-700 cursor-pointer select-none">
-                  <span className="font-medium">Keep me signed in</span>
-                  <span className="block text-[11px] text-slate-400">Use only on your own device</span>
+              <div className="flex items-center min-h-[44px] pt-0.5">
+                <label htmlFor="remember" className="flex items-center gap-2.5 py-2 text-xs text-slate-700 cursor-pointer select-none">
+                  <input
+                    id="remember"
+                    name="remember"
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition cursor-pointer"
+                  />
+                  <span>
+                    <span className="font-medium">Keep me signed in</span>
+                    <span className="block text-xs text-slate-400">Use only on your own device</span>
+                  </span>
                 </label>
               </div>
 

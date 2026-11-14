@@ -124,7 +124,7 @@ const Leaderboard = () => {
             <button
               type="button"
               onClick={() => setActiveTab('teams')}
-              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] rounded-md px-3.5 py-2 text-xs font-semibold transition ${
                 activeTab === 'teams'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -135,7 +135,7 @@ const Leaderboard = () => {
             <button
               type="button"
               onClick={() => setActiveTab('members')}
-              className={`flex-1 sm:flex-initial min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] rounded-md px-3.5 py-2 text-xs font-semibold transition ${
                 activeTab === 'members'
                   ? 'bg-white text-slate-900 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -166,7 +166,7 @@ const Leaderboard = () => {
                   if (p.key === 'month') setSelectedMonth(currentMonth.toString());
                   setSelectedYear(currentYear.toString());
                 }}
-                className={`flex-1 sm:flex-initial h-10 min-h-[40px] rounded-lg px-3.5 text-xs font-semibold transition ${
+                className={`flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg px-3.5 text-xs font-semibold transition ${
                   period === p.key
                     ? 'bg-brand-600 text-white shadow-xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -183,7 +183,7 @@ const Leaderboard = () => {
               <select
                 value={selectedWeek}
                 onChange={(e) => setSelectedWeek(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 {Array.from({ length: 53 }, (_, i) => i + 1).map((w) => (
                   <option key={w} value={w}>
@@ -197,7 +197,7 @@ const Leaderboard = () => {
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
@@ -212,7 +212,7 @@ const Leaderboard = () => {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="h-10 min-h-[40px] rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 <option value="2025">2025</option>
                 <option value="2026">2026</option>
@@ -225,7 +225,7 @@ const Leaderboard = () => {
               <select
                 value={selectedTeamFilter}
                 onChange={(e) => setSelectedTeamFilter(e.target.value)}
-                className="h-10 min-h-[40px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 <option value="">All teams</option>
                 {allTeams.map((t) => (
@@ -293,7 +293,7 @@ const Leaderboard = () => {
                       </span>
 
                       {isUserRow && (
-                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                           {activeTab === 'members' ? 'You' : 'Your team'}
                         </span>
                       )}
@@ -343,12 +343,12 @@ const Leaderboard = () => {
                     <XAxis
                       dataKey="name"
                       stroke="#64748b"
-                      fontSize={11}
+                      fontSize={12}
                       interval={0}
                       angle={-15}
                       textAnchor="end"
                     />
-                    <YAxis stroke="#64748b" fontSize={11} />
+                    <YAxis stroke="#64748b" fontSize={12} />
                     <Tooltip
                       contentStyle={{
                         borderRadius: '8px',
@@ -426,7 +426,7 @@ const Leaderboard = () => {
                               {row.name}
                             </p>
                             {isUserRow && (
-                              <span className="rounded-md bg-brand-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
+                              <span className="rounded-md bg-brand-600 px-1.5 py-0.5 text-xs font-bold text-white">
                                 {activeTab === 'members' ? 'You' : 'Your team'}
                               </span>
                             )}
@@ -464,15 +464,15 @@ const Leaderboard = () => {
                     {activeTab === 'teams' && (
                       <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs grid grid-cols-3 gap-2 text-slate-600">
                         <div>
-                          <span className="block text-[11px] text-slate-400">Member:</span>
+                          <span className="block text-xs text-slate-400">Member:</span>
                           <span className="font-semibold tabular-nums text-emerald-700">+{row.memberPoints}</span>
                         </div>
                         <div>
-                          <span className="block text-[11px] text-slate-400">Team bonus:</span>
+                          <span className="block text-xs text-slate-400">Team bonus:</span>
                           <span className="font-semibold tabular-nums text-brand-700">+{row.teamPoints}</span>
                         </div>
                         <div>
-                          <span className="block text-[11px] text-slate-400">Penalties:</span>
+                          <span className="block text-xs text-slate-400">Penalties:</span>
                           <span className="font-semibold tabular-nums text-rose-600">{row.penalties}</span>
                         </div>
                       </div>
@@ -566,7 +566,7 @@ const Leaderboard = () => {
                                 <span className="text-xs font-normal text-slate-400">@{row.username}</span>
                               )}
                               {isUserRow && (
-                                <span className="rounded-md bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                                <span className="rounded-md bg-brand-600 px-2 py-0.5 text-xs font-bold text-white uppercase tracking-wider">
                                   {activeTab === 'members' ? 'You' : 'Your team'}
                                 </span>
                               )}

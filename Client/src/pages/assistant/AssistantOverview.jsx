@@ -268,7 +268,7 @@ const AssistantOverview = () => {
         action={
           <Link
             to="/assistant/submissions"
-            className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
+            className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
           >
             <span>View all submissions</span>
             <ArrowRight className="h-3.5 w-3.5" />

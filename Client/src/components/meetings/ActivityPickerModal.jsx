@@ -86,7 +86,7 @@ const ActivityPickerModal = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search meeting day activities..."
-              className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100"
+              className="w-full h-11 min-h-[44px] rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-base md:text-sm text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100"
             />
           </div>
         </div>
@@ -127,7 +127,7 @@ const ActivityPickerModal = ({
                           type="button"
                           onClick={() => handleQuantityChange(act._id, -1, allowsMulti)}
                           disabled={qty <= 1}
-                          className="px-2 py-1 text-slate-500 hover:text-slate-800 disabled:opacity-30 disabled:hover:text-slate-500 font-bold text-sm"
+                          className="min-h-[44px] min-w-[40px] md:min-h-[36px] md:min-w-[36px] flex items-center justify-center text-slate-500 hover:text-slate-800 disabled:opacity-30 disabled:hover:text-slate-500 font-bold text-sm"
                         >
                           −
                         </button>
@@ -137,7 +137,7 @@ const ActivityPickerModal = ({
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(act._id, 1, allowsMulti)}
-                          className="px-2 py-1 text-slate-500 hover:text-slate-800 font-bold text-sm"
+                          className="min-h-[44px] min-w-[40px] md:min-h-[36px] md:min-w-[36px] flex items-center justify-center text-slate-500 hover:text-slate-800 font-bold text-sm"
                         >
                           +
                         </button>
@@ -147,7 +147,7 @@ const ActivityPickerModal = ({
                     <button
                       type="button"
                       onClick={() => handleSelect(act)}
-                      className="inline-flex items-center justify-center rounded-xl bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-brand-700 active:bg-brand-800 transition"
+                      className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs hover:bg-brand-700 active:bg-brand-800 transition"
                     >
                       Add (+{totalPoints})
                     </button>
@@ -163,7 +163,7 @@ const ActivityPickerModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
+            className="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
           >
             Cancel
           </button>

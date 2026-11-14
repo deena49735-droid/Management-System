@@ -150,7 +150,7 @@ Total criteria rows: 14 + 10 + 5 + 5 + 11 = 45.
 
 7. Automatic Penalties
 
-Automatic penalties are NOT created by a timer. They are derived from data that people enter and submit: the meeting sheet (section 16), the weekly counts on it, and the monthly status sheet (section 17). All generated entries are pending (source meeting_sheet or monthly_status) and need the Team Head's approval, exactly like manual entries. Nothing is ever auto-approved.
+Automatic penalties are NOT created by a timer. They are derived from data that people enter and submit: the meeting sheet (section 16), the weekly counts on it, and the monthly status sheet (section 17). All generated entries are pending (source meeting_sheet or monthly_status) and need the Team Head's approval, exactly like manual entries. Nothing is ever auto-approved. Until Phase 6C is built, the weekly and monthly penalties (0 referral, 0 one-to-one, kitty fee unpaid, MSP incomplete, traffic light) are added manually by the Team Assistant with the Add entry form.
 
 8. Screens
 Login
@@ -229,6 +229,7 @@ Brand colour is red (it replaced the old blue/indigo). Define it once as tokens 
 Because the brand is red, red must never be the only signal for danger: negative points always show a minus sign, errors show an icon and text, destructive buttons are outlined and need a confirmation, and Approve actions use the green success style, not the brand red.
 Professional, clean, business-style interface: consistent spacing scale, one font family, subtle shadows, consistent border radius, clear visual hierarchy.
 Mobile-first and fully responsive (360px to 1440px+). No horizontal page scroll. Tables become cards on mobile. Tap targets at least 44px.
+Responsive baseline: design from 320px up to 1440px and wider. Use dvh instead of vh for full-height layouts, respect env(safe-area-inset-*) on fixed top and bottom bars, keep inputs at 16px or larger on mobile (prevents iOS zoom), never disable page zoom, add color-scheme: light so phones do not force dark mode, and apply hover effects only on devices that can hover.
 Reuse shared components (Button, Input, Select, Card, StatCard, Table, Badge, Modal, Tabs, EmptyState, Skeleton, Pagination). Do not copy styles into each page.
 Accessible: labels on every field, visible focus states, sufficient contrast.
 Use lucide-react icons. No emoji as icons.
@@ -256,8 +257,8 @@ Automatic rules (times live in one server constants file: EARLY_BIRD_TIME = 07:2
 Entries created on submit (all status pending, source meeting_sheet, linked to the meeting): Early Bird, Late after 7:59 AM, Absent for Weekly BNI Meeting, Walking Out During Meeting, Full Attire, Missing Pin & Badge, plus the chosen activities from Meeting Day Activities. Criteria that need proof (the ask sheet photo) are not on the sheet. Quantity follows the quantity rules in section 6.
 Approval: the Team Head approves the whole sheet at once. Entries where the approver is the member stay pending for the admin (self-approval is blocked). Pending entries of a sheet that is edited and re-submitted are replaced, approved entries are never deleted.
 Menus: Team Assistant gets "Meeting sheet", Team Head gets "Meetings", Admin gets "Meetings". Members do not get a new menu item.
-Weekly counts (Phase 6C): each row also has referrals and oneToOnes (whole numbers, empty until entered). A sheet cannot be submitted until every row has both. A count of 0 creates the "0 Referral for the Week" or "0 One-to-One for the Week" penalty. Only one sheet per team per week.
-17. Monthly Status Sheet (Phase 6C)
+Weekly counts (Phase 6C, planned, not implemented yet): each row also has referrals and oneToOnes (whole numbers, empty until entered). A sheet cannot be submitted until every row has both. A count of 0 creates the "0 Referral for the Week" or "0 One-to-One for the Week" penalty. Only one sheet per team per week.
+17. Monthly Status Sheet (Phase 6C, planned, not implemented yet)
 
 One sheet per team per month (unique team + month + year), same flow as the meeting sheet: Team Assistant fills it, Team Head approves or sends it back, admin can override. It is created automatically the first time someone opens that month (no cron job needed).
 
@@ -271,8 +272,7 @@ Rules: a sheet can only be submitted when every row is complete. Entries are cre
 
 Menus: "Monthly status" for Team Assistant, Team Head and Admin.
 
-18. Seed and Reset Scripts
-seed:criteria and seed:admin (existing): the 45 criteria from the PDF, and the first admin user.
-seed:demo: creates demo teams, users, meeting sheets and entries for testing. Demo usernames all start with demo. and the password comes from DEMO_PASSWORD. Proof photos are never seeded.
-reset:fresh: deletes all data except the admin user(s) and the 45 criteria, so the app starts fresh. It does not delete files from Cloudinary.
-Safety: both scripts run only when ALLOW_DESTRUCTIVE_SEED=true is set in the local .env, never when NODE_ENV=production, and reset:fresh also needs --confirm=<database name>. Never set ALLOW_DESTRUCTIVE_SEED on a hosted server.
+18. Seed Scripts
+seed:criteria: inserts the 45 criteria from the PDF. Safe to run twice, never overwrites points that the admin changed.
+seed:admin: creates the first admin user from the ADMIN_* values in .env. Safe to run twice.
+There is no demo or reset script. To start fresh, point MONGO_URI to a new database name and run both seed scripts.

@@ -145,7 +145,7 @@ const HeadOverview = () => {
               <Button variant="primary" size="sm" icon={CheckCircle2}>
                 Review Approvals
                 {pendingApprovalsCount > 0 && (
-                  <span className="ml-1 rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold">
+                  <span className="ml-1 rounded-full bg-white/25 px-1.5 py-0.5 text-xs font-bold">
                     {pendingApprovalsCount}
                   </span>
                 )}
@@ -225,7 +225,7 @@ const HeadOverview = () => {
           action={
             <Link
               to="/head/approvals"
-              className="text-xs font-semibold text-brand-600 hover:text-brand-800 flex items-center gap-1"
+              className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
             >
               <span>View all ({pendingApprovalsCount})</span>
               <ArrowRight className="h-3.5 w-3.5" />

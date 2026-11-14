@@ -146,6 +146,18 @@ const AppShell = ({ children }) => {
     setIsDrawerOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isDrawerOpen]);
+
   const handleLogout = () => {
     setIsUserMenuOpen(false);
     logout();
@@ -165,7 +177,7 @@ const AppShell = ({ children }) => {
             to={item.path}
             end={item.exact}
             onClick={onItemClick}
-            className={`flex min-h-[42px] items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+            className={`flex min-h-[44px] items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
               isActive
                 ? 'bg-brand-50 text-brand-700'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:bg-slate-100'
@@ -192,7 +204,7 @@ const AppShell = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-dvh bg-slate-50 text-slate-900 flex flex-col font-sans">
       {/* 1. Desktop Fixed Left Sidebar (240px) */}
       <aside className="hidden lg:flex fixed top-0 bottom-0 left-0 w-60 z-30 flex-col border-r border-slate-200 bg-white">
         {/* Sidebar Brand Header */}
@@ -204,7 +216,7 @@ const AppShell = ({ children }) => {
             <span className="block text-sm font-semibold text-slate-900 tracking-tight leading-snug">
               Kadambas Game
             </span>
-            <span className="block text-[11px] text-slate-400 font-medium">
+            <span className="block text-xs text-slate-400 font-medium">
               Management Portal
             </span>
           </div>
@@ -219,7 +231,7 @@ const AppShell = ({ children }) => {
         {user?.team && (
           <div className="p-3 border-t border-slate-100 shrink-0">
             <div className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Assigned Team
               </span>
               <span className="block text-xs font-semibold text-slate-800 truncate mt-0.5">
@@ -231,8 +243,8 @@ const AppShell = ({ children }) => {
       </aside>
 
       {/* 2. Top Bar (Desktop & Mobile) */}
-      <header className="sticky top-0 z-20 h-16 border-b border-slate-200 bg-white/95 backdrop-blur-xs lg:pl-60">
-        <div className="h-full flex items-center justify-between px-4 sm:px-6 max-w-7xl mx-auto">
+      <header className="sticky top-0 z-20 min-h-16 border-b border-slate-200 bg-white/95 backdrop-blur-xs lg:pl-60 pt-[env(safe-area-inset-top)]">
+        <div className="h-full min-h-16 flex items-center justify-between px-4 sm:px-6 max-w-7xl mx-auto">
           {/* Left: Mobile hamburger button + Page Title */}
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -264,7 +276,7 @@ const AppShell = ({ children }) => {
                 <span className="text-xs font-semibold text-slate-900 truncate max-w-[140px]">
                   {user?.name}
                 </span>
-                <span className="text-[11px] text-slate-500 truncate max-w-[140px]">
+                <span className="text-xs text-slate-500 truncate max-w-[140px]">
                   {user?.username ? `@${user.username}` : user?.phone}
                 </span>
               </div>
@@ -285,7 +297,7 @@ const AppShell = ({ children }) => {
               <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg z-50 animate-in fade-in duration-100">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
-                  <p className="text-[11px] text-slate-500 truncate">
+                  <p className="text-xs text-slate-500 truncate">
                     {user?.username ? `@${user.username}` : user?.phone}
                   </p>
                   <div className="mt-1.5">
@@ -334,7 +346,7 @@ const AppShell = ({ children }) => {
           />
 
           {/* Drawer Panel */}
-          <div className="relative w-64 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200">
+          <div className="relative w-64 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]">
             {/* Drawer Header */}
             <div className="h-16 flex items-center justify-between px-5 border-b border-slate-100 shrink-0">
               <div className="flex items-center gap-2.5">
@@ -365,14 +377,15 @@ const AppShell = ({ children }) => {
                   <Avatar name={user?.name} role={user?.role} size="sm" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{user?.role}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.role}</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-lg p-2 text-rose-600 hover:bg-rose-50 transition"
+                  className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 transition"
                   title="Logout"
+                  aria-label="Logout"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
