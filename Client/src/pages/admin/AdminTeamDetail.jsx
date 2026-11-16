@@ -72,14 +72,20 @@ const AdminTeamDetail = () => {
     fetchData();
   }, [id]);
 
-  // Eligible users for Head & Assistant: active users who are either not in a team or already in THIS team
+  // Chapter users only: active users with role member, teamHead, or teamAssistant (never admin)
+  const isChapterUser = (u) =>
+    Boolean(u && u.isActive && u.role !== 'admin' && ['member', 'teamHead', 'teamAssistant'].includes(u.role));
+
+  // Eligible users for Head & Assistant: active chapter users who are either not in a team or already in THIS team
   const eligibleLeaders = activeUsers.filter((u) => {
+    if (!isChapterUser(u)) return false;
     const userTeamId = u.team?._id || u.team;
     return !userTeamId || userTeamId.toString() === id;
   });
 
-  // Eligible users to Add as Member: active users who are NOT in any team at all
+  // Eligible users to Add as Member: active chapter users who are NOT in any team at all
   const eligibleNewMembers = activeUsers.filter((u) => {
+    if (!isChapterUser(u)) return false;
     const userTeamId = u.team?._id || u.team;
     return !userTeamId;
   });

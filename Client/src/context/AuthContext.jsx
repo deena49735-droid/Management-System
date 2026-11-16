@@ -88,6 +88,18 @@ export const AuthProvider = ({ children }) => {
     return receivedUser;
   };
 
+  // Refresh user data from /auth/me
+  const refreshUser = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
+    } catch (e) {
+      // Ignore background refresh failure
+    }
+  };
+
   // Logout handler clearing both storages
   const logout = () => {
     clearStoredAuth();
@@ -101,6 +113,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    refreshUser,
     isAuthenticated: !!token && !!user,
   };
 

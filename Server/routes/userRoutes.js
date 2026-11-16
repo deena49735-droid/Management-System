@@ -38,8 +38,8 @@ const createUserValidation = [
     .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
-    .isIn(['admin', 'teamHead', 'teamAssistant', 'member'])
-    .withMessage('Role must be one of: admin, teamHead, teamAssistant, member'),
+    .isIn(['teamHead', 'teamAssistant', 'member'])
+    .withMessage('Role must be one of: teamHead, teamAssistant, member'),
   body('team')
     .optional({ nullable: true, checkFalsy: true })
     .isMongoId()

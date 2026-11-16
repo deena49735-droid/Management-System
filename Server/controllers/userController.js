@@ -22,6 +22,15 @@ exports.createUser = async (req, res, next) => {
     const trimmedPhone = typeof phone === 'string' ? phone.trim() : '';
     const trimmedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
 
+    // Enforce role restriction: Admins can only create member, teamHead, and teamAssistant
+    const userRole = role || 'member';
+    if (userRole === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Role must be one of: teamHead, teamAssistant, member. Creating an admin account is not allowed.',
+      });
+    }
+
     // Check if username is already registered
     const existingUsername = await User.findOne({ username: trimmedUsername });
     if (existingUsername) {
@@ -64,7 +73,6 @@ exports.createUser = async (req, res, next) => {
     }
 
     // Create the user
-    const userRole = role || 'member';
     const user = await User.create({
       name: typeof name === 'string' ? name.trim() : '',
       username: trimmedUsername,
@@ -136,7 +144,11 @@ exports.getUsers = async (req, res, next) => {
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 10));
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
 
-    const filter = {};
+    // Users Management lists ONLY chapter users: member, teamHead, and teamAssistant
+    const chapterRoles = ['member', 'teamHead', 'teamAssistant'];
+    const filter = {
+      role: { $in: chapterRoles },
+    };
 
     // Search by name, username or phone
     if (search) {
@@ -147,9 +159,13 @@ exports.getUsers = async (req, res, next) => {
       ];
     }
 
-    // Filter by role
+    // Filter by role (must only match chapter roles; if admin requested, return empty match)
     if (req.query.role) {
-      filter.role = req.query.role;
+      if (chapterRoles.includes(req.query.role)) {
+        filter.role = req.query.role;
+      } else {
+        filter.role = { $in: [] };
+      }
     }
 
     // Filter by team
@@ -212,6 +228,14 @@ exports.getUserById = async (req, res, next) => {
       });
     }
 
+    // Do not expose other admin accounts via generic user endpoint
+    if (user.role === 'admin' && user._id.toString() !== req.user._id.toString()) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
     res.status(200).json({
       success: true,
       data: user,
@@ -253,6 +277,38 @@ exports.updateUser = async (req, res, next) => {
 
     const isSelf = user._id.toString() === req.user._id.toString();
 
+    // Prevent modifying another admin account
+    if (user.role === 'admin' && !isSelf) {
+      return res.status(403).json({
+        success: false,
+        message: 'Modifying another administrator account is not allowed.',
+      });
+    }
+
+    // Admin accounts cannot become Team Heads, Team Assistants or Members through reassignment
+    if (user.role === 'admin' && req.body.role && req.body.role !== 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be reassigned to chapter roles.',
+      });
+    }
+
+    // Admin accounts cannot belong to any chapter team
+    if (user.role === 'admin' && req.body.team) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot belong to any chapter team.',
+      });
+    }
+
+    // Prevent promoting any chapter user to admin
+    if (user.role !== 'admin' && req.body.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Promoting a user to administrator is not allowed.',
+      });
+    }
+
     // Prevent admin from deactivating their own account
     if (isSelf && req.body.isActive !== undefined) {
       const targetIsActive = req.body.isActive === true || req.body.isActive === 'true';
@@ -262,14 +318,6 @@ exports.updateUser = async (req, res, next) => {
           message: 'Admins cannot deactivate their own account.',
         });
       }
-    }
-
-    // Prevent admin from changing their own role
-    if (isSelf && req.body.role && req.body.role !== 'admin') {
-      return res.status(400).json({
-        success: false,
-        message: 'Admins cannot change their own role.',
-      });
     }
 
     // Update username if provided and check uniqueness
@@ -345,6 +393,14 @@ exports.updateUser = async (req, res, next) => {
       const newTeamId = req.body.team ? req.body.team.toString() : null;
 
       if (newTeamId) {
+        // Enforce: Admin accounts cannot be assigned to any chapter team
+        if (user.role === 'admin' || req.body.role === 'admin') {
+          return res.status(400).json({
+            success: false,
+            message: 'Admin accounts cannot be assigned to a team.',
+          });
+        }
+
         if (!mongoose.Types.ObjectId.isValid(newTeamId)) {
           return res.status(400).json({
             success: false,
@@ -505,6 +561,14 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
+    // Disallow resetting another administrator's password
+    if (user.role === 'admin' && user._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Resetting another administrator password is not allowed.',
+      });
+    }
+
     user.password = password;
     await user.save(); // Pre-save hook hashes password with bcrypt
 
@@ -543,6 +607,13 @@ exports.deactivateUser = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'User not found.',
+      });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be deactivated.',
       });
     }
 

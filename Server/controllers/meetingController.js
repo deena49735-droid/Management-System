@@ -40,7 +40,7 @@ exports.createMeeting = async (req, res, next) => {
     let teamId;
 
     if (userRole === 'admin') {
-      teamId = req.body.team;
+      teamId = req.body.team || req.body.teamId;
       if (!teamId || !mongoose.Types.ObjectId.isValid(teamId)) {
         return res.status(400).json({
           success: false,
@@ -173,8 +173,9 @@ exports.getMeetings = async (req, res, next) => {
     const filter = {};
 
     if (userRole === 'admin') {
-      if (req.query.team && mongoose.Types.ObjectId.isValid(req.query.team)) {
-        filter.team = req.query.team;
+      const qTeam = req.query.team || req.query.teamId;
+      if (qTeam && mongoose.Types.ObjectId.isValid(qTeam)) {
+        filter.team = qTeam;
       }
     } else if (userRole === 'teamAssistant' || userRole === 'teamHead') {
       if (!req.user.team) {

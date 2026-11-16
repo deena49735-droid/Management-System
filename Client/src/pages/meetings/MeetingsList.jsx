@@ -111,6 +111,7 @@ const MeetingsList = () => {
         date: selectedDate,
       };
       if (user?.role === 'admin') {
+        payload.team = selectedTeamId;
         payload.teamId = selectedTeamId;
       }
 

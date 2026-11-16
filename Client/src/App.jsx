@@ -13,6 +13,7 @@ import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminCriteria from './pages/admin/AdminCriteria';
 import AdminEntries from './pages/admin/AdminEntries';
+import AdminSettings from './pages/admin/AdminSettings';
 
 import HeadLayout from './pages/head/HeadLayout';
 import HeadOverview from './pages/head/HeadOverview';
@@ -117,6 +118,8 @@ function App() {
             <Route path="entries" element={<AdminEntries />} />
             <Route path="meetings" element={<MeetingsList />} />
             <Route path="meetings/:id" element={<MeetingSheet />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="profile" element={<Navigate to="/admin/settings" replace />} />
           </Route>
 
           {/* Protected Team Head Routes */}

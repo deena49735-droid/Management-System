@@ -1,10 +1,17 @@
 import React from 'react';
 
 const roleStyles = {
-  admin: 'bg-brand-50 text-brand-700 border-brand-200',
-  teamHead: 'bg-slate-100 text-slate-700 border-slate-200',
-  teamAssistant: 'bg-slate-100 text-slate-700 border-slate-200',
-  member: 'bg-slate-100 text-slate-700 border-slate-200',
+  admin: 'bg-brand-50 text-brand-700 border-brand-200/90',
+  teamHead: 'bg-slate-900 text-slate-100 border-slate-800',
+  teamAssistant: 'bg-slate-100 text-slate-800 border-slate-300',
+  member: 'bg-slate-50 text-slate-600 border-slate-200',
+};
+
+const roleDots = {
+  admin: 'bg-brand-600',
+  teamHead: 'bg-slate-300',
+  teamAssistant: 'bg-slate-500',
+  member: 'bg-slate-400',
 };
 
 const roleLabels = {
@@ -127,12 +134,14 @@ const Badge = ({
   // 4. User Role badge
   if (role) {
     const style = roleStyles[role] || 'bg-slate-100 text-slate-700 border-slate-200';
+    const dotColor = roleDots[role] || 'bg-slate-400';
     const label = roleLabels[role] || role;
     return (
       <span
-        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border ${style} ${className}`}
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium border shadow-2xs ${style} ${className}`}
       >
-        {children || label}
+        {dot && <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dotColor}`} />}
+        <span>{children || label}</span>
       </span>
     );
   }

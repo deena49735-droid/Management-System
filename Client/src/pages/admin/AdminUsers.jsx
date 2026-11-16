@@ -273,8 +273,8 @@ const AdminUsers = () => {
     <div className="space-y-6">
       {/* Header and Add Button */}
       <PageHeader
-        title="User management"
-        subtitle="Create and maintain member accounts, roles, and chapter teams."
+        title="Chapter users"
+        subtitle="Create and maintain chapter members, team heads, and team assistants."
         actions={
           <Button
             variant="primary"
@@ -315,8 +315,7 @@ const AdminUsers = () => {
               }}
               className="flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
-              <option value="">All roles</option>
-              <option value="admin">Admin</option>
+              <option value="">All chapter roles</option>
               <option value="teamHead">Team Head</option>
               <option value="teamAssistant">Team Assistant</option>
               <option value="member">Member</option>
@@ -369,8 +368,7 @@ const AdminUsers = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {users.map((item) => {
-                    const isSelf = currentUser?._id === item._id;
+                  {users.filter((item) => item.role !== 'admin').map((item) => {
                     return (
                       <tr key={item._id} className="hover:bg-slate-50/70 transition">
                         <td className="px-5 py-3.5 whitespace-nowrap">
@@ -379,11 +377,6 @@ const AdminUsers = () => {
                             <div>
                               <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                                 <span>{item.name}</span>
-                                {isSelf && (
-                                  <span className="inline-flex items-center rounded-md bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700 border border-brand-200">
-                                    You
-                                  </span>
-                                )}
                               </div>
                               <span className="text-xs text-slate-400">@{item.username}</span>
                             </div>
@@ -420,20 +413,18 @@ const AdminUsers = () => {
                           >
                             Reset password
                           </Button>
-                          {!isSelf && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setTogglingUser(item)}
-                              className={
-                                item.isActive
-                                  ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
-                                  : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
-                              }
-                            >
-                              {item.isActive ? 'Deactivate' : 'Activate'}
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setTogglingUser(item)}
+                            className={
+                              item.isActive
+                                ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50'
+                                : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'
+                            }
+                          >
+                            {item.isActive ? 'Deactivate' : 'Activate'}
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -444,8 +435,7 @@ const AdminUsers = () => {
 
             {/* Mobile Cards View (Below 768px: each row is a clean card) */}
             <div className="md:hidden divide-y divide-slate-100">
-              {users.map((item) => {
-                const isSelf = currentUser?._id === item._id;
+              {users.filter((item) => item.role !== 'admin').map((item) => {
                 return (
                   <div key={item._id} className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
@@ -454,11 +444,6 @@ const AdminUsers = () => {
                         <div>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="font-semibold text-slate-900 text-sm">{item.name}</h3>
-                            {isSelf && (
-                              <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-xs font-semibold text-brand-700 border border-brand-200">
-                                You
-                              </span>
-                            )}
                           </div>
                           <p className="text-xs text-slate-400">@{item.username} • {item.phone}</p>
                         </div>
@@ -493,16 +478,14 @@ const AdminUsers = () => {
                       >
                         Reset pwd
                       </Button>
-                      {!isSelf && (
-                        <Button
-                          variant={item.isActive ? 'outlineDanger' : 'secondary'}
-                          size="sm"
-                          onClick={() => setTogglingUser(item)}
-                          className="flex-1"
-                        >
-                          {item.isActive ? 'Deactivate' : 'Activate'}
-                        </Button>
-                      )}
+                      <Button
+                        variant={item.isActive ? 'outlineDanger' : 'secondary'}
+                        size="sm"
+                        onClick={() => setTogglingUser(item)}
+                        className="flex-1"
+                      >
+                        {item.isActive ? 'Deactivate' : 'Activate'}
+                      </Button>
                     </div>
                   </div>
                 );
@@ -589,7 +572,6 @@ const AdminUsers = () => {
                 <option value="member">Member</option>
                 <option value="teamHead">Team Head</option>
                 <option value="teamAssistant">Team Assistant</option>
-                <option value="admin">Admin</option>
               </select>
             </div>
 
@@ -680,20 +662,13 @@ const AdminUsers = () => {
               </label>
               <select
                 value={editForm.role}
-                disabled={currentUser?._id === editingUser?._id}
                 onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
               >
                 <option value="member">Member</option>
                 <option value="teamHead">Team Head</option>
                 <option value="teamAssistant">Team Assistant</option>
-                <option value="admin">Admin</option>
               </select>
-              {currentUser?._id === editingUser?._id && (
-                <p className="text-xs text-slate-400 mt-1">
-                  Admins cannot change their own role
-                </p>
-              )}
             </div>
 
             <div>

@@ -84,8 +84,37 @@ exports.createTeam = async (req, res, next) => {
       });
     }
 
-    const { name } = req.body;
+    const { name, head, assistant, members } = req.body;
     const trimmedName = typeof name === 'string' ? name.trim() : '';
+
+    // Enforce Admin isolation on team creation
+    if (head) {
+      const headUser = await User.findById(head);
+      if (headUser && headUser.role === 'admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
+    if (assistant) {
+      const assistantUser = await User.findById(assistant);
+      if (assistantUser && assistantUser.role === 'admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
+    if (Array.isArray(members) && members.length > 0) {
+      const adminCount = await User.countDocuments({ _id: { $in: members }, role: 'admin' });
+      if (adminCount > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
 
     // Check if team name already exists (case-insensitive)
     const existingTeam = await Team.findOne({
@@ -248,6 +277,35 @@ exports.updateTeam = async (req, res, next) => {
       team.isActive = req.body.isActive === true || req.body.isActive === 'true';
     }
 
+    // Enforce Admin isolation on team update
+    if (req.body.head) {
+      const headUser = await User.findById(req.body.head);
+      if (headUser && headUser.role === 'admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
+    if (req.body.assistant) {
+      const assistantUser = await User.findById(req.body.assistant);
+      if (assistantUser && assistantUser.role === 'admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
+    if (Array.isArray(req.body.members) && req.body.members.length > 0) {
+      const adminCount = await User.countDocuments({ _id: { $in: req.body.members }, role: 'admin' });
+      if (adminCount > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Admin accounts cannot be assigned to a team.',
+        });
+      }
+    }
+
     await team.save();
 
     res.status(200).json({
@@ -305,6 +363,22 @@ exports.assignHead = async (req, res, next) => {
       });
     }
 
+    // Admin accounts cannot be assigned to any chapter team
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be assigned to a team.',
+      });
+    }
+
+    // Role eligibility: only chapter users can be assigned as team head
+    if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only chapter users can be assigned as team head.',
+      });
+    }
+
     // A user can belong to only one team at a time
     if (user.team && user.team.toString() !== team._id.toString()) {
       return res.status(400).json({
@@ -313,9 +387,13 @@ exports.assignHead = async (req, res, next) => {
       });
     }
 
-    // If team already had a head, revert old head back to role member
+    // If team already had a head, revert old head back to role member (protecting admin accounts)
     if (team.head && team.head.toString() !== user._id.toString()) {
-      await User.findByIdAndUpdate(team.head, { role: 'member' });
+      const oldHead = await User.findById(team.head);
+      if (oldHead && oldHead.role !== 'admin') {
+        oldHead.role = 'member';
+        await oldHead.save();
+      }
     }
 
     // If this user was the team's assistant, clear assistant slot
@@ -396,6 +474,22 @@ exports.assignAssistant = async (req, res, next) => {
       });
     }
 
+    // Admin accounts cannot be assigned to any chapter team
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be assigned to a team.',
+      });
+    }
+
+    // Role eligibility: only chapter users can be assigned as team assistant
+    if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only chapter users can be assigned as team assistant.',
+      });
+    }
+
     // A user can belong to only one team at a time
     if (user.team && user.team.toString() !== team._id.toString()) {
       return res.status(400).json({
@@ -404,9 +498,13 @@ exports.assignAssistant = async (req, res, next) => {
       });
     }
 
-    // If team already had an assistant, revert old assistant back to role member
+    // If team already had an assistant, revert old assistant back to role member (protecting admin accounts)
     if (team.assistant && team.assistant.toString() !== user._id.toString()) {
-      await User.findByIdAndUpdate(team.assistant, { role: 'member' });
+      const oldAssistant = await User.findById(team.assistant);
+      if (oldAssistant && oldAssistant.role !== 'admin') {
+        oldAssistant.role = 'member';
+        await oldAssistant.save();
+      }
     }
 
     // If this user was the team's head, clear head slot
@@ -445,6 +543,10 @@ exports.assignAssistant = async (req, res, next) => {
  * Shared helper to synchronize User.team and Team.members
  */
 const syncAddMemberToTeam = async (teamId, userId) => {
+  const candidate = await User.findById(userId);
+  if (candidate && candidate.role === 'admin') {
+    throw new Error('Admin accounts cannot be assigned to a team.');
+  }
   await Team.findByIdAndUpdate(teamId, { $addToSet: { members: userId } });
   await User.findByIdAndUpdate(userId, { team: teamId });
 };
@@ -655,6 +757,22 @@ exports.addExistingMemberToMyTeam = async (req, res, next) => {
       });
     }
 
+    // Admin accounts cannot be assigned to any chapter team
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be assigned to a team.',
+      });
+    }
+
+    // Only active chapter users can be assigned to teams
+    if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only chapter users can be assigned to a team.',
+      });
+    }
+
     if (user.role !== 'member') {
       return res.status(400).json({
         success: false,
@@ -730,6 +848,22 @@ exports.addMember = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Cannot add an inactive user to a team.',
+      });
+    }
+
+    // Admin accounts cannot be assigned to any chapter team
+    if (user.role === 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin accounts cannot be assigned to a team.',
+      });
+    }
+
+    // Only active chapter users can be assigned to teams
+    if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only chapter users can be assigned to a team.',
       });
     }
 
@@ -810,11 +944,11 @@ exports.removeMember = async (req, res, next) => {
     team.members = team.members.filter((m) => m.toString() !== userId.toString());
     await team.save();
 
-    // Update user record: unassign team and reset head/assistant role to member
+    // Update user record: unassign team and reset head/assistant role to member (protecting admin accounts)
     const user = await User.findById(userId);
     if (user) {
       user.team = null;
-      if (user.role === 'teamHead' || user.role === 'teamAssistant') {
+      if (user.role !== 'admin' && (user.role === 'teamHead' || user.role === 'teamAssistant')) {
         user.role = 'member';
       }
       await user.save();

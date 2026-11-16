@@ -1,6 +1,7 @@
 import React from 'react';
 
 const sizeStyles = {
+  xs: 'h-6 w-6 text-[10px]',
   sm: 'h-8 w-8 text-xs',
   md: 'h-10 w-10 text-sm',
   lg: 'h-12 w-12 text-base',
@@ -8,11 +9,11 @@ const sizeStyles = {
 };
 
 const roleColors = {
-  admin: 'bg-brand-100 text-brand-700 border-brand-200',
-  teamHead: 'bg-slate-100 text-slate-700 border-slate-200',
-  teamAssistant: 'bg-slate-100 text-slate-700 border-slate-200',
-  member: 'bg-slate-100 text-slate-700 border-slate-200',
-  default: 'bg-slate-100 text-slate-700 border-slate-200',
+  admin: 'bg-gradient-to-br from-brand-600 to-brand-700 text-white border-brand-700/80 shadow-2xs',
+  teamHead: 'bg-slate-900 text-white border-slate-900 shadow-2xs',
+  teamAssistant: 'bg-slate-700 text-white border-slate-700 shadow-2xs',
+  member: 'bg-slate-100 text-slate-700 border-slate-300 shadow-2xs',
+  default: 'bg-slate-100 text-slate-700 border-slate-300 shadow-2xs',
 };
 
 const Avatar = ({

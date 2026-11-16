@@ -18,6 +18,7 @@ import {
   ChevronDown,
   LogOut,
   User as UserIcon,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getDashboardPathByRole } from '../ProtectedRoute';
@@ -34,6 +35,7 @@ const roleMenus = {
     { name: 'Entries', path: '/admin/entries', icon: CheckSquare },
     { name: 'Meetings', path: '/admin/meetings', icon: Calendar },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+    { name: 'Settings', path: '/admin/settings', icon: Settings },
   ],
   teamHead: [
     { name: 'Dashboard', path: '/head', exact: true, icon: LayoutDashboard },
@@ -65,6 +67,7 @@ const roleMenus = {
 
 const getPageTitle = (pathname) => {
   if (pathname === '/admin') return 'Admin Dashboard';
+  if (pathname === '/admin/settings' || pathname === '/admin/profile') return 'Admin Settings';
   if (pathname === '/admin/users') return 'Users Management';
   if (pathname === '/admin/teams') return 'Teams Management';
   if (pathname.startsWith('/admin/teams/')) return 'Team Details';
@@ -282,17 +285,17 @@ const AppShell = ({ children }) => {
             <button
               type="button"
               onClick={() => setIsUserMenuOpen((prev) => !prev)}
-              className="flex items-center gap-2.5 rounded-lg p-1.5 sm:px-3 sm:py-1.5 text-left hover:bg-slate-50 transition min-h-[44px] focus:outline-hidden"
+              className="flex items-center gap-2.5 rounded-xl p-1.5 sm:px-2.5 sm:py-1.5 text-left hover:bg-slate-100/70 border border-transparent hover:border-slate-200/70 transition min-h-[44px] focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
               aria-expanded={isUserMenuOpen}
               aria-label="User profile menu"
             >
               <Avatar name={user?.name} role={user?.role} size="sm" />
 
               <div className="hidden sm:flex flex-col text-left leading-tight">
-                <span className="text-xs font-semibold text-slate-900 truncate max-w-[140px]">
+                <span className="text-xs font-semibold text-slate-900 truncate max-w-[130px]">
                   {user?.name}
                 </span>
-                <span className="text-xs text-slate-500 truncate max-w-[140px]">
+                <span className="text-[11px] text-slate-500 font-medium truncate max-w-[130px]">
                   {user?.username ? `@${user.username}` : user?.phone}
                 </span>
               </div>
@@ -302,44 +305,64 @@ const AppShell = ({ children }) => {
               </div>
 
               <ChevronDown
-                className={`h-4 w-4 text-slate-400 transition-transform ${
-                  isUserMenuOpen ? 'rotate-180' : ''
+                className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                  isUserMenuOpen ? 'rotate-180 text-slate-600' : ''
                 }`}
               />
             </button>
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg z-50 animate-in fade-in duration-100">
-                <div className="px-3 py-2 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
-                  <p className="text-xs text-slate-500 truncate">
-                    {user?.username ? `@${user.username}` : user?.phone}
-                  </p>
-                  <div className="mt-1.5">
-                    <Badge role={user?.role} dot={false} />
+              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10 ring-1 ring-slate-900/5 z-50 animate-in fade-in zoom-in-95 duration-100">
+                {/* User Profile Card Header */}
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 mb-1">
+                  <Avatar name={user?.name} role={user?.role} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {user?.username ? `@${user.username}` : user?.phone}
+                    </p>
+                    <div className="mt-1">
+                      <Badge role={user?.role} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="py-1">
+                {/* Navigation actions */}
+                <div className="py-1 space-y-0.5">
                   <button
                     type="button"
                     onClick={() => {
                       setIsUserMenuOpen(false);
                       navigate(getDashboardPathByRole(user?.role));
                     }}
-                    className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                    className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 transition"
                   >
-                    <UserIcon className="h-4 w-4 text-slate-400" />
+                    <LayoutDashboard className="h-4 w-4 text-slate-400" />
                     <span>My Dashboard</span>
                   </button>
+
+                  {user?.role === 'admin' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        navigate('/admin/settings');
+                      }}
+                      className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 transition"
+                    >
+                      <Settings className="h-4 w-4 text-slate-400" />
+                      <span>Settings / Profile</span>
+                    </button>
+                  )}
                 </div>
 
-                <div className="border-t border-slate-100 pt-1">
+                {/* Logout action */}
+                <div className="border-t border-slate-100 pt-1 mt-1">
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition"
+                    className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50/80 transition"
                   >
                     <LogOut className="h-4 w-4 text-rose-500" />
                     <span>Log out</span>
@@ -389,11 +412,13 @@ const AppShell = ({ children }) => {
             {/* Drawer Footer User summary */}
             <div className="p-3 border-t border-slate-100 bg-slate-50/70">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar name={user?.name} role={user?.role} size="sm" />
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-slate-900 truncate">{user?.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user?.role}</p>
+                    <div className="mt-0.5">
+                      <Badge role={user?.role} />
+                    </div>
                   </div>
                 </div>
                 <button
