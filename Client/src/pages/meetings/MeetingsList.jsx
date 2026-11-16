@@ -127,7 +127,7 @@ const MeetingsList = () => {
     }
   };
 
-  const canCreate = user?.role === 'teamAssistant' || user?.role === 'admin';
+  const canCreate = user?.role === 'teamAssistant' || user?.role === 'teamHead' || user?.role === 'admin';
 
   return (
     <div className="space-y-6">

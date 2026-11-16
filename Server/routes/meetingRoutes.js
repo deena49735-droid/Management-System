@@ -14,7 +14,7 @@ router.get('/allowed-activities', meetingController.getAllowedActivities);
 // Core meeting collection routes
 router.post(
   '/',
-  roleCheck('admin', 'teamAssistant'),
+  roleCheck('admin', 'teamAssistant', 'teamHead'),
   meetingController.createMeeting
 );
 
@@ -33,13 +33,13 @@ router.get(
 
 router.put(
   '/:id',
-  roleCheck('admin', 'teamAssistant'),
+  roleCheck('admin', 'teamAssistant', 'teamHead'),
   meetingController.updateMeeting
 );
 
 router.post(
   '/:id/submit',
-  roleCheck('admin', 'teamAssistant'),
+  roleCheck('admin', 'teamAssistant', 'teamHead'),
   meetingController.submitMeeting
 );
 

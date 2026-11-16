@@ -28,9 +28,9 @@ exports.getMyTeam = async (req, res, next) => {
     }
 
     const team = await Team.findById(teamId)
-      .populate('head', 'name username phone role')
-      .populate('assistant', 'name username phone role')
-      .populate('members', 'name username phone role');
+      .populate('head', 'name username phone role isActive')
+      .populate('assistant', 'name username phone role isActive')
+      .populate('members', 'name username phone role isActive');
 
     if (!team) {
       return res.status(404).json({
@@ -39,9 +39,31 @@ exports.getMyTeam = async (req, res, next) => {
       });
     }
 
+    const doc = team.toObject();
+    const headId = doc.head?._id ? doc.head._id.toString() : doc.head?.toString() || '';
+    const assistantId = doc.assistant?._id ? doc.assistant._id.toString() : doc.assistant?.toString() || '';
+
+    // Filter and deduplicate members array to strictly contain regular members (role: 'member'),
+    // excluding head and assistant
+    const uniqueMembers = [];
+    const seen = new Set();
+    (doc.members || []).forEach((m) => {
+      if (!m || !m._id) return;
+      const id = m._id.toString();
+      if (!seen.has(id)) {
+        seen.add(id);
+        if (id !== headId && id !== assistantId && m.role === 'member') {
+          uniqueMembers.push(m);
+        }
+      }
+    });
+
+    doc.members = uniqueMembers;
+    doc.memberCount = uniqueMembers.length;
+
     res.status(200).json({
       success: true,
-      data: team,
+      data: doc,
     });
   } catch (error) {
     next(error);
@@ -208,7 +230,19 @@ exports.getTeamById = async (req, res, next) => {
     }
 
     const doc = team.toObject();
-    doc.memberCount = Array.isArray(team.members) ? team.members.length : 0;
+    // Deduplicate members by unique user ID
+    const uniqueMembers = [];
+    const seen = new Set();
+    (doc.members || []).forEach((m) => {
+      if (!m || !m._id) return;
+      const id = m._id.toString();
+      if (!seen.has(id)) {
+        seen.add(id);
+        uniqueMembers.push(m);
+      }
+    });
+    doc.members = uniqueMembers;
+    doc.memberCount = uniqueMembers.length;
 
     res.status(200).json({
       success: true,
@@ -408,9 +442,9 @@ exports.assignHead = async (req, res, next) => {
 
     // Update team
     team.head = user._id;
-    if (!team.members.map((m) => m.toString()).includes(user._id.toString())) {
-      team.members.push(user._id);
-    }
+    const headMemberSet = new Set((team.members || []).map((m) => m.toString()));
+    headMemberSet.add(user._id.toString());
+    team.members = Array.from(headMemberSet);
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)
@@ -519,9 +553,9 @@ exports.assignAssistant = async (req, res, next) => {
 
     // Update team
     team.assistant = user._id;
-    if (!team.members.map((m) => m.toString()).includes(user._id.toString())) {
-      team.members.push(user._id);
-    }
+    const assistantMemberSet = new Set((team.members || []).map((m) => m.toString()));
+    assistantMemberSet.add(user._id.toString());
+    team.members = Array.from(assistantMemberSet);
     await team.save();
 
     const updatedTeam = await Team.findById(team._id)

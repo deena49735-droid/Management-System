@@ -97,9 +97,9 @@ exports.createUser = async (req, res, next) => {
         teamDoc.assistant = user._id;
       }
 
-      if (!teamDoc.members.map((m) => m.toString()).includes(user._id.toString())) {
-        teamDoc.members.push(user._id);
-      }
+      const memberSet = new Set((teamDoc.members || []).map((m) => m.toString()));
+      memberSet.add(user._id.toString());
+      teamDoc.members = Array.from(memberSet);
       await teamDoc.save();
     }
 
@@ -437,9 +437,9 @@ exports.updateUser = async (req, res, next) => {
       // Add to new team
       if (newTeamId) {
         const targetTeam = await Team.findById(newTeamId);
-        if (!targetTeam.members.map((m) => m.toString()).includes(user._id.toString())) {
-          targetTeam.members.push(user._id);
-        }
+        const memberSet = new Set((targetTeam.members || []).map((m) => m.toString()));
+        memberSet.add(user._id.toString());
+        targetTeam.members = Array.from(memberSet);
 
         if (user.role === 'teamHead') {
           if (targetTeam.head && targetTeam.head.toString() !== user._id.toString()) {

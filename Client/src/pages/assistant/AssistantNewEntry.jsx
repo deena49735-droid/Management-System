@@ -96,14 +96,20 @@ const AssistantNewEntry = () => {
     : 0;
   const isNegative = previewPoints < 0;
 
-  // Flatten team members
-  const teamMembers = team
-    ? [
-        ...(team.head ? [{ ...team.head, teamRole: 'Team Head' }] : []),
-        ...(team.assistant ? [{ ...team.assistant, teamRole: 'Team Assistant' }] : []),
-        ...(team.members || []).map((m) => ({ ...m, teamRole: 'Member' })),
-      ]
-    : [];
+  // Filter active chapter users with role "member" belonging to this team (excluding Head and Assistant)
+  const headId = team?.head?._id ? team.head._id.toString() : team?.head?.toString() || '';
+  const assistantId = team?.assistant?._id ? team.assistant._id.toString() : team?.assistant?.toString() || '';
+
+  const teamMembers = (team?.members || []).filter((m) => {
+    if (!m || !m._id) return false;
+    const mId = m._id.toString();
+    return (
+      m.isActive !== false &&
+      m.role === 'member' &&
+      mId !== headId &&
+      mId !== assistantId
+    );
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -203,7 +209,7 @@ const AssistantNewEntry = () => {
                 <option value="">— Select a member —</option>
                 {teamMembers.map((m) => (
                   <option key={m._id} value={m._id}>
-                    {m.name} (@{m.username}) - {m.teamRole}
+                    {m.name} (@{m.username})
                   </option>
                 ))}
               </select>

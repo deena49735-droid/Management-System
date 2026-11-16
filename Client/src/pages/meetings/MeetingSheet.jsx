@@ -91,7 +91,7 @@ const MeetingSheet = () => {
 
   // Determine read-only mode:
   const isEditable =
-    (user?.role === 'teamAssistant' || user?.role === 'admin') && meeting?.status === 'draft';
+    (user?.role === 'teamAssistant' || user?.role === 'teamHead' || user?.role === 'admin') && meeting?.status === 'draft';
   const isReadOnly = !isEditable;
 
   // Local live derivation of row points and summary
@@ -626,7 +626,7 @@ const MeetingSheet = () => {
         isOpen={isSubmitModalOpen}
         onClose={() => setIsSubmitModalOpen(false)}
         title="Submit meeting sheet for approval?"
-        subtitle="Submitting this sheet will generate point entries for Team Head review."
+        subtitle="Submitting this sheet will generate point entries for approval."
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
@@ -737,7 +737,7 @@ const MeetingSheet = () => {
           setSendBackReason('');
         }}
         title="Send back meeting sheet"
-        subtitle="Provide a clear reason so the team assistant can correct the attendance sheet."
+        subtitle="Provide a clear reason so the attendance sheet can be corrected and resubmitted."
         maxWidth="max-w-md"
       >
         <div className="space-y-4">

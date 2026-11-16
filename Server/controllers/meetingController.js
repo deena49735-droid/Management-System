@@ -47,7 +47,7 @@ exports.createMeeting = async (req, res, next) => {
           message: 'Valid team ID is required.',
         });
       }
-    } else if (userRole === 'teamAssistant') {
+    } else if (userRole === 'teamAssistant' || userRole === 'teamHead') {
       if (!req.user.team) {
         return res.status(400).json({
           success: false,
@@ -58,7 +58,7 @@ exports.createMeeting = async (req, res, next) => {
     } else {
       return res.status(403).json({
         success: false,
-        message: 'Only team assistants and admins can create meeting sheets.',
+        message: 'Only team leaders and admins can create meeting sheets.',
       });
     }
 
@@ -363,10 +363,10 @@ exports.updateMeeting = async (req, res, next) => {
 
     // Role check
     if (req.user.role !== 'admin') {
-      if (req.user.role !== 'teamAssistant') {
+      if (req.user.role !== 'teamAssistant' && req.user.role !== 'teamHead') {
         return res.status(403).json({
           success: false,
-          message: 'Only team assistants and admins can update meeting sheets.',
+          message: 'Only team leaders and admins can update meeting sheets.',
         });
       }
       if (!req.user.team || meeting.team.toString() !== req.user.team.toString()) {
@@ -495,11 +495,11 @@ exports.submitMeeting = async (req, res, next) => {
 
     // Role check
     if (req.user.role !== 'admin') {
-      if (req.user.role !== 'teamAssistant') {
+      if (req.user.role !== 'teamAssistant' && req.user.role !== 'teamHead') {
         await session.abortTransaction();
         return res.status(403).json({
           success: false,
-          message: 'Only team assistants and admins can submit meeting sheets.',
+          message: 'Only team leaders and admins can submit meeting sheets.',
         });
       }
       if (!req.user.team || meeting.team.toString() !== req.user.team.toString()) {
@@ -707,12 +707,11 @@ exports.approveMeeting = async (req, res, next) => {
     const auditLogs = [];
 
     for (const entry of pendingEntries) {
-      // Check self-approval: teamHead cannot approve their own entry or an entry they entered
+      // Check self-approval: teamHead cannot approve their own member entry
       if (userRole === 'teamHead') {
         const isSelfMember = entry.member.toString() === req.user._id.toString();
-        const isSelfSubmitter = entry.enteredBy.toString() === req.user._id.toString();
 
-        if (isSelfMember || isSelfSubmitter) {
+        if (isSelfMember) {
           skippedSelfCount += 1;
           continue; // Leave pending for Admin approval
         }

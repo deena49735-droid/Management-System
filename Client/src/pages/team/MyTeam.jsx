@@ -186,15 +186,33 @@ const MyTeam = () => {
     }
   };
 
-  // Build unified member roster: Head, Assistant, Members
-  const rawRoster = [
-    ...(team?.head ? [{ ...team.head, teamRoleLabel: 'Head' }] : []),
-    ...(team?.assistant ? [{ ...team.assistant, teamRoleLabel: 'Assistant' }] : []),
-    ...(team?.members || []).map((m) => ({ ...m, teamRoleLabel: 'Member' })),
-  ];
-  const allMembers = Array.from(
-    new Map(rawRoster.filter((m) => m && m._id).map((m) => [m._id, m])).values()
-  );
+  // Build unified member roster: Head once, Assistant once, Members once
+  const headItem = team?.head ? [{ ...team.head, teamRoleLabel: 'Head' }] : [];
+  const headId = team?.head?._id ? team.head._id.toString() : team?.head?.toString() || '';
+
+  const assistantItem =
+    team?.assistant && (!headId || (team.assistant._id?.toString() || team.assistant.toString()) !== headId)
+      ? [{ ...team.assistant, teamRoleLabel: 'Assistant' }]
+      : [];
+  const assistantId = team?.assistant?._id ? team.assistant._id.toString() : team?.assistant?.toString() || '';
+
+  const memberItems = (team?.members || [])
+    .filter((m) => {
+      if (!m || !m._id) return false;
+      const mId = m._id.toString();
+      return mId !== headId && mId !== assistantId;
+    })
+    .map((m) => ({ ...m, teamRoleLabel: 'Member' }));
+
+  // Build unified roster deduplicating strictly by unique string _id
+  const rosterMap = new Map();
+  [...headItem, ...assistantItem, ...memberItems].forEach((person) => {
+    const idStr = person._id?.toString() || person._id;
+    if (idStr && !rosterMap.has(idStr)) {
+      rosterMap.set(idStr, person);
+    }
+  });
+  const allMembers = Array.from(rosterMap.values());
 
   return (
     <div className="space-y-6">

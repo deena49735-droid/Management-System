@@ -150,6 +150,15 @@ exports.createEntry = async (req, res, next) => {
 
     // Role-based submission validation: Team Assistant can only submit for members of their own team
     if (userRole === 'teamAssistant') {
+      if (memberDoc.role !== 'member') {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message:
+            'Member point entries can only be submitted for users with the member role. Team Head and Team Assistant accounts cannot be selected.',
+        });
+      }
+
       if (!req.user.team || req.user.team.toString() !== memberDoc.team.toString()) {
         await session.abortTransaction();
         return res.status(403).json({
