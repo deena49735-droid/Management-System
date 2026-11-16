@@ -318,14 +318,14 @@ const MemberDashboard = () => {
 
       {/* Stat Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label="Total points"
             value={summary.approvedTotal ?? 0}
@@ -362,11 +362,11 @@ const MemberDashboard = () => {
         title="Points by category"
         subtitle="Performance breakdown comparing earned points against available targets."
         action={
-          <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+          <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setBreakdownPeriod('week')}
-              className={`min-h-[44px] md:min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold text-center transition ${
                 breakdownPeriod === 'week'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -377,7 +377,7 @@ const MemberDashboard = () => {
             <button
               type="button"
               onClick={() => setBreakdownPeriod('month')}
-              className={`min-h-[44px] md:min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[32px] rounded-md px-3 py-1 text-xs font-semibold text-center transition ${
                 breakdownPeriod === 'month'
                   ? 'bg-white text-brand-700 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -391,7 +391,7 @@ const MemberDashboard = () => {
         {breakdownLoading ? (
           <div className="py-8 text-center text-sm text-slate-400">Loading breakdown...</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4">
             {breakdownData?.categories?.map((cat) => {
               const percent = Math.min(
                 100,
@@ -399,40 +399,41 @@ const MemberDashboard = () => {
               );
 
               return (
-                <div key={cat.key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <div key={cat.key} className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4 space-y-2">
+                  <div className="flex flex-wrap items-baseline justify-between gap-1.5">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-600 truncate max-w-[200px]" title={cat.label}>
                       {cat.label}
                     </span>
-                    <span className="text-sm font-semibold tabular-nums text-slate-900">
-                      <span className="text-brand-600 font-bold">{cat.earned || 0}</span> / {cat.total}
+                    <span className="text-xs sm:text-sm font-semibold tabular-nums text-slate-900 shrink-0">
+                      <span className="text-brand-600 font-bold">{cat.earned || 0}</span> / {cat.total} pts
                     </span>
                   </div>
 
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
                     <div
                       className="h-full rounded-full bg-brand-600 transition-all duration-500"
                       style={{ width: `${percent}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-right text-xs text-slate-500 font-medium tabular-nums">
-                    {percent}% completed
-                  </p>
+                  <div className="flex items-center justify-between text-xs text-slate-500 font-medium tabular-nums pt-0.5">
+                    <span className="text-[11px] text-slate-400">Target progress</span>
+                    <span className="font-semibold text-slate-700">{percent}% completed</span>
+                  </div>
                 </div>
               );
             })}
 
             {/* Penalties item shown separately */}
-            <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
-              <div className="flex items-center justify-between mb-2">
+            <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-3.5 sm:p-4 flex flex-col justify-between space-y-2">
+              <div className="flex items-center justify-between gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-rose-700">
                   Penalties
                 </span>
-                <span className="text-base font-bold tabular-nums text-rose-600">
+                <span className="text-sm sm:text-base font-bold tabular-nums text-rose-600 shrink-0">
                   {breakdownData?.penalties?.earned || 0} pts
                 </span>
               </div>
-              <p className="text-xs text-rose-700/80 mt-2">
+              <p className="text-xs text-rose-700/80 leading-relaxed">
                 Total deductions incurred for {breakdownPeriod === 'week' ? 'this week' : 'this month'}.
               </p>
             </div>
@@ -448,7 +449,7 @@ const MemberDashboard = () => {
             title="My activity entries"
             subtitle="Track and review your submitted point logs"
             action={
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
                 {[
                   { key: '', label: 'All' },
                   { key: 'approved', label: 'Approved' },
@@ -461,7 +462,7 @@ const MemberDashboard = () => {
                       setStatusFilter(st.key);
                       setCurrentPage(1);
                     }}
-                    className={`min-h-[44px] md:min-h-[32px] md:h-8 rounded-lg px-2.5 text-xs font-semibold transition ${
+                    className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[32px] md:h-8 rounded-lg px-2.5 text-xs font-semibold text-center transition ${
                       statusFilter === st.key
                         ? 'bg-brand-600 text-white shadow-xs'
                         : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -862,12 +863,13 @@ const MemberDashboard = () => {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100">
             <Button
               type="button"
               variant="secondary"
               onClick={handleCloseSubmitModal}
               disabled={submitting || uploadingProof}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -876,6 +878,7 @@ const MemberDashboard = () => {
               variant="primary"
               isLoading={submitting}
               disabled={submitting || uploadingProof || !selectedCriteriaId}
+              className="w-full sm:w-auto"
             >
               {uploadingProof ? 'Uploading photo...' : 'Submit entry'}
             </Button>

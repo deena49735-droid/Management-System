@@ -46,17 +46,17 @@ const Modal = ({
         aria-modal="true"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 sm:px-6">
-          <div>
-            <h3 className="text-base sm:text-lg font-semibold text-slate-900 leading-snug">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 sm:px-6 sm:py-4 shrink-0">
+          <div className="min-w-0 pr-2">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 leading-snug truncate">
               {title}
             </h3>
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            {subtitle && <p className="text-xs text-slate-500 mt-0.5 truncate">{subtitle}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition focus:outline-hidden"
+            className="flex h-10 w-10 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition focus:outline-hidden"
             aria-label="Close dialog"
           >
             <X className="h-5 w-5" />
@@ -64,7 +64,7 @@ const Modal = ({
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto px-5 py-5 sm:px-6 flex-1">{children}</div>
+        <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 flex-1">{children}</div>
       </div>
     </div>
   );

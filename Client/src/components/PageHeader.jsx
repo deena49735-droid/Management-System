@@ -72,7 +72,7 @@ const PageHeader = ({
 
         {/* Right: Actions (Full width below on mobile, aligned on right on sm+) */}
         {actionContent && (
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
             {actionContent}
           </div>
         )}

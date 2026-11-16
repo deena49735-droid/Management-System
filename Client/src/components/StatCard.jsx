@@ -26,33 +26,33 @@ const StatCard = ({
   return (
     <div
       onClick={onClick}
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition ${
+      className={`rounded-xl border border-slate-200 bg-white p-3.5 sm:p-5 shadow-xs transition ${
         onClick ? 'cursor-pointer hover:border-slate-300' : ''
       } ${className}`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
           {label}
         </span>
         {Icon && (
-          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         )}
       </div>
 
-      <div className="mt-2.5">
+      <div className="mt-2 sm:mt-2.5">
         {loading ? (
-          <div className="h-8 w-24 animate-pulse rounded-md bg-slate-200" />
+          <div className="h-7 sm:h-8 w-20 sm:w-24 animate-pulse rounded-md bg-slate-200" />
         ) : (
-          <p className="text-2xl font-semibold tracking-tight text-slate-900 tabular-nums">
+          <p className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900 tabular-nums truncate">
             {value}
           </p>
         )}
 
         {hint && (
           <p
-            className={`mt-1 text-xs ${
+            className={`mt-1 text-[11px] sm:text-xs truncate ${
               hintType === 'success'
                 ? 'text-emerald-600 font-medium'
                 : hintType === 'danger'

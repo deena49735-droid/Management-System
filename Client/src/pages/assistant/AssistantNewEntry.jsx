@@ -308,9 +308,8 @@ const AssistantNewEntry = () => {
           {/* Points Live Preview */}
           {selectedCriteria && (
             <div
-              className={`flex items-center justify-between rounded-lg border p-4 ${
-                isNegative ? 'border-rose-200 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/50'
-              }`}
+              className={`flex items-center justify-between rounded-lg border p-4 ${isNegative ? 'border-rose-200 bg-rose-50/50' : 'border-emerald-200 bg-emerald-50/50'
+                }`}
             >
               <div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -321,9 +320,8 @@ const AssistantNewEntry = () => {
                 </p>
               </div>
               <div
-                className={`text-2xl font-bold tabular-nums ${
-                  isNegative ? 'text-rose-600' : 'text-emerald-700'
-                }`}
+                className={`text-2xl font-bold tabular-nums ${isNegative ? 'text-rose-600' : 'text-emerald-700'
+                  }`}
               >
                 {previewPoints > 0 ? `+${previewPoints}` : previewPoints} pts
               </div>
@@ -331,12 +329,13 @@ const AssistantNewEntry = () => {
           )}
 
           {/* Sticky action footer on mobile */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
             <Button
               type="button"
               variant="secondary"
               onClick={() => navigate('/assistant/submissions')}
               disabled={submitting || uploadingProof}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -345,6 +344,7 @@ const AssistantNewEntry = () => {
               variant="primary"
               isLoading={submitting}
               disabled={submitting || uploadingProof}
+              className="w-full sm:w-auto"
             >
               {uploadingProof ? 'Uploading photo...' : 'Submit entry'}
             </Button>

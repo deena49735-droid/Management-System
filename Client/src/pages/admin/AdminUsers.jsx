@@ -315,7 +315,7 @@ const AdminUsers = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
             {/* Role Filter */}
             <select
               value={roleFilter}
@@ -323,7 +323,7 @@ const AdminUsers = () => {
                 setRoleFilter(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              className="w-full sm:w-auto h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All chapter roles</option>
               <option value="teamHead">Team Head</option>
@@ -338,7 +338,7 @@ const AdminUsers = () => {
                 setStatusFilter(e.target.value);
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
-              className="flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              className="w-full sm:w-auto h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
             >
               <option value="">All statuses</option>
               <option value="true">Active</option>
@@ -445,38 +445,55 @@ const AdminUsers = () => {
               </table>
             </div>
 
-            {/* Mobile Cards View (Below 768px: each row is a clean card) */}
+            {/* Mobile Cards View (Below 768px: clean, structured cards) */}
             <div className="md:hidden divide-y divide-slate-100">
               {users.filter((item) => item.role !== 'admin').map((item) => {
                 return (
                   <div key={item._id} className="p-4 space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
+                    {/* User Header: Avatar, Name, Email, Status */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Avatar name={item.name} size="sm" />
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="font-semibold text-slate-900 text-sm">{item.name}</h3>
-                          </div>
-                          <p className="text-xs text-slate-400">
-                            {item.email || (item.username ? `@${item.username}` : 'No email set')} • {item.phone}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-slate-900 text-sm leading-snug truncate">
+                            {item.name}
+                          </h3>
+                          <p className="text-xs text-slate-500 truncate mt-0.5" title={item.email || ''}>
+                            {item.email || (item.username ? `@${item.username}` : 'No email set')}
                           </p>
                         </div>
                       </div>
-                      <Badge status={item.isActive} />
+                      <div className="shrink-0 pt-0.5">
+                        <Badge status={item.isActive} />
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs text-slate-600">
-                      <Badge role={item.role} />
-                      <span>•</span>
-                      <span>Team: {item.team?.name || 'Unassigned'}</span>
+                    {/* Metadata Card: Role, Team, Phone */}
+                    <div className="grid grid-cols-2 gap-2 p-2.5 rounded-lg bg-slate-50/80 border border-slate-100 text-xs">
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Role & Team</span>
+                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <Badge role={item.role} size="xs" />
+                          <span className="font-medium text-slate-700 truncate text-[11px]">
+                            {item.team?.name ? item.team.name : 'No team'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="min-w-0 text-right">
+                        <span className="text-[11px] font-medium text-slate-400 block uppercase tracking-wider">Phone</span>
+                        <span className="font-medium text-slate-800 mt-0.5 block truncate tabular-nums">
+                          {item.phone || '—'}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                    {/* Actions: Clean responsive buttons */}
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => openEditModal(item)}
-                        className="flex-1"
+                        className="flex-1 min-w-[70px] min-h-[38px]"
                       >
                         Edit
                       </Button>
@@ -488,7 +505,7 @@ const AdminUsers = () => {
                           setNewPassword('');
                           setResettingUser(item);
                         }}
-                        className="flex-1"
+                        className="flex-1 min-w-[90px] min-h-[38px] whitespace-nowrap"
                       >
                         Reset pwd
                       </Button>
@@ -496,7 +513,7 @@ const AdminUsers = () => {
                         variant={item.isActive ? 'outlineDanger' : 'secondary'}
                         size="sm"
                         onClick={() => setTogglingUser(item)}
-                        className="flex-1"
+                        className="flex-1 min-w-[95px] min-h-[38px] whitespace-nowrap"
                       >
                         {item.isActive ? 'Deactivate' : 'Activate'}
                       </Button>

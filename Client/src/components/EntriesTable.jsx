@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Users } from 'lucide-react';
+import { Shield, Users, Calendar } from 'lucide-react';
 import Badge from './Badge';
 import ProofImage from './ProofImage';
 
@@ -77,16 +77,19 @@ const EntriesTable = ({
                       )}
                     </div>
                   )}
-                  <h4 className="text-sm font-semibold text-slate-900 mt-0.5 leading-snug">
+                  <h4 className="text-sm font-semibold text-slate-900 leading-snug break-words">
                     {entry.criteria?.name || 'Custom Activity'}
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {formatDate(entry.date || entry.createdAt)}
-                    {entry.weekNumber ? ` • Wk ${entry.weekNumber}` : ''}
-                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>{formatDate(entry.date || entry.createdAt)}</span>
+                    {entry.weekNumber ? (
+                      <span className="text-slate-400">• Wk {entry.weekNumber}</span>
+                    ) : null}
+                  </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <div className="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
                   <span
                     className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold tabular-nums border ${
                       isNegative
@@ -100,36 +103,40 @@ const EntriesTable = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-600">
+              {/* Metadata block: Quantity, Proof and Submitter */}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
                 <div className="flex items-center gap-3">
-                  <span className="font-medium">
-                    Qty: <span className="font-bold tabular-nums text-slate-800">{entry.quantity || 1}</span>
+                  <span className="font-medium text-slate-700">
+                    Qty: <span className="font-bold tabular-nums text-slate-900">{entry.quantity || 1}</span>
                   </span>
-                  <div className="shrink-0">
-                    <ProofImage src={entry.proofImage} alt={entry.criteria?.name} prominent={prominentProof} />
-                  </div>
+                  {entry.proofImage && (
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      <span className="text-slate-400 text-[11px]">Proof:</span>
+                      <ProofImage src={entry.proofImage} alt={entry.criteria?.name} prominent={prominentProof} />
+                    </div>
+                  )}
                 </div>
                 {entry.enteredBy && (
-                  <span className="text-slate-400 text-xs">
+                  <span className="text-slate-400 text-[11px] truncate max-w-[160px]">
                     By: {entry.enteredBy.name || entry.submittedBy?.name || 'System'}
                   </span>
                 )}
               </div>
 
               {entry.note && (
-                <p className="rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 italic">
+                <p className="rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600 italic break-words border border-slate-100/60">
                   "{entry.note}"
                 </p>
               )}
 
               {entry.status === 'rejected' && entry.rejectionReason && (
-                <div className="rounded-md border border-rose-200 bg-rose-50/70 p-2 text-xs text-rose-800">
+                <div className="rounded-md border border-rose-200 bg-rose-50/70 p-2 text-xs text-rose-800 break-words">
                   <span className="font-semibold">Reason:</span> {entry.rejectionReason}
                 </div>
               )}
 
               {renderActions && (
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
                   {renderActions(entry)}
                 </div>
               )}
