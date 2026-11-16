@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ApprovalsProvider } from './context/ApprovalsContext';
 import ProtectedRoute, { getDashboardPathByRole } from './components/ProtectedRoute';
 import AppShell from './components/shell/AppShell';
 
@@ -76,32 +77,33 @@ function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-        <Toaster
-          position={toastPosition}
-          containerStyle={{
-            top: toastPosition === 'top-right' ? 72 : undefined,
-            bottom: toastPosition === 'bottom-center' ? 24 : undefined,
-          }}
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: '#1e293b',
-              color: '#fff',
-              fontSize: '13px',
-              fontWeight: 500,
-              borderRadius: '8px',
-              padding: '10px 14px',
-              border: '1px solid #334155',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
-            },
-          }}
-        />
-        <Routes>
-          {/* Public Route */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<RootRoute />} />
+        <ApprovalsProvider>
+          <Toaster
+            position={toastPosition}
+            containerStyle={{
+              top: toastPosition === 'top-right' ? 72 : undefined,
+              bottom: toastPosition === 'bottom-center' ? 24 : undefined,
+            }}
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: '#1e293b',
+                color: '#fff',
+                fontSize: '13px',
+                fontWeight: 500,
+                borderRadius: '8px',
+                padding: '10px 14px',
+                border: '1px solid #334155',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+              },
+            }}
+          />
+          <Routes>
+            {/* Public Route */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<RootRoute />} />
 
-          {/* Protected Admin Routes */}
+            {/* Protected Admin Routes */}
           <Route
             path="/admin"
             element={
@@ -199,6 +201,7 @@ function App() {
           {/* 404 Catch-All Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ApprovalsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

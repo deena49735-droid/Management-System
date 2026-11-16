@@ -1,0 +1,47 @@
+[
+  {
+    "_id": "6af8480439dac3334d9726dc",
+    "name": "Tvk",
+    "head": "6af85d4052cc23b62f395fce",
+    "assistant": "6af847f939dac3334d9726db",
+    "members": [
+      "6af847f939dac3334d9726db",
+      "6af8495b39dac3334d9726dd",
+      "6af85d4052cc23b62f395fce",
+      "6afabca5cdb5b718f8841edc"
+    ],
+    "isActive": true,
+    "createdAt": "2026-11-14T11:37:40.733Z",
+    "updatedAt": "2026-11-16T08:19:50.231Z",
+    "__v": 5
+  },
+  {
+    "_id": "6af945e39e7c8112f877823d",
+    "name": "DMK",
+    "head": "6af9439f9e7c8112f877823c",
+    "assistant": "6af943719e7c8112f877823b",
+    "members": [
+      "6af946139e7c8112f877823e",
+      "6af9439f9e7c8112f877823c",
+      "6af943719e7c8112f877823b"
+    ],
+    "isActive": true,
+    "createdAt": "2026-11-15T05:40:51.699Z",
+    "updatedAt": "2026-11-15T05:42:17.069Z",
+    "__v": 3
+  },
+  {
+    "_id": "6afab1d2d9c2896a767bb1c7",
+    "name": "test team",
+    "head": "6afab143d9c2896a767bb1c4",
+    "assistant": "6afab1b9d9c2896a767bb1c6",
+    "members": [
+      "6afab143d9c2896a767bb1c4",
+      "6afab1b9d9c2896a767bb1c6"
+    ],
+    "isActive": true,
+    "createdAt": "2026-11-16T07:33:38.277Z",
+    "updatedAt": "2026-11-16T08:54:26.972Z",
+    "__v": 2
+  }
+]

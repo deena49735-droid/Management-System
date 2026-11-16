@@ -21,6 +21,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useApprovals } from '../../context/ApprovalsContext';
 import { getDashboardPathByRole } from '../ProtectedRoute';
 import Avatar from '../Avatar';
 import Badge from '../Badge';
@@ -92,12 +93,12 @@ const getPageTitle = (pathname) => {
 
 const AppShell = ({ children }) => {
   const { user, logout } = useAuth();
+  const { pendingCount, refreshPendingCount } = useApprovals();
   const location = useLocation();
   const navigate = useNavigate();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
 
   const userMenuRef = useRef(null);
 
@@ -105,37 +106,10 @@ const AppShell = ({ children }) => {
   const navItems = roleMenus[currentRole] || roleMenus.member;
   const pageTitle = getPageTitle(location.pathname);
 
-  // Fetch pending count for team head and assistant badge
+  // Keep pending approvals count synchronized on route transitions
   useEffect(() => {
-    if (currentRole === 'teamHead') {
-      const fetchPendingCount = async () => {
-        try {
-          const [memberRes, teamRes] = await Promise.all([
-            api.get('/entries', { params: { status: 'pending' } }),
-            api.get('/team-entries', { params: { status: 'pending' } }),
-          ]);
-          const total =
-            (memberRes.data?.data?.length || 0) + (teamRes.data?.data?.length || 0);
-          setPendingApprovalsCount(total);
-        } catch {
-          // Ignore background fetch failure
-        }
-      };
-      fetchPendingCount();
-    } else if (currentRole === 'teamAssistant') {
-      const fetchPendingCount = async () => {
-        try {
-          const memberRes = await api.get('/entries', { params: { status: 'pending' } });
-          const entries = memberRes.data?.data || [];
-          const actionable = entries.filter((e) => e.canActOnMine !== false);
-          setPendingApprovalsCount(actionable.length);
-        } catch {
-          // Ignore background fetch failure
-        }
-      };
-      fetchPendingCount();
-    }
-  }, [currentRole, location.pathname]);
+    refreshPendingCount();
+  }, [location.pathname, refreshPendingCount]);
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -211,9 +185,9 @@ const AppShell = ({ children }) => {
               <span className="truncate">{item.name}</span>
             </div>
 
-            {item.hasBadge && pendingApprovalsCount > 0 && (
+            {item.hasBadge && pendingCount > 0 && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 tabular-nums">
-                {pendingApprovalsCount}
+                {pendingCount}
               </span>
             )}
           </NavLink>

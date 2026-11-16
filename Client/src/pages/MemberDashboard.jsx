@@ -10,6 +10,12 @@ import {
   Trophy,
   ArrowRight,
   ShieldAlert,
+  Check,
+  ChevronDown,
+  Search,
+  Camera,
+  Sparkles,
+  X,
 } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -81,6 +87,9 @@ const MemberDashboard = () => {
 
   // Submit Modal State
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const [activitySearch, setActivitySearch] = useState('');
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState('all');
   const [selectedCriteriaId, setSelectedCriteriaId] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [entryDate, setEntryDate] = useState(getTodayDateString());
@@ -204,11 +213,14 @@ const MemberDashboard = () => {
 
       toast.success('Activity submitted! Awaiting Team Head approval.');
       setIsSubmitOpen(false);
+      setIsSelectorOpen(false);
       setSelectedCriteriaId('');
       setQuantity(1);
       setEntryNote('');
       setProofImage('');
       setProofPublicId('');
+      setActivitySearch('');
+      setSelectedCategoryTab('all');
       fetchDashboardData();
       fetchBreakdown();
     } catch (err) {
@@ -220,18 +232,45 @@ const MemberDashboard = () => {
     }
   };
 
+  const handleCloseSubmitModal = () => {
+    setIsSubmitOpen(false);
+    setIsSelectorOpen(false);
+    setActivitySearch('');
+    setSubmitError('');
+  };
+
   const totalPages = Math.ceil(entries.length / PAGE_SIZE) || 1;
   const paginatedEntries = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return entries.slice(start, start + PAGE_SIZE);
   }, [entries, currentPage]);
 
-  // Grouped criteria in PDF order for modal dropdown
-  const groupedModalCriteria = CATEGORY_ORDER.reduce((acc, catKey) => {
-    const items = criteriaList.filter((c) => c.categoryKey === catKey);
-    if (items.length > 0) acc[catKey] = items;
-    return acc;
-  }, {});
+  // Filtered criteria for the integrated selector
+  const filteredModalCriteria = useMemo(() => {
+    let list = criteriaList;
+    if (selectedCategoryTab !== 'all') {
+      list = list.filter((c) => c.categoryKey === selectedCategoryTab);
+    }
+    if (activitySearch.trim()) {
+      const q = activitySearch.trim().toLowerCase();
+      list = list.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.basisLabel && c.basisLabel.toLowerCase().includes(q)) ||
+          (c.categoryLabel && c.categoryLabel.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [criteriaList, selectedCategoryTab, activitySearch]);
+
+  // Grouped filtered criteria in official order
+  const groupedModalCriteria = useMemo(() => {
+    return CATEGORY_ORDER.reduce((acc, catKey) => {
+      const items = filteredModalCriteria.filter((c) => c.categoryKey === catKey);
+      if (items.length > 0) acc[catKey] = items;
+      return acc;
+    }, {});
+  }, [filteredModalCriteria]);
 
   return (
     <div className="space-y-6">
@@ -247,6 +286,12 @@ const MemberDashboard = () => {
               setSubmitError('');
               setProofImage('');
               setProofPublicId('');
+              setSelectedCriteriaId('');
+              setQuantity(1);
+              setEntryNote('');
+              setActivitySearch('');
+              setSelectedCategoryTab('all');
+              setIsSelectorOpen(true);
               setIsSubmitOpen(true);
             }}
           >
@@ -539,10 +584,10 @@ const MemberDashboard = () => {
       {/* Submit Activity Modal */}
       <Modal
         isOpen={isSubmitOpen}
-        onClose={() => setIsSubmitOpen(false)}
+        onClose={handleCloseSubmitModal}
         title="Submit activity for verification"
         subtitle="Submit earned activity points to your Team Head"
-        maxWidth="max-w-md"
+        maxWidth="max-w-lg"
       >
         <form onSubmit={handleSubmitEntry} className="space-y-4">
           {submitError && (
@@ -551,33 +596,208 @@ const MemberDashboard = () => {
             </div>
           )}
 
+          {/* Integrated Activity Selector */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
               Activity criteria <span className="text-rose-500">*</span>
             </label>
-            <select
-              value={selectedCriteriaId}
-              onChange={(e) => {
-                setSelectedCriteriaId(e.target.value);
-                setQuantity(1);
-              }}
-              required
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-            >
-              <option value="">— Select an activity —</option>
-              {CATEGORY_ORDER.map(
-                (catKey) =>
-                  groupedModalCriteria[catKey] && (
-                    <optgroup key={catKey} label={CATEGORY_LABELS[catKey] || catKey}>
-                      {groupedModalCriteria[catKey].map((c) => (
-                        <option key={c.id || c._id} value={c.id || c._id}>
-                          {c.name} (+{c.points} pts, {c.basisLabel || 'Per Member'})
-                        </option>
-                      ))}
-                    </optgroup>
-                  )
-              )}
-            </select>
+
+            {/* Selected Activity Display Card */}
+            {selectedCriterion ? (
+              <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-3.5 shadow-2xs">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
+                        {selectedCriterion.categoryLabel || CATEGORY_LABELS[selectedCriterion.categoryKey] || 'Activity'}
+                      </span>
+                      {selectedCriterion.needsProof ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                          <Camera className="w-3 h-3 text-amber-600 shrink-0" />
+                          Proof photo required
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
+                          Proof optional
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-bold text-slate-900 leading-snug break-words">
+                      {selectedCriterion.name}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 tabular-nums">
+                        +{selectedCriterion.points} pts
+                      </span>
+                      <span className="text-slate-500 font-medium">
+                        Basis: {selectedCriterion.basisLabel || 'Per Member'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectorOpen((prev) => !prev)}
+                    className="shrink-0 flex items-center gap-1 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 border border-brand-200 px-3 py-1.5 rounded-lg transition min-h-[36px]"
+                    aria-expanded={isSelectorOpen}
+                  >
+                    <span>{isSelectorOpen ? 'Close list' : 'Change'}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSelectorOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Unselected Trigger Button */
+              <button
+                type="button"
+                onClick={() => setIsSelectorOpen((prev) => !prev)}
+                className={`w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl border text-left transition min-h-[44px] ${
+                  isSelectorOpen
+                    ? 'border-brand-500 ring-2 ring-brand-100 bg-white'
+                    : 'border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50/50'
+                }`}
+                aria-expanded={isSelectorOpen}
+              >
+                <span className="flex items-center gap-2 text-sm text-slate-500 font-medium truncate">
+                  <Sparkles className="h-4 w-4 text-brand-500 shrink-0" />
+                  Select an activity from the list...
+                </span>
+                <ChevronDown className={`h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 ${isSelectorOpen ? 'rotate-180' : ''}`} />
+              </button>
+            )}
+
+            {/* Integrated In-Flow Activities List Panel */}
+            {isSelectorOpen && (
+              <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 sm:p-3 space-y-2.5 transition-all duration-150">
+                {/* Search & Filter Header */}
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={activitySearch}
+                      onChange={(e) => setActivitySearch(e.target.value)}
+                      placeholder="Search by activity name..."
+                      className="w-full h-10 rounded-lg border border-slate-200 bg-white pl-9 pr-8 text-sm text-slate-800 placeholder-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100"
+                      autoFocus
+                    />
+                    {activitySearch && (
+                      <button
+                        type="button"
+                        onClick={() => setActivitySearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded"
+                        aria-label="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Category filter tabs */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategoryTab('all')}
+                      className={`px-2.5 py-1 rounded-full font-medium transition whitespace-nowrap min-h-[30px] ${
+                        selectedCategoryTab === 'all'
+                          ? 'bg-slate-900 text-white'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      All ({criteriaList.length})
+                    </button>
+                    {CATEGORY_ORDER.map((catKey) => {
+                      const count = criteriaList.filter((c) => c.categoryKey === catKey).length;
+                      if (!count) return null;
+                      const isTabActive = selectedCategoryTab === catKey;
+                      return (
+                        <button
+                          key={catKey}
+                          type="button"
+                          onClick={() => setSelectedCategoryTab(catKey)}
+                          className={`px-2.5 py-1 rounded-full font-medium transition whitespace-nowrap min-h-[30px] ${
+                            isTabActive
+                              ? 'bg-brand-600 text-white'
+                              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {catKey === 'meeting_day' ? 'Meeting Day' : 'Non-Meeting'} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Internal Scrollable Activities List */}
+                <div className="max-h-56 sm:max-h-64 overflow-y-auto space-y-3 pr-1 overscroll-contain">
+                  {Object.keys(groupedModalCriteria).length === 0 ? (
+                    <div className="py-6 text-center text-xs text-slate-500 bg-white rounded-lg border border-dashed border-slate-200">
+                      No matching activities found for &ldquo;{activitySearch}&rdquo;
+                    </div>
+                  ) : (
+                    CATEGORY_ORDER.map((catKey) => {
+                      const items = groupedModalCriteria[catKey];
+                      if (!items || items.length === 0) return null;
+                      return (
+                        <div key={catKey} className="space-y-1.5">
+                          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 px-1">
+                            {CATEGORY_LABELS[catKey] || catKey}
+                          </p>
+                          <div className="space-y-1.5">
+                            {items.map((c) => {
+                              const isSelected = (c.id || c._id) === selectedCriteriaId;
+                              return (
+                                <button
+                                  key={c.id || c._id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCriteriaId(c.id || c._id);
+                                    setQuantity(1);
+                                    setIsSelectorOpen(false);
+                                    setActivitySearch('');
+                                    setSubmitError('');
+                                  }}
+                                  className={`w-full text-left p-2.5 rounded-lg border transition-all flex items-start justify-between gap-2.5 min-h-[44px] ${
+                                    isSelected
+                                      ? 'bg-brand-50 border-brand-400 ring-2 ring-brand-200 text-brand-900 shadow-2xs'
+                                      : 'bg-white border-slate-200 hover:border-brand-300 hover:bg-brand-50/30 text-slate-800'
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-xs sm:text-sm font-semibold leading-snug break-words">
+                                        {c.name}
+                                      </span>
+                                      {c.needsProof && (
+                                        <span className="inline-flex items-center text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
+                                          Proof req.
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">
+                                      Basis: {c.basisLabel || 'Per Member'}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="px-2 py-0.5 rounded text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 tabular-nums">
+                                      +{c.points} pts
+                                    </span>
+                                    {isSelected && (
+                                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white shrink-0">
+                                        <Check className="h-3.5 w-3.5" />
+                                      </span>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quantity Field */}
@@ -646,7 +866,7 @@ const MemberDashboard = () => {
             <Button
               type="button"
               variant="secondary"
-              onClick={() => setIsSubmitOpen(false)}
+              onClick={handleCloseSubmitModal}
               disabled={submitting || uploadingProof}
             >
               Cancel

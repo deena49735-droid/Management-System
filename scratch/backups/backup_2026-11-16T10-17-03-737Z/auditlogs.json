@@ -1,0 +1,358 @@
+[
+  {
+    "_id": "6af8498639dac3334d9726df",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6af8498639dac3334d9726de",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 20,
+    "reason": "i added early bird",
+    "metadata": {
+      "criteriaKey": "early_bird",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-14T11:44:06.782Z",
+    "__v": 0
+  },
+  {
+    "_id": "6af849aa39dac3334d9726e0",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6af8498639dac3334d9726de",
+    "performedBy": "6af802394e0215dbd91b1b30",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-14T11:44:42.193Z"
+    },
+    "createdAt": "2026-11-14T11:44:42.264Z",
+    "__v": 0
+  },
+  {
+    "_id": "6af84a1039dac3334d9726e2",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6af84a1039dac3334d9726e1",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 20,
+    "reason": "i added",
+    "metadata": {
+      "criteriaKey": "best_attire",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-14T11:46:24.930Z",
+    "__v": 0
+  },
+  {
+    "_id": "6af946629e7c8112f8778240",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6af946629e7c8112f877823f",
+    "performedBy": "6af946139e7c8112f877823e",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 50,
+    "reason": "i want points",
+    "metadata": {
+      "criteriaKey": "highest_referral",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-15T05:42:58.570Z",
+    "__v": 0
+  },
+  {
+    "_id": "6af946849e7c8112f8778241",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6af946629e7c8112f877823f",
+    "performedBy": "6af943719e7c8112f877823b",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 50,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-15T05:43:32.162Z"
+    },
+    "createdAt": "2026-11-15T05:43:32.398Z",
+    "__v": 0
+  },
+  {
+    "_id": "6af947e59e7c8112f8778255",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6af84a1039dac3334d9726e1",
+    "performedBy": "6af802394e0215dbd91b1b30",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-15T05:49:25.144Z"
+    },
+    "createdAt": "2026-11-15T05:49:25.387Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afaac5ed9c2896a767bb1c2",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afaac5dd9c2896a767bb1c1",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 200,
+    "reason": "physical testimonials",
+    "metadata": {
+      "criteriaKey": "physical_testimonials",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T07:10:22.047Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afaad19d9c2896a767bb1c3",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afaac5dd9c2896a767bb1c1",
+    "performedBy": "6af85d4052cc23b62f395fce",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 200,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T07:13:29.497Z"
+    },
+    "createdAt": "2026-11-16T07:13:29.742Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab347d9c2896a767bb1c9",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afab347d9c2896a767bb1c8",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "star_of_week",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T07:39:51.515Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab35cd9c2896a767bb1ca",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afab347d9c2896a767bb1c8",
+    "performedBy": "6af847f939dac3334d9726db",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T07:40:12.434Z"
+    },
+    "createdAt": "2026-11-16T07:40:12.669Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab3b6d9c2896a767bb1cc",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afab3b6d9c2896a767bb1cb",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "best_attire",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T07:41:42.492Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab3e7d9c2896a767bb1cd",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afab3b6d9c2896a767bb1cb",
+    "performedBy": "6af85d4052cc23b62f395fce",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T07:42:31.365Z"
+    },
+    "createdAt": "2026-11-16T07:42:31.606Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab3f3d9c2896a767bb1cf",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afab3f3d9c2896a767bb1ce",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 50,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "highest_one_to_one",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T07:42:43.712Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab45ad9c2896a767bb1d0",
+    "action": "ENTRY_REJECT",
+    "targetType": "PointEntry",
+    "targetId": "6afab3f3d9c2896a767bb1ce",
+    "performedBy": "6af802394e0215dbd91b1b30",
+    "previousStatus": "pending",
+    "newStatus": "rejected",
+    "points": 50,
+    "reason": "fake request",
+    "metadata": {
+      "rejectedAt": "2026-11-16T07:44:26.571Z"
+    },
+    "createdAt": "2026-11-16T07:44:26.805Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab4b1d9c2896a767bb1d2",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afab4b1d9c2896a767bb1d1",
+    "performedBy": "6af847f939dac3334d9726db",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": -100,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "absent_weekly_meeting",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T07:45:53.502Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afab504d9c2896a767bb1d3",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afab4b1d9c2896a767bb1d1",
+    "performedBy": "6af802394e0215dbd91b1b30",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": -100,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T07:47:16.646Z"
+    },
+    "createdAt": "2026-11-16T07:47:16.880Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afac879167c4a3b1192db3a",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afac878167c4a3b1192db39",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 50,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "highest_giver",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T09:10:17.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afac98d167c4a3b1192db3c",
+    "action": "ENTRY_CREATE",
+    "targetType": "PointEntry",
+    "targetId": "6afac98d167c4a3b1192db3b",
+    "performedBy": "6af8495b39dac3334d9726dd",
+    "previousStatus": null,
+    "newStatus": "pending",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "criteriaKey": "early_bird",
+      "quantity": 1,
+      "frequency": "weekly"
+    },
+    "createdAt": "2026-11-16T09:14:53.296Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afac9c6167c4a3b1192db3d",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afac98d167c4a3b1192db3b",
+    "performedBy": "6af847f939dac3334d9726db",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 20,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T09:15:50.260Z"
+    },
+    "createdAt": "2026-11-16T09:15:50.497Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afacd38167c4a3b1192db3e",
+    "action": "ENTRY_APPROVE",
+    "targetType": "PointEntry",
+    "targetId": "6afac878167c4a3b1192db39",
+    "performedBy": "6af847f939dac3334d9726db",
+    "previousStatus": "pending",
+    "newStatus": "approved",
+    "points": 50,
+    "reason": "",
+    "metadata": {
+      "approvedAt": "2026-11-16T09:30:32.396Z"
+    },
+    "createdAt": "2026-11-16T09:30:32.640Z",
+    "__v": 0
+  },
+  {
+    "_id": "6afacdc2167c4a3b1192db3f",
+    "action": "ENTRY_REJECT",
+    "targetType": "PointEntry",
+    "targetId": "6afab4b1d9c2896a767bb1d1",
+    "performedBy": "6af802394e0215dbd91b1b30",
+    "previousStatus": "approved",
+    "newStatus": "rejected",
+    "points": -100,
+    "reason": "asww",
+    "metadata": {
+      "rejectedAt": "2026-11-16T09:32:50.345Z"
+    },
+    "createdAt": "2026-11-16T09:32:50.590Z",
+    "__v": 0
+  }
+]

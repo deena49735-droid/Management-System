@@ -70,10 +70,19 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Login handler accepting optional remember boolean
-  const login = async (username, password, remember = false) => {
+  // Login handler accepting email/username and optional remember boolean
+  const login = async (identifier, password, remember = false) => {
+    const cleanIdentifier = identifier ? identifier.trim().toLowerCase() : '';
+    // For legacy/remote backends that only look up by username:
+    // If identifier is an email (e.g. admin@gmail.com), also extract the prefix before '@' (e.g. admin)
+    // so both email-based and username-based backends can resolve the user seamlessly.
+    const fallbackUsername = cleanIdentifier.includes('@')
+      ? cleanIdentifier.split('@')[0]
+      : cleanIdentifier;
+
     const response = await api.post('/auth/login', {
-      username: username ? username.trim().toLowerCase() : '',
+      email: cleanIdentifier,
+      username: fallbackUsername,
       password,
       remember: Boolean(remember),
     });

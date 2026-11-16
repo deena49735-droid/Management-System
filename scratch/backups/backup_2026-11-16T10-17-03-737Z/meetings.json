@@ -1,0 +1,49 @@
+[
+  {
+    "_id": "6af946c79e7c8112f8778242",
+    "team": "6af945e39e7c8112f877823d",
+    "date": "2026-11-15T00:00:00.000Z",
+    "weekNumber": 46,
+    "month": 11,
+    "year": 2026,
+    "status": "draft",
+    "rows": [
+      {
+        "member": "6af946139e7c8112f877823e",
+        "arrivalTime": "",
+        "attendance": "present",
+        "walkedOut": false,
+        "attire": "none",
+        "activities": [],
+        "_id": "6af946c79e7c8112f8778243"
+      },
+      {
+        "member": "6af943719e7c8112f877823b",
+        "arrivalTime": "",
+        "attendance": "present",
+        "walkedOut": false,
+        "attire": "none",
+        "activities": [],
+        "_id": "6af946c79e7c8112f8778244"
+      },
+      {
+        "member": "6af9439f9e7c8112f877823c",
+        "arrivalTime": "",
+        "attendance": "present",
+        "walkedOut": false,
+        "attire": "none",
+        "activities": [],
+        "_id": "6af946c79e7c8112f8778245"
+      }
+    ],
+    "sendBackReason": null,
+    "createdBy": "6af802394e0215dbd91b1b30",
+    "submittedBy": null,
+    "submittedAt": null,
+    "approvedBy": null,
+    "approvedAt": null,
+    "createdAt": "2026-11-15T05:44:39.815Z",
+    "updatedAt": "2026-11-15T05:44:39.815Z",
+    "__v": 0
+  }
+]

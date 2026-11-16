@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users,
   UserPlus,
+  UserMinus,
   Search,
   Check,
   Copy,
@@ -21,8 +22,11 @@ import Input from '../../components/Input';
 import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
 import Modal from '../../components/Modal';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import EmptyState from '../../components/EmptyState';
 import { Skeleton, SkeletonTable } from '../../components/Skeleton';
+import PasswordInputWithStrength from '../../components/PasswordInputWithStrength';
+import { validatePasswordClient } from '../../utils/passwordPolicy';
 
 const MyTeam = () => {
   const { user } = useAuth();
@@ -51,6 +55,11 @@ const MyTeam = () => {
   const [availableMembers, setAvailableMembers] = useState([]);
   const [loadingAvailable, setLoadingAvailable] = useState(false);
   const [addingId, setAddingId] = useState(null);
+
+  // Member Removal State & Permissions
+  const [memberToRemove, setMemberToRemove] = useState(null);
+  const [removing, setRemoving] = useState(false);
+  const canRemoveMembers = user?.role === 'teamHead' || user?.role === 'admin';
 
   const fetchTeam = async () => {
     try {
@@ -128,8 +137,13 @@ const MyTeam = () => {
       setCreateError('Phone must be a valid 10-digit number.');
       return;
     }
-    if (!formData.password || formData.password.length < 6) {
-      setCreateError('Password must be at least 6 characters long.');
+    const pwdValidation = validatePasswordClient(formData.password, {
+      username: formData.username,
+      name: formData.name,
+      phone: formData.phone,
+    });
+    if (!pwdValidation.isValid) {
+      setCreateError(pwdValidation.message);
       return;
     }
 
@@ -183,6 +197,37 @@ const MyTeam = () => {
       toast.error(err.response?.data?.message || 'Failed to add member to team.');
     } finally {
       setAddingId(null);
+    }
+  };
+
+  const handleConfirmRemove = async () => {
+    if (!memberToRemove) return;
+    try {
+      setRemoving(true);
+      const targetId = memberToRemove._id;
+      await api.delete(`/teams/my/members/${targetId}`);
+      toast.success(`${memberToRemove.name} removed from team.`);
+
+      // Update roster state immediately without refreshing
+      setTeam((prev) => {
+        if (!prev) return prev;
+        const filteredMembers = (prev.members || []).filter(
+          (m) => (m._id?.toString() || m._id) !== targetId.toString()
+        );
+        return {
+          ...prev,
+          members: filteredMembers,
+          memberCount: filteredMembers.length,
+        };
+      });
+      setMemberToRemove(null);
+
+      // Keep backend synchronicity
+      fetchTeam();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to remove member from team.');
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -269,81 +314,128 @@ const MyTeam = () => {
                     <th className="px-5 py-3.5">Phone</th>
                     <th className="px-5 py-3.5">Role</th>
                     <th className="px-5 py-3.5">Status</th>
+                    {canRemoveMembers && (
+                      <th className="px-5 py-3.5 text-right">Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {allMembers.map((m) => (
-                    <tr key={m._id} className="hover:bg-slate-50/80 transition">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar name={m.name} size="sm" />
-                          <div>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-semibold text-slate-900">{m.name}</span>
-                              {m.teamRoleLabel === 'Head' && (
-                                <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 border border-slate-200">
-                                  Head
-                                </span>
-                              )}
-                              {m.teamRoleLabel === 'Assistant' && (
-                                <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                                  Assistant
-                                </span>
-                              )}
+                  {allMembers.map((m) => {
+                    const isRemovable =
+                      canRemoveMembers &&
+                      m.teamRoleLabel === 'Member' &&
+                      m.role === 'member' &&
+                      (m._id?.toString() || m._id) !== (user?._id?.toString() || user?._id);
+
+                    return (
+                      <tr key={m._id} className="hover:bg-slate-50/80 transition">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={m.name} size="sm" />
+                            <div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-slate-900">{m.name}</span>
+                                {m.teamRoleLabel === 'Head' && (
+                                  <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 border border-slate-200">
+                                    Head
+                                  </span>
+                                )}
+                                {m.teamRoleLabel === 'Assistant' && (
+                                  <span className="inline-flex items-center rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                    Assistant
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-slate-400">@{m.username}</span>
                             </div>
-                            <span className="text-xs text-slate-400">@{m.username}</span>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-slate-500 tabular-nums">
-                        {m.phone || '—'}
-                      </td>
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <Badge role={m.role} />
-                      </td>
-                      <td className="px-5 py-3.5 whitespace-nowrap">
-                        <Badge status={m.isActive !== false} />
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-5 py-3.5 text-xs text-slate-500 tabular-nums">
+                          {m.phone || '—'}
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <Badge role={m.role} />
+                        </td>
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <Badge status={m.isActive !== false} />
+                        </td>
+                        {canRemoveMembers && (
+                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                            {isRemovable && (
+                              <Button
+                                type="button"
+                                variant="outlineDanger"
+                                size="sm"
+                                icon={UserMinus}
+                                onClick={() => setMemberToRemove(m)}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Cards View (< 768px) */}
             <div className="md:hidden divide-y divide-slate-100">
-              {allMembers.map((m) => (
-                <div key={m._id} className="p-4 space-y-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={m.name} size="sm" />
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className="font-semibold text-slate-900 text-sm">{m.name}</h4>
-                          {m.teamRoleLabel === 'Head' && (
-                            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 border border-slate-200">
-                              Head
-                            </span>
-                          )}
-                          {m.teamRoleLabel === 'Assistant' && (
-                            <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                              Assistant
-                            </span>
-                          )}
+              {allMembers.map((m) => {
+                const isRemovable =
+                  canRemoveMembers &&
+                  m.teamRoleLabel === 'Member' &&
+                  m.role === 'member' &&
+                  (m._id?.toString() || m._id) !== (user?._id?.toString() || user?._id);
+
+                return (
+                  <div key={m._id} className="p-4 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={m.name} size="sm" />
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-semibold text-slate-900 text-sm">{m.name}</h4>
+                            {m.teamRoleLabel === 'Head' && (
+                              <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold text-slate-700 border border-slate-200">
+                                Head
+                              </span>
+                            )}
+                            {m.teamRoleLabel === 'Assistant' && (
+                              <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                                Assistant
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            @{m.username} • {m.phone || '—'}
+                          </p>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          @{m.username} • {m.phone || '—'}
-                        </p>
                       </div>
+                      <Badge status={m.isActive !== false} />
                     </div>
-                    <Badge status={m.isActive !== false} />
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50">
+                      <span className="text-slate-400">Role assignment</span>
+                      <Badge role={m.role} />
+                    </div>
+                    {isRemovable && (
+                      <div className="flex justify-end pt-2 border-t border-slate-100">
+                        <Button
+                          type="button"
+                          variant="outlineDanger"
+                          size="sm"
+                          icon={UserMinus}
+                          onClick={() => setMemberToRemove(m)}
+                        >
+                          Remove from team
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50">
-                    <span className="text-slate-400">Role assignment</span>
-                    <Badge role={m.role} />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
@@ -512,19 +604,18 @@ const MyTeam = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Temporary Password *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="At least 6 characters"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-base md:text-sm text-slate-800 placeholder-slate-400 shadow-2xs focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
-                    />
-                  </div>
+                  <PasswordInputWithStrength
+                    value={formData.password}
+                    onChange={(val) => setFormData({ ...formData, password: val })}
+                    userContext={{
+                      username: formData.username,
+                      name: formData.name,
+                      phone: formData.phone,
+                    }}
+                    label="Initial password"
+                    placeholder="Enter or suggest strong password"
+                    required
+                  />
 
                   <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                     <Button
@@ -611,6 +702,19 @@ const MyTeam = () => {
           )}
         </div>
       </Modal>
+
+      {/* Remove Member Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={Boolean(memberToRemove)}
+        onClose={() => setMemberToRemove(null)}
+        onConfirm={handleConfirmRemove}
+        title="Remove from Team"
+        message={`Are you sure you want to remove ${memberToRemove?.name} from ${team?.name || 'your team'}? Their team assignment will be cleared, while their account, point history, and attendance records will be safely preserved.`}
+        confirmText="Remove from Team"
+        cancelText="Cancel"
+        isDanger={true}
+        isLoading={removing}
+      />
     </div>
   );
 };

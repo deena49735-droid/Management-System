@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { useApprovals } from '../../context/ApprovalsContext';
 import PageHeader from '../../components/PageHeader';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
@@ -46,9 +47,10 @@ const formatDate = (dateStr) => {
 
 const HeadOverview = () => {
   const { user } = useAuth();
+  const { pendingCount, setPendingCount, refreshPendingCount } = useApprovals();
+
   const [team, setTeam] = useState(null);
   const [pendingEntries, setPendingEntries] = useState([]);
-  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [teamRank, setTeamRank] = useState(null);
   const [totalTeams, setTotalTeams] = useState(0);
   const [teamPointsMonth, setTeamPointsMonth] = useState(0);
@@ -64,8 +66,8 @@ const HeadOverview = () => {
       const [teamRes, memberEntriesRes, teamEntriesRes, leaderboardRes, meetingsRes] =
         await Promise.all([
           api.get('/teams/my'),
-          api.get('/entries', { params: { status: 'pending' } }),
-          api.get('/team-entries', { params: { status: 'pending' } }),
+          api.get('/entries', { params: { status: 'pending', _t: Date.now() } }),
+          api.get('/team-entries', { params: { status: 'pending', _t: Date.now() } }),
           api.get('/leaderboard/teams', { params: { period: 'month' } }),
           api.get('/meetings'),
         ]);
@@ -81,7 +83,7 @@ const HeadOverview = () => {
       ];
 
       setPendingEntries(combinedPending.slice(0, 5));
-      setPendingApprovalsCount(combinedPending.length);
+      setPendingCount(combinedPending.length);
 
       const teamsList = leaderboardRes.data?.data || [];
       setTotalTeams(teamsList.length);
@@ -105,6 +107,22 @@ const HeadOverview = () => {
   useEffect(() => {
     fetchHeadData();
   }, []);
+
+  // Listen for live approval events to immediately update pending list preview and count
+  useEffect(() => {
+    const handleApprovalChanged = (e) => {
+      const processedId = e.detail?.id;
+      if (processedId) {
+        setPendingEntries((prev) => prev.filter((item) => item._id !== processedId));
+      }
+      refreshPendingCount();
+    };
+
+    window.addEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    return () => {
+      window.removeEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    };
+  }, [refreshPendingCount]);
 
   const greeting = `${getGreeting()}, ${user?.name || 'Team Head'}`;
 
@@ -144,9 +162,9 @@ const HeadOverview = () => {
             <Link to="/head/approvals">
               <Button variant="primary" size="sm" icon={CheckCircle2}>
                 Review Approvals
-                {pendingApprovalsCount > 0 && (
+                {pendingCount > 0 && (
                   <span className="ml-1 rounded-full bg-white/25 px-1.5 py-0.5 text-xs font-bold">
-                    {pendingApprovalsCount}
+                    {pendingCount}
                   </span>
                 )}
               </Button>
@@ -189,11 +207,11 @@ const HeadOverview = () => {
         />
         <StatCard
           label="Pending Approvals"
-          value={pendingApprovalsCount}
+          value={pendingCount}
           icon={Clock}
           variant="amber"
-          hint={pendingApprovalsCount > 0 ? 'Review entries now' : 'All approved'}
-          hintType={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
+          hint={pendingCount > 0 ? 'Review entries now' : 'All approved'}
+          hintType={pendingCount > 0 ? 'warning' : 'neutral'}
           loading={loading}
           onClick={() => {}}
         />
@@ -227,7 +245,7 @@ const HeadOverview = () => {
               to="/head/approvals"
               className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
             >
-              <span>View all ({pendingApprovalsCount})</span>
+              <span>View all ({pendingCount})</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           }

@@ -13,6 +13,7 @@ const auditLogSchema = new mongoose.Schema(
           'ENTRY_REVERSAL',
           'ADMIN_AWARD',
           'ADMIN_ADJUSTMENT',
+          'MEMBER_REMOVE',
         ],
         message: '{VALUE} is not a valid audit action',
       },
@@ -21,7 +22,7 @@ const auditLogSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Target type is required'],
       enum: {
-        values: ['PointEntry', 'TeamPointEntry'],
+        values: ['PointEntry', 'TeamPointEntry', 'User', 'Team'],
         message: '{VALUE} is not a valid target type',
       },
     },

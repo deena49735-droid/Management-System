@@ -14,6 +14,8 @@ import Input from '../../components/Input';
 import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonTable } from '../../components/Skeleton';
+import PasswordInputWithStrength from '../../components/PasswordInputWithStrength';
+import { validatePasswordClient } from '../../utils/passwordPolicy';
 
 const AdminUsers = () => {
   const { user: currentUser } = useAuth();
@@ -39,16 +41,14 @@ const AdminUsers = () => {
   // Form States
   const [addForm, setAddForm] = useState({
     name: '',
-    username: '',
+    email: '',
     phone: '',
     password: '',
-    role: 'member',
-    team: '',
   });
 
   const [editForm, setEditForm] = useState({
     name: '',
-    username: '',
+    email: '',
     phone: '',
     role: 'member',
     team: '',
@@ -118,14 +118,14 @@ const AdminUsers = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!addForm.name.trim() || !addForm.username.trim() || !addForm.phone.trim() || !addForm.password) {
+    if (!addForm.name.trim() || !addForm.email.trim() || !addForm.phone.trim() || !addForm.password) {
       setFormError('Please fill in all required fields.');
       return;
     }
 
-    const cleanUsername = addForm.username.trim().toLowerCase();
-    if (!/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
-      setFormError('Username must be 3-30 characters and only contain lowercase letters, numbers, dot, and underscore.');
+    const cleanEmail = addForm.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setFormError('Please enter a valid email address.');
       return;
     }
 
@@ -134,8 +134,13 @@ const AdminUsers = () => {
       return;
     }
 
-    if (addForm.password.length < 6) {
-      setFormError('Password must be at least 6 characters long.');
+    const pwdValidation = validatePasswordClient(addForm.password, {
+      email: cleanEmail,
+      name: addForm.name,
+      phone: addForm.phone,
+    });
+    if (!pwdValidation.isValid) {
+      setFormError(pwdValidation.message);
       return;
     }
 
@@ -143,17 +148,15 @@ const AdminUsers = () => {
       setSubmitting(true);
       const payload = {
         name: addForm.name.trim(),
-        username: cleanUsername,
+        email: cleanEmail,
         phone: addForm.phone.trim(),
         password: addForm.password,
-        role: addForm.role,
-        team: addForm.team || undefined,
       };
 
       await api.post('/users', payload);
       toast.success('User created successfully!');
       setIsAddModalOpen(false);
-      setAddForm({ name: '', username: '', phone: '', password: '', role: 'member', team: '' });
+      setAddForm({ name: '', email: '', phone: '', password: '' });
       fetchUsers();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to create user.';
@@ -170,7 +173,7 @@ const AdminUsers = () => {
     setEditingUser(targetUser);
     setEditForm({
       name: targetUser.name || '',
-      username: targetUser.username || '',
+      email: targetUser.email || '',
       phone: targetUser.phone || '',
       role: targetUser.role || 'member',
       team: targetUser.team?._id || targetUser.team || '',
@@ -183,14 +186,14 @@ const AdminUsers = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!editForm.name.trim() || !editForm.username.trim() || !editForm.phone.trim()) {
-      setFormError('Name, username, and phone number are required.');
+    if (!editForm.name.trim() || !editForm.email.trim() || !editForm.phone.trim()) {
+      setFormError('Name, email address, and phone number are required.');
       return;
     }
 
-    const cleanUsername = editForm.username.trim().toLowerCase();
-    if (!/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
-      setFormError('Username must be 3-30 characters and only contain lowercase letters, numbers, dot, and underscore.');
+    const cleanEmail = editForm.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setFormError('Please enter a valid email address.');
       return;
     }
 
@@ -203,7 +206,7 @@ const AdminUsers = () => {
       setSubmitting(true);
       const payload = {
         name: editForm.name.trim(),
-        username: cleanUsername,
+        email: cleanEmail,
         phone: editForm.phone.trim(),
         role: editForm.role,
         team: editForm.team || null,
@@ -228,8 +231,14 @@ const AdminUsers = () => {
     e.preventDefault();
     setFormError('');
 
-    if (!newPassword || newPassword.length < 6) {
-      setFormError('New password must be at least 6 characters long.');
+    const pwdValidation = validatePasswordClient(newPassword, {
+      email: resettingUser?.email,
+      username: resettingUser?.username,
+      name: resettingUser?.name,
+      phone: resettingUser?.phone,
+    });
+    if (!pwdValidation.isValid) {
+      setFormError(pwdValidation.message);
       return;
     }
 
@@ -281,6 +290,7 @@ const AdminUsers = () => {
             icon={Plus}
             onClick={() => {
               setFormError('');
+              setAddForm({ name: '', email: '', phone: '', password: '' });
               setIsAddModalOpen(true);
             }}
           >
@@ -300,7 +310,7 @@ const AdminUsers = () => {
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
-              placeholder="Search by name, username or phone..."
+              placeholder="Search by name, email or phone..."
               className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
             />
           </div>
@@ -378,7 +388,9 @@ const AdminUsers = () => {
                               <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                                 <span>{item.name}</span>
                               </div>
-                              <span className="text-xs text-slate-400">@{item.username}</span>
+                              <span className="text-xs text-slate-400">
+                                {item.email || (item.username ? `@${item.username}` : 'No email set')}
+                              </span>
                             </div>
                           </div>
                         </td>
@@ -445,7 +457,9 @@ const AdminUsers = () => {
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h3 className="font-semibold text-slate-900 text-sm">{item.name}</h3>
                           </div>
-                          <p className="text-xs text-slate-400">@{item.username} • {item.phone}</p>
+                          <p className="text-xs text-slate-400">
+                            {item.email || (item.username ? `@${item.username}` : 'No email set')} • {item.phone}
+                          </p>
                         </div>
                       </div>
                       <Badge status={item.isActive} />
@@ -508,7 +522,7 @@ const AdminUsers = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Add new user"
-        subtitle="Create a new chapter account"
+        subtitle="Create a new chapter member account"
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
           {formError && (
@@ -527,18 +541,19 @@ const AdminUsers = () => {
             />
 
             <Input
-              label="Username"
+              label="Email address"
+              type="email"
               required
               autoCapitalize="none"
               autoCorrect="off"
-              value={addForm.username}
-              onChange={(e) => setAddForm({ ...addForm, username: e.target.value.toLowerCase().trim() })}
-              placeholder="e.g. rajeshkumar"
-              helperText="3-30 chars, lowercase, numbers, dot, underscore"
+              value={addForm.email}
+              onChange={(e) => setAddForm({ ...addForm, email: e.target.value.toLowerCase().trim() })}
+              placeholder="e.g. rajesh@example.com"
+              helperText="Valid email address for account login"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
             <Input
               label="Phone number (10 digits)"
               type="tel"
@@ -548,51 +563,20 @@ const AdminUsers = () => {
               onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
               placeholder="e.g. 9876543210"
             />
-
-            <Input
-              label="Password (min. 6 chars)"
-              type="password"
-              required
-              value={addForm.password}
-              onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-              placeholder="Initial password"
-            />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Role <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={addForm.role}
-                onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-              >
-                <option value="member">Member</option>
-                <option value="teamHead">Team Head</option>
-                <option value="teamAssistant">Team Assistant</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Team (Optional)
-              </label>
-              <select
-                value={addForm.team}
-                onChange={(e) => setAddForm({ ...addForm, team: e.target.value })}
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-              >
-                <option value="">No team</option>
-                {teams.map((t) => (
-                  <option key={t._id} value={t._id}>
-                    {t.name} {!t.isActive ? '(Inactive)' : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <PasswordInputWithStrength
+            value={addForm.password}
+            onChange={(val) => setAddForm({ ...addForm, password: val })}
+            userContext={{
+              email: addForm.email,
+              name: addForm.name,
+              phone: addForm.phone,
+            }}
+            label="Initial password"
+            placeholder="Enter strong password (min. 12 chars)"
+            required
+          />
 
           <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-3 border-t border-slate-100">
             <Button
@@ -636,13 +620,14 @@ const AdminUsers = () => {
             />
 
             <Input
-              label="Username"
+              label="Email address"
+              type="email"
               required
               autoCapitalize="none"
               autoCorrect="off"
-              value={editForm.username}
-              onChange={(e) => setEditForm({ ...editForm, username: e.target.value.toLowerCase().trim() })}
-              helperText="3-30 chars, lowercase, numbers, dot, underscore"
+              value={editForm.email}
+              onChange={(e) => setEditForm({ ...editForm, email: e.target.value.toLowerCase().trim() })}
+              helperText="Unique login email"
             />
           </div>
 
@@ -737,7 +722,7 @@ const AdminUsers = () => {
         onClose={() => setResettingUser(null)}
         title={`Reset password: ${resettingUser?.name || ''}`}
         subtitle="Set a new account password"
-        maxWidth="max-w-sm"
+        maxWidth="max-w-md"
       >
         <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
           {formError && (
@@ -746,13 +731,18 @@ const AdminUsers = () => {
             </div>
           )}
 
-          <Input
-            label="New password (min. 6 chars)"
-            type="password"
-            required
+          <PasswordInputWithStrength
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="Enter new password"
+            onChange={setNewPassword}
+            userContext={{
+              email: resettingUser?.email,
+              username: resettingUser?.username,
+              name: resettingUser?.name,
+              phone: resettingUser?.phone,
+            }}
+            label="New password"
+            placeholder="Enter strong password (min. 12 chars)"
+            required
             autoFocus
           />
 

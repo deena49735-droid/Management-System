@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { useApprovals } from '../../context/ApprovalsContext';
 import EntriesTable from '../../components/EntriesTable';
 import RejectModal from '../../components/RejectModal';
 import PageHeader from '../../components/PageHeader';
@@ -19,6 +20,9 @@ const HeadApprovals = () => {
   const [teamEntries, setTeamEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Global approvals context to keep sidebar and dashboards in sync
+  const { decrementPendingCount, setPendingCount, refreshPendingCount } = useApprovals();
+
   // Rejection modal state
   const [rejectItem, setRejectItem] = useState(null);
   const [rejecting, setRejecting] = useState(false);
@@ -28,16 +32,24 @@ const HeadApprovals = () => {
     try {
       setLoading(true);
       if (isAssistant) {
-        const memberRes = await api.get('/entries', { params: { status: 'pending' } });
-        setMemberEntries(memberRes.data.data || []);
+        const memberRes = await api.get('/entries', {
+          params: { status: 'pending', _t: Date.now() },
+        });
+        const mList = memberRes.data.data || [];
+        setMemberEntries(mList);
         setTeamEntries([]);
+        const actionable = mList.filter((e) => e.canActOnMine !== false);
+        setPendingCount(actionable.length);
       } else {
         const [memberRes, teamRes] = await Promise.all([
-          api.get('/entries', { params: { status: 'pending' } }),
-          api.get('/team-entries', { params: { status: 'pending' } }),
+          api.get('/entries', { params: { status: 'pending', _t: Date.now() } }),
+          api.get('/team-entries', { params: { status: 'pending', _t: Date.now() } }),
         ]);
-        setMemberEntries(memberRes.data.data || []);
-        setTeamEntries(teamRes.data.data || []);
+        const mList = memberRes.data.data || [];
+        const tList = teamRes.data.data || [];
+        setMemberEntries(mList);
+        setTeamEntries(tList);
+        setPendingCount(mList.length + tList.length);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to fetch pending approvals.');
@@ -51,6 +63,8 @@ const HeadApprovals = () => {
   }, [isAssistant]);
 
   const handleApprove = async (entry, isTeam = false) => {
+    if (actionLoadingId || rejecting) return; // Prevent double-clicks & concurrent actions
+
     try {
       setActionLoadingId(entry._id);
       const endpoint = isTeam
@@ -58,12 +72,35 @@ const HeadApprovals = () => {
         : `/entries/${entry._id}/approve`;
 
       await api.patch(endpoint);
+
+      // 1. Immediately remove processed item from the pending list
+      if (isTeam) {
+        setTeamEntries((prev) => prev.filter((item) => item._id !== entry._id));
+      } else {
+        setMemberEntries((prev) => prev.filter((item) => item._id !== entry._id));
+      }
+
+      // 2. Immediately update sidebar badge count & dashboards
+      decrementPendingCount(1);
       toast.success('Entry approved successfully!');
-      fetchPendingData();
+
+      // 3. Broadcast update to other components and silently refresh backend truth
+      window.dispatchEvent(
+        new CustomEvent('kadambas:approvals-changed', {
+          detail: { id: entry._id, isTeam, action: 'approve' },
+        })
+      );
+      refreshPendingCount();
     } catch (err) {
       if (err.response?.status === 409) {
         toast.error(err.response?.data?.message || 'This entry was already processed.');
-        fetchPendingData();
+        if (isTeam) {
+          setTeamEntries((prev) => prev.filter((item) => item._id !== entry._id));
+        } else {
+          setMemberEntries((prev) => prev.filter((item) => item._id !== entry._id));
+        }
+        decrementPendingCount(1);
+        refreshPendingCount();
       } else {
         toast.error(err.response?.data?.message || 'Failed to approve entry.');
       }
@@ -73,23 +110,49 @@ const HeadApprovals = () => {
   };
 
   const handleRejectConfirm = async (reason) => {
-    if (!rejectItem) return;
+    if (!rejectItem || rejecting || actionLoadingId) return;
+
+    const itemToReject = rejectItem;
+    const isTeam = activeTab === 'team';
+
     try {
       setRejecting(true);
-      const isTeam = activeTab === 'team';
       const endpoint = isTeam
-        ? `/team-entries/${rejectItem._id}/reject`
-        : `/entries/${rejectItem._id}/reject`;
+        ? `/team-entries/${itemToReject._id}/reject`
+        : `/entries/${itemToReject._id}/reject`;
 
       await api.patch(endpoint, { reason });
+
+      // 1. Immediately remove processed item from the pending list
+      if (isTeam) {
+        setTeamEntries((prev) => prev.filter((item) => item._id !== itemToReject._id));
+      } else {
+        setMemberEntries((prev) => prev.filter((item) => item._id !== itemToReject._id));
+      }
+
+      // 2. Immediately update sidebar badge count & dashboards
+      decrementPendingCount(1);
       toast.success('Entry rejected.');
       setRejectItem(null);
-      fetchPendingData();
+
+      // 3. Broadcast update to other components and silently refresh backend truth
+      window.dispatchEvent(
+        new CustomEvent('kadambas:approvals-changed', {
+          detail: { id: itemToReject._id, isTeam, action: 'reject' },
+        })
+      );
+      refreshPendingCount();
     } catch (err) {
       if (err.response?.status === 409) {
         toast.error(err.response?.data?.message || 'This entry was already processed.');
+        if (isTeam) {
+          setTeamEntries((prev) => prev.filter((item) => item._id !== itemToReject._id));
+        } else {
+          setMemberEntries((prev) => prev.filter((item) => item._id !== itemToReject._id));
+        }
+        decrementPendingCount(1);
         setRejectItem(null);
-        fetchPendingData();
+        refreshPendingCount();
       } else {
         toast.error(err.response?.data?.message || 'Failed to reject entry.');
       }
@@ -166,6 +229,7 @@ const HeadApprovals = () => {
                   (entry.enteredBy?._id || entry.enteredBy) !== user?._id;
 
             const isActing = actionLoadingId === entry._id;
+            const isProcessingAny = actionLoadingId !== null || rejecting;
             const isMeetingEntry = entry.source === 'meeting_sheet' && entry.meeting;
             const meetingId = entry.meeting?._id || entry.meeting;
             const meetingDateStr = entry.date
@@ -194,7 +258,7 @@ const HeadApprovals = () => {
                     <Button
                       size="sm"
                       variant="success"
-                      disabled={isActing}
+                      disabled={isProcessingAny}
                       isLoading={isActing}
                       onClick={() => handleApprove(entry, activeTab === 'team')}
                     >
@@ -203,7 +267,7 @@ const HeadApprovals = () => {
                     <Button
                       size="sm"
                       variant="outlineDanger"
-                      disabled={isActing}
+                      disabled={isProcessingAny}
                       onClick={() => setRejectItem(entry)}
                     >
                       Reject

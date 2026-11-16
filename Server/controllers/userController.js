@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const Team = require('../models/Team');
+const { validatePassword } = require('../utils/passwordValidator');
 
 /**
  * @desc    Create a new user (admin only)
@@ -18,25 +19,40 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    const { name, username, phone, password, role, team } = req.body;
+    const { name, email, username, phone, password, role, team } = req.body;
     const trimmedPhone = typeof phone === 'string' ? phone.trim() : '';
+    const trimmedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const trimmedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
 
-    // Enforce role restriction: Admins can only create member, teamHead, and teamAssistant
-    const userRole = role || 'member';
-    if (userRole === 'admin') {
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       return res.status(400).json({
         success: false,
-        message: 'Role must be one of: teamHead, teamAssistant, member. Creating an admin account is not allowed.',
+        message: 'Please provide a valid email address.',
       });
     }
 
-    // Check if username is already registered
-    const existingUsername = await User.findOne({ username: trimmedUsername });
-    if (existingUsername) {
+    // Enforce role restriction: New users can only be created with the Member role
+    if (role && role !== 'member') {
+      return res.status(400).json({
+        success: false,
+        message: 'New users can only be created with the Member role. Team role assignments are managed after creation.',
+      });
+    }
+
+    // Enforce team restriction: Team assignment during user creation is not allowed
+    if (team) {
+      return res.status(400).json({
+        success: false,
+        message: 'Team assignment during user creation is not allowed. Assign users to teams after creation.',
+      });
+    }
+
+    // Check if email is already registered
+    const existingEmail = await User.findOne({ email: trimmedEmail });
+    if (existingEmail) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this username already exists.',
+        message: 'A user with this email address already exists.',
       });
     }
 
@@ -49,59 +65,28 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    let teamDoc = null;
-    if (team) {
-      if (!mongoose.Types.ObjectId.isValid(team)) {
-        return res.status(400).json({
+    // If username is provided, check if already registered
+    if (trimmedUsername) {
+      const existingUsername = await User.findOne({ username: trimmedUsername });
+      if (existingUsername) {
+        return res.status(409).json({
           success: false,
-          message: 'Invalid team ID format.',
-        });
-      }
-      teamDoc = await Team.findById(team);
-      if (!teamDoc) {
-        return res.status(404).json({
-          success: false,
-          message: 'Team not found.',
-        });
-      }
-      if (!teamDoc.isActive) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot assign a user to an inactive team.',
+          message: 'A user with this username already exists.',
         });
       }
     }
 
-    // Create the user
+    // Create the user as a chapter member with no team
     const user = await User.create({
       name: typeof name === 'string' ? name.trim() : '',
-      username: trimmedUsername,
+      email: trimmedEmail,
+      username: trimmedUsername || undefined,
       phone: trimmedPhone,
       password,
-      role: userRole,
-      team: teamDoc ? teamDoc._id : null,
+      role: 'member',
+      team: null,
       isActive: true,
     });
-
-    // Synchronize team associations if a team was specified
-    if (teamDoc) {
-      if (userRole === 'teamHead') {
-        if (teamDoc.head && teamDoc.head.toString() !== user._id.toString()) {
-          await User.findByIdAndUpdate(teamDoc.head, { role: 'member' });
-        }
-        teamDoc.head = user._id;
-      } else if (userRole === 'teamAssistant') {
-        if (teamDoc.assistant && teamDoc.assistant.toString() !== user._id.toString()) {
-          await User.findByIdAndUpdate(teamDoc.assistant, { role: 'member' });
-        }
-        teamDoc.assistant = user._id;
-      }
-
-      const memberSet = new Set((teamDoc.members || []).map((m) => m.toString()));
-      memberSet.add(user._id.toString());
-      teamDoc.members = Array.from(memberSet);
-      await teamDoc.save();
-    }
 
     const populatedUser = await User.findById(user._id).populate('team', 'name');
 
@@ -112,6 +97,12 @@ exports.createUser = async (req, res, next) => {
   } catch (error) {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      if (field === 'email') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this email address already exists.',
+        });
+      }
       if (field === 'username') {
         return res.status(409).json({
           success: false,
@@ -150,10 +141,11 @@ exports.getUsers = async (req, res, next) => {
       role: { $in: chapterRoles },
     };
 
-    // Search by name, username or phone
+    // Search by name, email, username or phone
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
         { username: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },
       ];
@@ -317,6 +309,31 @@ exports.updateUser = async (req, res, next) => {
           success: false,
           message: 'Admins cannot deactivate their own account.',
         });
+      }
+    }
+
+    // Update email if provided and check uniqueness
+    if (typeof req.body.email === 'string') {
+      const trimmedEmail = req.body.email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email address.',
+        });
+      }
+
+      if (trimmedEmail !== user.email) {
+        const emailExists = await User.findOne({
+          email: trimmedEmail,
+          _id: { $ne: user._id },
+        });
+        if (emailExists) {
+          return res.status(409).json({
+            success: false,
+            message: 'A user with this email address already exists.',
+          });
+        }
+        user.email = trimmedEmail;
       }
     }
 
@@ -502,6 +519,12 @@ exports.updateUser = async (req, res, next) => {
   } catch (error) {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern || error.keyValue || {})[0];
+      if (field === 'email') {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this email address already exists.',
+        });
+      }
       if (field === 'username') {
         return res.status(409).json({
           success: false,
@@ -546,18 +569,24 @@ exports.resetPassword = async (req, res, next) => {
     }
 
     const { password } = req.body;
-    if (!password || password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 6 characters long.',
-      });
-    }
-
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found.',
+      });
+    }
+
+    const passwordValidation = validatePassword(password, {
+      email: user.email,
+      username: user.username,
+      name: user.name,
+      phone: user.phone,
+    });
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: passwordValidation.message,
       });
     }
 

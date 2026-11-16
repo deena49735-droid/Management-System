@@ -17,6 +17,7 @@ import {
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { useApprovals } from '../../context/ApprovalsContext';
 import PageHeader from '../../components/PageHeader';
 import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
@@ -49,11 +50,11 @@ const formatDate = (dateStr) => {
 
 const AssistantOverview = () => {
   const { user } = useAuth();
+  const { pendingCount, setPendingCount, refreshPendingCount } = useApprovals();
   const navigate = useNavigate();
 
   const [team, setTeam] = useState(null);
   const [myPendingCount, setMyPendingCount] = useState(0);
-  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [teamRank, setTeamRank] = useState(null);
   const [totalTeams, setTotalTeams] = useState(0);
   const [teamPointsMonth, setTeamPointsMonth] = useState(0);
@@ -68,7 +69,7 @@ const AssistantOverview = () => {
 
       const [teamRes, entriesRes, leaderboardRes] = await Promise.all([
         api.get('/teams/my'),
-        api.get('/entries'),
+        api.get('/entries', { params: { _t: Date.now() } }),
         api.get('/leaderboard/teams', { params: { period: 'month' } }),
       ]);
 
@@ -80,7 +81,7 @@ const AssistantOverview = () => {
       const actionablePending = allEntries.filter(
         (e) => e.status === 'pending' && e.canActOnMine !== false
       );
-      setPendingApprovalsCount(actionablePending.length);
+      setPendingCount(actionablePending.length);
 
       // Filter submissions entered by this assistant
       const myEntries = allEntries.filter(
@@ -111,6 +112,18 @@ const AssistantOverview = () => {
   useEffect(() => {
     fetchAssistantData();
   }, [user?._id]);
+
+  // Listen for live approval events to keep stat card in sync
+  useEffect(() => {
+    const handleApprovalChanged = () => {
+      refreshPendingCount();
+    };
+
+    window.addEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    return () => {
+      window.removeEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    };
+  }, [refreshPendingCount]);
 
   const greeting = `${getGreeting()}, ${user?.name || 'Team Assistant'}`;
 
@@ -188,11 +201,11 @@ const AssistantOverview = () => {
         <Link to="/assistant/approvals" className="block focus:outline-hidden">
           <StatCard
             label="Pending Approvals"
-            value={pendingApprovalsCount}
+            value={pendingCount}
             icon={CheckCircle2}
             variant="amber"
-            hint={pendingApprovalsCount > 0 ? 'Awaiting your review' : 'All clear'}
-            hintType={pendingApprovalsCount > 0 ? 'warning' : 'neutral'}
+            hint={pendingCount > 0 ? 'Awaiting your review' : 'All clear'}
+            hintType={pendingCount > 0 ? 'warning' : 'neutral'}
             loading={loading}
           />
         </Link>

@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   LogIn,
-  User,
+  Mail,
   Lock,
   Eye,
   EyeOff,
-  CheckCircle2,
   Trophy,
   ShieldCheck,
   CalendarCheck,
@@ -18,7 +17,7 @@ import { getDashboardPathByRole } from '../components/ProtectedRoute';
 import Button from '../components/Button';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -38,21 +37,21 @@ const Login = () => {
     e.preventDefault();
     setErrorMessage('');
 
-    const trimmedUsername = username.trim().toLowerCase();
-    if (!trimmedUsername || !password) {
-      setErrorMessage('Please enter both your username and password.');
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) {
+      setErrorMessage('Please enter both your email address and password.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      const loggedInUser = await login(trimmedUsername, password);
+      const loggedInUser = await login(trimmedEmail, password);
       toast.success(`Welcome back, ${loggedInUser.name}!`);
       const targetPath = getDashboardPathByRole(loggedInUser.role);
       navigate(targetPath, { replace: true });
     } catch (error) {
       const msg =
-        error.response?.data?.message || 'Invalid username or password. Please try again.';
+        error.response?.data?.message || 'Invalid username or password.';
       setErrorMessage(msg);
       toast.error(msg);
     } finally {
@@ -122,11 +121,8 @@ const Login = () => {
           </div>
 
           {/* Footer note */}
-          <div className="relative z-10 pt-4 border-t border-brand-600/40 text-xs text-brand-200 flex items-center justify-between">
+          <div className="relative z-10 pt-4 border-t border-brand-600/40 text-xs text-brand-200">
             <span>Kadambas Chapter</span>
-            <span className="flex items-center gap-1.5 font-medium">
-              <CheckCircle2 className="h-3.5 w-3.5 text-white" /> Secure platform
-            </span>
           </div>
         </div>
 
@@ -151,7 +147,7 @@ const Login = () => {
                 Sign in to your account
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Enter your username and password provided by the chapter admin.
+                Enter your email address and password provided by the chapter admin.
               </p>
             </div>
 
@@ -166,30 +162,30 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label
-                  htmlFor="username"
+                  htmlFor="email"
                   className="block text-xs font-semibold text-slate-700 mb-1.5"
                 >
-                  Username
+                  Email address
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-                    <User className="h-4 w-4" />
+                    <Mail className="h-4 w-4" />
                   </div>
                   <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
                     autoCapitalize="none"
                     autoCorrect="off"
                     autoFocus
                     required
-                    value={username}
+                    value={email}
                     onChange={(e) => {
-                      setUsername(e.target.value);
+                      setEmail(e.target.value);
                       if (errorMessage) setErrorMessage('');
                     }}
-                    placeholder="Enter your username"
+                    placeholder="Enter your email address"
                     className="block w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
                   />
                 </div>
@@ -248,13 +244,6 @@ const Login = () => {
                 </Button>
               </div>
             </form>
-
-            {/* Admin Note */}
-            <div className="mt-6 border-t border-slate-100 pt-4 text-center">
-              <p className="text-xs text-slate-500">
-                Accounts are managed by the chapter administrator. Contact your team head or admin if you need assistance.
-              </p>
-            </div>
           </div>
         </div>
       </div>

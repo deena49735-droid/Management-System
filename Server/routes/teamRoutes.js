@@ -6,6 +6,7 @@ const router = express.Router();
 const teamController = require('../controllers/teamController');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
+const { validatePassword } = require('../utils/passwordValidator');
 
 // Rate limiter for teamHead and teamAssistant member creation (max 30 per hour per user)
 const memberCreateLimiter = rateLimit({
@@ -48,8 +49,17 @@ const createTeamMemberValidation = [
   body('password')
     .isString()
     .withMessage('Password must be a string')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .custom((value, { req }) => {
+      const result = validatePassword(value, {
+        username: req.body.username,
+        name: req.body.name,
+        phone: req.body.phone,
+      });
+      if (!result.isValid) {
+        throw new Error(result.message);
+      }
+      return true;
+    }),
 ];
 
 // Validation rules for adding existing member to own team
@@ -57,6 +67,22 @@ const addExistingMemberValidation = [
   body('userId')
     .isMongoId()
     .withMessage('Valid userId is required'),
+];
+
+// Validation rules for member removal
+const memberUserIdParamValidation = [
+  param('userId')
+    .isMongoId()
+    .withMessage('Invalid user ID format'),
+];
+
+const memberParamValidation = [
+  param('id')
+    .isMongoId()
+    .withMessage('Invalid team ID format'),
+  param('userId')
+    .isMongoId()
+    .withMessage('Invalid user ID format'),
 ];
 
 // Authentication middleware required for all team routes
@@ -88,6 +114,21 @@ router.post(
   roleCheck('teamHead', 'teamAssistant'),
   addExistingMemberValidation,
   teamController.addExistingMemberToMyTeam
+);
+
+// Member removal: accessible to Team Head (for own team) and Admin (teamAssistant is rejected)
+router.delete(
+  '/my/members/:userId',
+  roleCheck('teamHead', 'admin'),
+  memberUserIdParamValidation,
+  teamController.removeMember
+);
+
+router.delete(
+  '/:id/members/:userId',
+  roleCheck('teamHead', 'admin'),
+  memberParamValidation,
+  teamController.removeMember
 );
 
 // Protect all subsequent team management routes with admin role check
@@ -137,15 +178,6 @@ const assignRoleValidation = [
     .withMessage('Valid userId is required'),
 ];
 
-const memberParamValidation = [
-  param('id')
-    .isMongoId()
-    .withMessage('Invalid team ID format'),
-  param('userId')
-    .isMongoId()
-    .withMessage('Invalid user ID format'),
-];
-
 // Routes
 router.post('/', createTeamValidation, teamController.createTeam);
 router.get('/', teamController.getTeams);
@@ -154,7 +186,6 @@ router.put('/:id', updateTeamValidation, teamController.updateTeam);
 router.patch('/:id/head', assignRoleValidation, teamController.assignHead);
 router.patch('/:id/assistant', assignRoleValidation, teamController.assignAssistant);
 router.post('/:id/members', assignRoleValidation, teamController.addMember);
-router.delete('/:id/members/:userId', memberParamValidation, teamController.removeMember);
 router.delete('/:id', teamIdValidation, teamController.deactivateTeam);
 
 module.exports = router;

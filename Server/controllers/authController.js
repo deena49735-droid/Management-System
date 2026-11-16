@@ -28,10 +28,12 @@ const generateToken = (user, expiresIn) => {
  */
 exports.login = async (req, res, next) => {
   try {
-    const { username, password, remember = false } = req.body;
+    const { email, username, password, remember = false } = req.body;
+
+    const rawIdentifier = email || username;
 
     // Validate credentials types before any trim or database lookup
-    if (typeof username !== 'string' || typeof password !== 'string') {
+    if (typeof rawIdentifier !== 'string' || typeof password !== 'string') {
       return res.status(400).json({
         success: false,
         message: 'Invalid credentials format.',
@@ -39,16 +41,21 @@ exports.login = async (req, res, next) => {
     }
 
     // Validate request inputs
-    if (!username || !password) {
+    const cleanIdentifier = rawIdentifier.trim().toLowerCase();
+    if (!cleanIdentifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide both username and password.',
+        message: 'Please provide both email and password.',
       });
     }
 
-    // Find user by lowercase trimmed username and explicitly select password
-    const cleanUsername = username.trim().toLowerCase();
-    const user = await User.findOne({ username: cleanUsername }).select('+password');
+    // Find user by normalized email, or fallback to username for legacy accounts
+    const user = await User.findOne({
+      $or: [
+        { email: cleanIdentifier },
+        { username: cleanIdentifier },
+      ],
+    }).select('+password');
 
     // Return the same generic error for non-existent user or invalid password
     if (!user) {
@@ -92,6 +99,7 @@ exports.login = async (req, res, next) => {
       user: {
         _id: user._id,
         name: user.name,
+        email: user.email,
         username: user.username,
         phone: user.phone,
         role: user.role,
@@ -153,6 +161,7 @@ exports.adminOnlyTest = async (req, res) => {
     user: {
       _id: req.user._id,
       name: req.user.name,
+      email: req.user.email,
       username: req.user.username,
       role: req.user.role,
     },

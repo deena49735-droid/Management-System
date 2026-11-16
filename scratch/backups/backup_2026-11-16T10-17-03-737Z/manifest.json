@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-11-16T10:17:04.136Z",
+  "database": "kadambas",
+  "summary": {
+    "users": 11,
+    "auditlogs": 21,
+    "pointentries": 10,
+    "teampointentries": 0,
+    "criterias": 45,
+    "teams": 3,
+    "meetings": 1
+  }
+}

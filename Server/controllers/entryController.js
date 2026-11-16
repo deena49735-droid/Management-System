@@ -267,7 +267,7 @@ exports.createEntry = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedEntry = await PointEntry.findById(entry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role');
@@ -339,7 +339,7 @@ exports.getEntries = async (req, res, next) => {
     const totalPages = Math.ceil(total / limit);
 
     const entries = await PointEntry.find(filter)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role')
@@ -501,7 +501,7 @@ exports.approveEntry = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedEntry = await PointEntry.findById(updatedEntry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role')
@@ -653,7 +653,7 @@ exports.rejectEntry = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedEntry = await PointEntry.findById(updatedEntry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role')
@@ -807,7 +807,7 @@ exports.adminDirectAward = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedEntry = await PointEntry.findById(entry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role')
@@ -920,7 +920,7 @@ exports.adminManualAdjustment = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedEntry = await PointEntry.findById(entry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('enteredBy', 'name username phone role')
       .populate('approvedBy', 'name username phone role');
@@ -1050,7 +1050,7 @@ exports.reverseEntry = async (req, res, next) => {
     await session.commitTransaction();
 
     const populatedReversal = await PointEntry.findById(reversalEntry._id)
-      .populate('member', 'name username phone role')
+      .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
       .populate('enteredBy', 'name username phone role')

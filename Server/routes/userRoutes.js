@@ -5,6 +5,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
+const { validatePassword } = require('../utils/passwordValidator');
 
 // Protect all user management routes with auth and admin role check
 router.use(auth, roleCheck('admin'));
@@ -17,16 +18,20 @@ const createUserValidation = [
     .trim()
     .notEmpty()
     .withMessage('Name is required'),
-  body('username')
+  body('email')
     .isString()
-    .withMessage('Username must be a string')
+    .withMessage('Email must be a string')
     .trim()
     .notEmpty()
-    .withMessage('Username is required')
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters')
-    .matches(/^[a-z0-9._]+$/)
-    .withMessage('Username can only contain lowercase letters, numbers, dot, and underscore'),
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail(),
+  body('username')
+    .optional()
+    .isString()
+    .withMessage('Username must be a string')
+    .trim(),
   body('phone')
     .isString()
     .withMessage('Phone must be a string')
@@ -34,16 +39,36 @@ const createUserValidation = [
     .matches(/^[0-9]{10}$/)
     .withMessage('Phone must be a valid 10-digit number'),
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .isString()
+    .withMessage('Password must be a string')
+    .custom((value, { req }) => {
+      const result = validatePassword(value, {
+        email: req.body.email,
+        username: req.body.username,
+        name: req.body.name,
+        phone: req.body.phone,
+      });
+      if (!result.isValid) {
+        throw new Error(result.message);
+      }
+      return true;
+    }),
   body('role')
     .optional()
-    .isIn(['teamHead', 'teamAssistant', 'member'])
-    .withMessage('Role must be one of: teamHead, teamAssistant, member'),
+    .custom((val) => {
+      if (val && val !== 'member') {
+        throw new Error('New users can only be created with the Member role. Team role assignments are managed after creation.');
+      }
+      return true;
+    }),
   body('team')
     .optional({ nullable: true, checkFalsy: true })
-    .isMongoId()
-    .withMessage('Invalid team ID format'),
+    .custom((val) => {
+      if (val) {
+        throw new Error('Team assignment during user creation is not allowed. Assign users to teams after creation.');
+      }
+      return true;
+    }),
 ];
 
 // Validation rules for user updates
@@ -58,6 +83,14 @@ const updateUserValidation = [
     .trim()
     .notEmpty()
     .withMessage('Name cannot be empty'),
+  body('email')
+    .optional()
+    .isString()
+    .withMessage('Email must be a string')
+    .trim()
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail(),
   body('username')
     .optional()
     .isString()
@@ -98,8 +131,20 @@ const resetPasswordValidation = [
     .isMongoId()
     .withMessage('Invalid user ID format'),
   body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+    .isString()
+    .withMessage('Password must be a string')
+    .custom((value, { req }) => {
+      const result = validatePassword(value, {
+        email: req.body.email,
+        username: req.body.username,
+        name: req.body.name,
+        phone: req.body.phone,
+      });
+      if (!result.isValid) {
+        throw new Error(result.message);
+      }
+      return true;
+    }),
 ];
 
 // Routes

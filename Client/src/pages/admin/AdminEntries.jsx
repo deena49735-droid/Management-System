@@ -317,7 +317,9 @@ const AdminEntries = () => {
                 {rejectItem.criteria?.name} ({rejectItem.points > 0 ? `+${rejectItem.points}` : rejectItem.points} pts)
               </p>
               <p className="text-slate-500 mt-0.5 text-xs">
-                For: {rejectItem.member?.name || rejectItem.team?.name || 'Team'}
+                {rejectItem.member
+                  ? `Member: ${rejectItem.member.name} • Team: ${rejectItem.team?.name || 'Unassigned'}`
+                  : `Team: ${rejectItem.team?.name || 'Unassigned'}`}
               </p>
             </div>
           )

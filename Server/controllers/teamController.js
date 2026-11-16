@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const Team = require('../models/Team');
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 
 /**
  * @desc    Get the logged-in user's team
@@ -936,21 +937,56 @@ exports.addMember = async (req, res, next) => {
 
 /**
  * @desc    Remove member from team
- * @route   DELETE /api/teams/:id/members/:userId
- * @access  Private (Admin)
+ * @route   DELETE /api/teams/:id/members/:userId or DELETE /api/teams/my/members/:userId
+ * @access  Private (Admin, Team Head for own team)
  */
 exports.removeMember = async (req, res, next) => {
   try {
-    const { id, userId } = req.params;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array().map((e) => e.msg).join(', '),
+      });
+    }
 
-    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(userId)) {
+    // 1. Role Authorization Check
+    // Team Assistant must NOT have permission to remove any team member
+    if (req.user.role === 'teamAssistant') {
+      return res.status(403).json({
+        success: false,
+        message: 'Team Assistants do not have permission to remove team members.',
+      });
+    }
+
+    if (req.user.role !== 'admin' && req.user.role !== 'teamHead') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You do not have permission to remove team members.',
+      });
+    }
+
+    let teamId = req.params.id;
+    const { userId } = req.params;
+
+    if (!teamId && req.user.role === 'teamHead') {
+      teamId = req.user.team;
+      if (!teamId) {
+        const ownTeam = await Team.findOne({ head: req.user._id });
+        if (ownTeam) {
+          teamId = ownTeam._id;
+        }
+      }
+    }
+
+    if (!teamId || !mongoose.Types.ObjectId.isValid(teamId) || !userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({
         success: false,
         message: 'Team or User not found.',
       });
     }
 
-    const team = await Team.findById(id);
+    const team = await Team.findById(teamId);
     if (!team) {
       return res.status(404).json({
         success: false,
@@ -958,15 +994,82 @@ exports.removeMember = async (req, res, next) => {
       });
     }
 
+    // 2. Team Head can ONLY remove members from their own assigned team
+    if (req.user.role === 'teamHead') {
+      const userTeamId = req.user.team ? req.user.team.toString() : '';
+      const isHeadOfThisTeam =
+        (team.head && team.head.toString() === req.user._id.toString()) ||
+        team._id.toString() === userTeamId;
+
+      if (!isHeadOfThisTeam) {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only remove members from your own assigned team.',
+        });
+      }
+    }
+
+    // 3. Verify user is currently associated with this team
     const isMember = team.members.some((m) => m.toString() === userId.toString());
-    if (!isMember) {
+    const isHead = team.head && team.head.toString() === userId.toString();
+    const isAssistant = team.assistant && team.assistant.toString() === userId.toString();
+
+    if (!isMember && !isHead && !isAssistant) {
       return res.status(404).json({
         success: false,
         message: 'User is not a member of this team.',
       });
     }
 
-    // If removed member was the head or assistant, clear the position
+    // 4. Look up target user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+
+    // 5. Team Head Role Restrictions:
+    // Cannot remove themselves, Admins, other Team Heads or Team Assistants
+    if (req.user.role === 'teamHead') {
+      if (userId.toString() === req.user._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Team Heads cannot remove themselves from the team.',
+        });
+      }
+
+      if (user.role === 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Cannot remove an Administrator from a team.',
+        });
+      }
+
+      if (user.role === 'teamHead' || isHead) {
+        return res.status(403).json({
+          success: false,
+          message: 'Team Heads cannot remove other Team Heads.',
+        });
+      }
+
+      if (user.role === 'teamAssistant' || isAssistant) {
+        return res.status(403).json({
+          success: false,
+          message: 'Team Heads cannot remove Team Assistants.',
+        });
+      }
+
+      if (user.role !== 'member') {
+        return res.status(403).json({
+          success: false,
+          message: 'Team Heads can only remove regular team members.',
+        });
+      }
+    }
+
+    // 6. Leadership unassignment (Admin authority only)
     if (team.head && team.head.toString() === userId.toString()) {
       team.head = null;
     }
@@ -978,15 +1081,38 @@ exports.removeMember = async (req, res, next) => {
     team.members = team.members.filter((m) => m.toString() !== userId.toString());
     await team.save();
 
-    // Update user record: unassign team and reset head/assistant role to member (protecting admin accounts)
-    const user = await User.findById(userId);
-    if (user) {
-      user.team = null;
-      if (user.role !== 'admin' && (user.role === 'teamHead' || user.role === 'teamAssistant')) {
-        user.role = 'member';
-      }
-      await user.save();
+    // Clear user's team assignment (account, points, attendance, and audit history are safely preserved)
+    user.team = null;
+    if (user.role !== 'admin' && (user.role === 'teamHead' || user.role === 'teamAssistant')) {
+      user.role = 'member';
     }
+    await user.save();
+
+    // 7. Record the action in AuditLog
+    const auditReason =
+      (req.body?.reason && typeof req.body.reason === 'string' && req.body.reason.trim()) ||
+      (req.user.role === 'teamHead'
+        ? `Member removed from team "${team.name}" by Team Head ${req.user.name}`
+        : `Member removed from team "${team.name}" by Admin ${req.user.name}`);
+
+    await AuditLog.create({
+      action: 'MEMBER_REMOVE',
+      targetType: 'User',
+      targetId: user._id,
+      performedBy: req.user._id,
+      reason: auditReason,
+      metadata: {
+        memberId: user._id,
+        memberName: user.name,
+        memberUsername: user.username,
+        memberEmail: user.email,
+        teamId: team._id,
+        teamName: team.name,
+        performedByRole: req.user.role,
+        performedByName: req.user.name,
+        timestamp: new Date(),
+      },
+    });
 
     const updatedTeam = await Team.findById(team._id)
       .populate('head', 'name username phone role isActive')

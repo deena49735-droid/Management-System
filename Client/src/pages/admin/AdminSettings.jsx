@@ -9,6 +9,8 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Badge from '../../components/Badge';
 import Avatar from '../../components/Avatar';
+import PasswordInputWithStrength from '../../components/PasswordInputWithStrength';
+import { validatePasswordClient } from '../../utils/passwordPolicy';
 
 const AdminSettings = () => {
   const { user, refreshUser } = useAuth();
@@ -16,6 +18,7 @@ const AdminSettings = () => {
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
     name: user?.name || '',
+    email: user?.email || '',
     username: user?.username || '',
     phone: user?.phone || '',
   });
@@ -36,6 +39,7 @@ const AdminSettings = () => {
     if (user) {
       setProfileForm({
         name: user.name || '',
+        email: user.email || '',
         username: user.username || '',
         phone: user.phone || '',
       });
@@ -48,15 +52,21 @@ const AdminSettings = () => {
     setProfileError('');
 
     const cleanName = profileForm.name.trim();
+    const cleanEmail = profileForm.email.trim().toLowerCase();
     const cleanUsername = profileForm.username.trim().toLowerCase();
     const cleanPhone = profileForm.phone.trim();
 
-    if (!cleanName || !cleanUsername || !cleanPhone) {
-      setProfileError('Please fill in all profile fields.');
+    if (!cleanName || !cleanPhone) {
+      setProfileError('Please fill in your name and phone number.');
       return;
     }
 
-    if (!/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setProfileError('Please enter a valid email address.');
+      return;
+    }
+
+    if (cleanUsername && !/^[a-z0-9._]{3,30}$/.test(cleanUsername)) {
       setProfileError('Username must be 3-30 characters with lowercase letters, numbers, dot, or underscore.');
       return;
     }
@@ -70,7 +80,8 @@ const AdminSettings = () => {
       setProfileLoading(true);
       await api.put(`/users/${user._id}`, {
         name: cleanName,
-        username: cleanUsername,
+        email: cleanEmail || undefined,
+        username: cleanUsername || undefined,
         phone: cleanPhone,
         role: 'admin', // Kept strictly as admin
       });
@@ -98,8 +109,13 @@ const AdminSettings = () => {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters long.');
+    const pwdValidation = validatePasswordClient(passwordForm.newPassword, {
+      username: user?.username,
+      name: user?.name,
+      phone: user?.phone,
+    });
+    if (!pwdValidation.isValid) {
+      setPasswordError(pwdValidation.message);
       return;
     }
 
@@ -142,7 +158,7 @@ const AdminSettings = () => {
               <Badge role="admin" />
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              @{user?.username} • {user?.phone}
+              {user?.email || (user?.username ? `@${user?.username}` : '')} • {user?.phone}
             </p>
           </div>
         </div>
@@ -183,14 +199,24 @@ const AdminSettings = () => {
 
             <div>
               <Input
-                label="Username"
-                required
+                label="Email address"
+                type="email"
+                value={profileForm.email}
+                onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value.toLowerCase().trim() })}
+                placeholder="admin@example.com"
+                helperText="Email address used for platform sign in"
+              />
+            </div>
+
+            <div>
+              <Input
+                label="Username (Legacy)"
                 value={profileForm.username}
                 onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
                 placeholder="admin"
               />
               <p className="text-[11px] text-slate-400 mt-1">
-                Lowercase letters, numbers, dot, and underscore (3-30 chars).
+                Optional: lowercase letters, numbers, dot, and underscore.
               </p>
             </div>
 
@@ -248,30 +274,18 @@ const AdminSettings = () => {
           )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                New password <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                  placeholder="Enter new password (min. 6 chars)"
-                  className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 pr-10 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Must be at least 6 characters long.</p>
-            </div>
+            <PasswordInputWithStrength
+              value={passwordForm.newPassword}
+              onChange={(val) => setPasswordForm({ ...passwordForm, newPassword: val })}
+              userContext={{
+                username: user?.username,
+                name: user?.name,
+                phone: user?.phone,
+              }}
+              label="New password"
+              placeholder="Enter or suggest strong password"
+              required
+            />
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
