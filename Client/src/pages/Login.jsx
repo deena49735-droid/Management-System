@@ -21,7 +21,6 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,7 +46,7 @@ const Login = () => {
 
     try {
       setIsSubmitting(true);
-      const loggedInUser = await login(trimmedUsername, password, remember);
+      const loggedInUser = await login(trimmedUsername, password);
       toast.success(`Welcome back, ${loggedInUser.name}!`);
       const targetPath = getDashboardPathByRole(loggedInUser.role);
       navigate(targetPath, { replace: true });
@@ -235,24 +234,6 @@ const Login = () => {
                     )}
                   </button>
                 </div>
-              </div>
-
-              {/* Keep me signed in option */}
-              <div className="flex items-center min-h-[44px] pt-0.5">
-                <label htmlFor="remember" className="flex items-center gap-2.5 py-2 text-xs text-slate-700 cursor-pointer select-none">
-                  <input
-                    id="remember"
-                    name="remember"
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 transition cursor-pointer"
-                  />
-                  <span>
-                    <span className="font-medium">Keep me signed in</span>
-                    <span className="block text-xs text-slate-400">Use only on your own device</span>
-                  </span>
-                </label>
               </div>
 
               <div className="pt-2">
