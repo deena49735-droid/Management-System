@@ -117,6 +117,7 @@ const AssistantOverview = () => {
   useEffect(() => {
     const handleApprovalChanged = () => {
       refreshPendingCount();
+      fetchAssistantData();
     };
 
     window.addEventListener('kadambas:approvals-changed', handleApprovalChanged);
@@ -153,14 +154,14 @@ const AssistantOverview = () => {
         title={greeting}
         subtitle={`Team Assistant • Managing points and meetings for ${team?.name || 'Team'}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="primary"
               size="sm"
               icon={PlusCircle}
               onClick={() => navigate('/assistant/entries/new')}
             >
-              Add Entry
+              Submit Activity
             </Button>
             <Button
               variant="secondary"

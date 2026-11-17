@@ -123,7 +123,7 @@ const MemberDashboard = () => {
       const flattened = [];
       allowedCategories.forEach((cat) => {
         (cat.items || []).forEach((item) => {
-          if (item.isActive) {
+          if (item.isActive && Number(item.points) > 0) {
             flattened.push({
               ...item,
               categoryKey: cat.key,

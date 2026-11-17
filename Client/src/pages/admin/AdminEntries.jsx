@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { PlusCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import EntriesTable from '../../components/EntriesTable';
@@ -124,29 +126,34 @@ const AdminEntries = () => {
         title="All point entries"
         subtitle="Review, approve, or override member activity and team bonus point entries."
         actions={
-          <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
-            <button
-              type="button"
-              onClick={() => setActiveTab('member')}
-              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
-                activeTab === 'member'
-                  ? 'bg-white text-brand-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Member entries
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('team')}
-              className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
-                activeTab === 'team'
-                  ? 'bg-white text-brand-700 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Team monthly / bonus
-            </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+            <Link to="/admin/entries/new">
+              <Button variant="primary" size="sm" icon={PlusCircle} className="w-full sm:w-auto">
+                Submit Entry
+              </Button>
+            </Link>
+            <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setActiveTab('member')}
+                className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${activeTab === 'member'
+                    ? 'bg-white text-brand-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                Member entries
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('team')}
+                className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${activeTab === 'team'
+                    ? 'bg-white text-brand-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                Team monthly / bonus
+              </button>
+            </div>
           </div>
         }
       />

@@ -10,6 +10,7 @@ import {
   ArrowRight,
   RefreshCw,
   AlertCircle,
+  PlusCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -116,6 +117,7 @@ const HeadOverview = () => {
         setPendingEntries((prev) => prev.filter((item) => item._id !== processedId));
       }
       refreshPendingCount();
+      fetchHeadData();
     };
 
     window.addEventListener('kadambas:approvals-changed', handleApprovalChanged);
@@ -158,12 +160,17 @@ const HeadOverview = () => {
         title={greeting}
         subtitle={`Team Head • Managing ${team?.name || 'Team'}`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/head/entries/new">
+              <Button variant="primary" size="sm" icon={PlusCircle}>
+                Submit Activity
+              </Button>
+            </Link>
             <Link to="/head/approvals">
-              <Button variant="primary" size="sm" icon={CheckCircle2}>
+              <Button variant="secondary" size="sm" icon={CheckCircle2}>
                 Review Approvals
                 {pendingCount > 0 && (
-                  <span className="ml-1 rounded-full bg-white/25 px-1.5 py-0.5 text-xs font-bold">
+                  <span className="ml-1 rounded-full bg-slate-900/10 px-1.5 py-0.5 text-xs font-bold text-slate-800">
                     {pendingCount}
                   </span>
                 )}

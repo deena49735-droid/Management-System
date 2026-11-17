@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { AlertCircle, Calendar, PlusCircle } from 'lucide-react';
+import { AlertCircle, Calendar, PlusCircle, CheckCircle2, Clock } from 'lucide-react';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import ProofUpload from '../../components/ProofUpload';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
@@ -33,6 +34,8 @@ const getTodayDateString = () => {
 
 const AssistantNewEntry = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isHead = user?.role === 'teamHead';
   const [team, setTeam] = useState(null);
   const [criteriaList, setCriteriaList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,8 +147,13 @@ const AssistantNewEntry = () => {
         proofPublicId: proofPublicId || undefined,
       });
 
-      toast.success('Point entry submitted successfully! Awaiting Head approval.');
-      navigate('/assistant/submissions');
+      toast.success(
+        isHead
+          ? 'Point entry submitted and auto-approved!'
+          : 'Point entry submitted successfully! Awaiting Head approval.'
+      );
+      window.dispatchEvent(new CustomEvent('kadambas:approvals-changed'));
+      navigate(isHead ? '/head/history' : '/assistant/submissions');
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to submit point entry.';
       setServerError(msg);
@@ -176,9 +184,12 @@ const AssistantNewEntry = () => {
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
       <PageHeader
-        backTo="/assistant/submissions"
-        title="Add member point entry"
-        subtitle={`Submit activity or penalty points for members of ${team?.name || 'your team'}.`}
+        title="Submit team activity"
+        subtitle={
+          isHead
+            ? `Submit activity or penalty points for members of ${team?.name || 'your team'}. Entries are automatically approved.`
+            : `Submit activity or penalty points for members of ${team?.name || 'your team'}. Submissions will be sent to the Team Head for approval.`
+        }
       />
 
       {serverError && (
@@ -328,12 +339,25 @@ const AssistantNewEntry = () => {
             </div>
           )}
 
+          {/* Approval Workflow Notice */}
+          {isHead ? (
+            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+              <span>Team Head entries are automatically approved and immediately reflected on leaderboards.</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+              <Clock className="h-4 w-4 shrink-0 text-amber-600" />
+              <span>Team Assistant entries are submitted as pending and must be approved by your Team Head.</span>
+            </div>
+          )}
+
           {/* Sticky action footer on mobile */}
           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2">
             <Button
               type="button"
               variant="secondary"
-              onClick={() => navigate('/assistant/submissions')}
+              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate(isHead ? '/head' : '/assistant'))}
               disabled={submitting || uploadingProof}
               className="w-full sm:w-auto"
             >
@@ -346,7 +370,11 @@ const AssistantNewEntry = () => {
               disabled={submitting || uploadingProof}
               className="w-full sm:w-auto"
             >
-              {uploadingProof ? 'Uploading photo...' : 'Submit entry'}
+              {uploadingProof
+                ? 'Uploading photo...'
+                : isHead
+                ? 'Submit & Auto-Approve'
+                : 'Submit for approval'}
             </Button>
           </div>
         </form>

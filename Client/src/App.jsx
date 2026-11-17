@@ -14,6 +14,7 @@ import AdminTeams from './pages/admin/AdminTeams';
 import AdminTeamDetail from './pages/admin/AdminTeamDetail';
 import AdminCriteria from './pages/admin/AdminCriteria';
 import AdminEntries from './pages/admin/AdminEntries';
+import AdminNewEntry from './pages/admin/AdminNewEntry';
 import AdminSettings from './pages/admin/AdminSettings';
 
 import HeadLayout from './pages/head/HeadLayout';
@@ -104,25 +105,26 @@ function App() {
             <Route path="/" element={<RootRoute />} />
 
             {/* Protected Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={['admin']}>
-                <AdminLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AdminDashboard />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="teams" element={<AdminTeams />} />
-            <Route path="teams/:id" element={<AdminTeamDetail />} />
-            <Route path="criteria" element={<AdminCriteria />} />
-            <Route path="entries" element={<AdminEntries />} />
-            <Route path="meetings" element={<MeetingsList />} />
-            <Route path="meetings/:id" element={<MeetingSheet />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="profile" element={<Navigate to="/admin/settings" replace />} />
-          </Route>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="teams" element={<AdminTeams />} />
+              <Route path="teams/:id" element={<AdminTeamDetail />} />
+              <Route path="criteria" element={<AdminCriteria />} />
+              <Route path="entries" element={<AdminEntries />} />
+              <Route path="entries/new" element={<AdminNewEntry />} />
+              <Route path="meetings" element={<MeetingsList />} />
+              <Route path="meetings/:id" element={<MeetingSheet />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="profile" element={<Navigate to="/admin/settings" replace />} />
+            </Route>
 
           {/* Protected Team Head Routes */}
           <Route
@@ -136,71 +138,72 @@ function App() {
             <Route index element={<HeadOverview />} />
             <Route path="approvals" element={<HeadApprovals />} />
             <Route path="team" element={<MyTeam />} />
+            <Route path="entries/new" element={<AssistantNewEntry />} />
             <Route path="history" element={<HeadHistory />} />
             <Route path="scorecard" element={<TeamScorecard />} />
             <Route path="meetings" element={<MeetingsList />} />
             <Route path="meetings/:id" element={<MeetingSheet />} />
           </Route>
 
-          {/* Protected Team Assistant Routes */}
-          <Route
-            path="/assistant"
-            element={
-              <ProtectedRoute roles={['teamAssistant']}>
-                <AssistantLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AssistantOverview />} />
-            <Route path="approvals" element={<HeadApprovals />} />
-            <Route path="team" element={<MyTeam />} />
-            <Route path="entries/new" element={<AssistantNewEntry />} />
-            <Route path="scorecard" element={<TeamScorecard />} />
-            <Route path="team-points" element={<Navigate to="/assistant/scorecard" replace />} />
-            <Route path="submissions" element={<AssistantSubmissions />} />
-            <Route path="meetings" element={<MeetingsList />} />
-            <Route path="meetings/:id" element={<MeetingSheet />} />
-          </Route>
+            {/* Protected Team Assistant Routes */}
+            <Route
+              path="/assistant"
+              element={
+                <ProtectedRoute roles={['teamAssistant']}>
+                  <AssistantLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AssistantOverview />} />
+              <Route path="approvals" element={<HeadApprovals />} />
+              <Route path="team" element={<MyTeam />} />
+              <Route path="entries/new" element={<AssistantNewEntry />} />
+              <Route path="scorecard" element={<TeamScorecard />} />
+              <Route path="team-points" element={<Navigate to="/assistant/scorecard" replace />} />
+              <Route path="submissions" element={<AssistantSubmissions />} />
+              <Route path="meetings" element={<MeetingsList />} />
+              <Route path="meetings/:id" element={<MeetingSheet />} />
+            </Route>
 
-          {/* Protected Member Route */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute roles={['member', 'admin', 'teamHead', 'teamAssistant']}>
-                <AppShell>
-                  <MemberDashboard />
-                </AppShell>
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected Member Route */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute roles={['member', 'admin', 'teamHead', 'teamAssistant']}>
+                  <AppShell>
+                    <MemberDashboard />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Shared Game Criteria Route for ALL Authenticated Roles */}
-          <Route
-            path="/criteria"
-            element={
-              <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
-                <AppShell>
-                  <GameCriteria />
-                </AppShell>
-              </ProtectedRoute>
-            }
-          />
+            {/* Shared Game Criteria Route for ALL Authenticated Roles */}
+            <Route
+              path="/criteria"
+              element={
+                <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
+                  <AppShell>
+                    <GameCriteria />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Shared Leaderboard Route for ALL Roles */}
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
-                <AppShell>
-                  <Leaderboard />
-                </AppShell>
-              </ProtectedRoute>
-            }
-          />
+            {/* Shared Leaderboard Route for ALL Roles */}
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute roles={['admin', 'teamHead', 'teamAssistant', 'member']}>
+                  <AppShell>
+                    <Leaderboard />
+                  </AppShell>
+                </ProtectedRoute>
+              }
+            />
 
-          {/* 404 Catch-All Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* 404 Catch-All Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </ApprovalsProvider>
       </AuthProvider>
     </BrowserRouter>

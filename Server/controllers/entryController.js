@@ -50,6 +50,14 @@ exports.createEntry = async (req, res, next) => {
 
     const userRole = req.user.role;
 
+    if (!['admin', 'teamHead', 'teamAssistant', 'member'].includes(userRole)) {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to submit activities.',
+      });
+    }
+
     if (userRole === 'member') {
       // Members can only submit for themselves
       if (!req.body.member || req.body.member.toString() !== req.user._id.toString()) {
@@ -59,14 +67,6 @@ exports.createEntry = async (req, res, next) => {
           message: 'Members can only submit entries for themselves.',
         });
       }
-    }
-
-    if (userRole === 'teamHead') {
-      await session.abortTransaction();
-      return res.status(403).json({
-        success: false,
-        message: 'Team heads cannot submit member entries directly. Data entry is handled by team assistants.',
-      });
     }
 
     const { member, criteria, quantity, date, note, proofImage, proofPublicId } = req.body;
@@ -97,11 +97,11 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
-    if (userRole === 'member' && criteriaDoc.category === 'penalty') {
+    if (userRole === 'member' && (criteriaDoc.category === 'penalty' || (criteriaDoc.points || 0) < 0)) {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,
-        message: 'Members cannot submit penalty entries. Penalties are managed by chapter leadership.',
+        message: 'Members cannot submit penalty or negative point entries.',
       });
     }
 
@@ -148,22 +148,14 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
-    // Role-based submission validation: Team Assistant can only submit for members of their own team
-    if (userRole === 'teamAssistant') {
-      if (memberDoc.role !== 'member') {
-        await session.abortTransaction();
-        return res.status(400).json({
-          success: false,
-          message:
-            'Member point entries can only be submitted for users with the member role. Team Head and Team Assistant accounts cannot be selected.',
-        });
-      }
-
+    // Role-based submission validation: Team Assistant and Team Head can only submit for members of their own team
+    if (userRole === 'teamAssistant' || userRole === 'teamHead') {
       if (!req.user.team || req.user.team.toString() !== memberDoc.team.toString()) {
         await session.abortTransaction();
+        const roleLabel = userRole === 'teamHead' ? 'Team heads' : 'Team assistants';
         return res.status(403).json({
           success: false,
-          message: 'Team assistants can only submit entries for members of their own team.',
+          message: `${roleLabel} can only submit entries for members of their own team.`,
         });
       }
     }
@@ -217,6 +209,11 @@ exports.createEntry = async (req, res, next) => {
     const qty = allowsMulti ? Math.max(1, parseInt(quantity, 10) || 1) : 1;
     const calculatedPoints = criteriaDoc.points * qty;
 
+    const isAutoApproved = userRole === 'admin' || userRole === 'teamHead';
+    const entryStatus = isAutoApproved ? 'approved' : 'pending';
+    const approvedBy = isAutoApproved ? req.user._id : null;
+    const approvedAt = isAutoApproved ? new Date() : null;
+
     const [entry] = await PointEntry.create(
       [
         {
@@ -233,7 +230,9 @@ exports.createEntry = async (req, res, next) => {
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
           note: typeof note === 'string' && note.trim() ? note.trim() : '',
-          status: 'pending',
+          status: entryStatus,
+          approvedBy,
+          approvedAt,
           enteredBy: req.user._id,
           isAdminAdjustment: false,
           isReversal: false,
@@ -243,26 +242,41 @@ exports.createEntry = async (req, res, next) => {
       { session }
     );
 
-    await AuditLog.create(
-      [
-        {
-          action: 'ENTRY_CREATE',
-          targetType: 'PointEntry',
-          targetId: entry._id,
-          performedBy: req.user._id,
-          previousStatus: null,
-          newStatus: 'pending',
-          points: calculatedPoints,
-          reason: typeof note === 'string' && note.trim() ? note.trim() : '',
-          metadata: {
-            criteriaKey: criteriaDoc.key,
-            quantity: qty,
-            frequency,
-          },
+    const auditLogsToCreate = [
+      {
+        action: 'ENTRY_CREATE',
+        targetType: 'PointEntry',
+        targetId: entry._id,
+        performedBy: req.user._id,
+        previousStatus: null,
+        newStatus: entryStatus,
+        points: calculatedPoints,
+        reason: typeof note === 'string' && note.trim() ? note.trim() : '',
+        metadata: {
+          criteriaKey: criteriaDoc.key,
+          quantity: qty,
+          frequency,
+          autoApproved: isAutoApproved,
+          ...(isAutoApproved ? { approvedAt } : {}),
         },
-      ],
-      { session }
-    );
+      },
+    ];
+
+    if (isAutoApproved) {
+      auditLogsToCreate.push({
+        action: 'ENTRY_APPROVE',
+        targetType: 'PointEntry',
+        targetId: entry._id,
+        performedBy: req.user._id,
+        previousStatus: 'pending',
+        newStatus: 'approved',
+        points: calculatedPoints,
+        reason: 'Auto-approved upon submission by leadership.',
+        metadata: { approvedAt },
+      });
+    }
+
+    await AuditLog.create(auditLogsToCreate, { session });
 
     await session.commitTransaction();
 
@@ -358,21 +372,28 @@ exports.getEntries = async (req, res, next) => {
         } else if (userRole === 'admin') {
           obj.canActOnMine = true;
         } else {
-          const isNegative = (entry.points || 0) < 0;
-          if (isNegative && userRole === 'teamAssistant') {
+          const sameTeam =
+            req.user.team &&
+            entry.team &&
+            (entry.team._id || entry.team).toString() === req.user.team.toString();
+          const notEnteredByMe =
+            entry.enteredBy &&
+            (entry.enteredBy._id || entry.enteredBy).toString() !== req.user._id.toString();
+          const notAboutMe =
+            entry.member &&
+            (entry.member._id || entry.member).toString() !== req.user._id.toString();
+
+          if (!sameTeam || !notEnteredByMe || !notAboutMe) {
             obj.canActOnMine = false;
+          } else if (userRole === 'teamHead') {
+            obj.canActOnMine = true;
+          } else if (userRole === 'teamAssistant') {
+            const isNegative = (entry.points || 0) < 0;
+            const submitterRole = entry.enteredBy?.role || 'member';
+            // Team assistant can only approve positive entries submitted by members
+            obj.canActOnMine = !isNegative && submitterRole === 'member';
           } else {
-            const sameTeam =
-              req.user.team &&
-              entry.team &&
-              (entry.team._id || entry.team).toString() === req.user.team.toString();
-            const notEnteredByMe =
-              entry.enteredBy &&
-              (entry.enteredBy._id || entry.enteredBy).toString() !== req.user._id.toString();
-            const notAboutMe =
-              entry.member &&
-              (entry.member._id || entry.member).toString() !== req.user._id.toString();
-            obj.canActOnMine = Boolean(sameTeam && notEnteredByMe && notAboutMe);
+            obj.canActOnMine = false;
           }
         }
         return obj;
@@ -470,6 +491,18 @@ exports.approveEntry = async (req, res, next) => {
           success: false,
           message: 'You cannot approve or reject entries that you entered or that are about you.',
         });
+      }
+
+      // Team Assistant can only approve submissions from members (role === 'member')
+      if (userRole === 'teamAssistant') {
+        const submitterUser = await User.findById(entry.enteredBy).session(session);
+        if (submitterUser && submitterUser.role !== 'member') {
+          await session.abortTransaction();
+          return res.status(403).json({
+            success: false,
+            message: 'Team assistants can only approve submissions from members. Team assistant entries must be approved by a team head or admin.',
+          });
+        }
       }
     }
 
@@ -617,6 +650,18 @@ exports.rejectEntry = async (req, res, next) => {
           success: false,
           message: 'You cannot approve or reject entries that you entered or that are about you.',
         });
+      }
+
+      // Team Assistant can only reject submissions from members (role === 'member')
+      if (userRole === 'teamAssistant') {
+        const submitterUser = await User.findById(entry.enteredBy).session(session);
+        if (submitterUser && submitterUser.role !== 'member') {
+          await session.abortTransaction();
+          return res.status(403).json({
+            success: false,
+            message: 'Team assistants can only reject submissions from members. Team assistant entries must be rejected by a team head or admin.',
+          });
+        }
       }
 
       if (entry.status === 'approved') {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import EntriesTable from '../../components/EntriesTable';
@@ -59,8 +59,8 @@ const AssistantSubmissions = () => {
         subtitle="Track the approval status of member point entries you have submitted."
         actions={
           <Link to="/assistant/entries/new">
-            <Button variant="primary" icon={Plus}>
-              Add entry
+            <Button variant="primary" size="sm" icon={PlusCircle}>
+              Submit Activity
             </Button>
           </Link>
         }

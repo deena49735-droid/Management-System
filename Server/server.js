@@ -32,6 +32,9 @@ const rejectOperators = require('./middleware/rejectOperators');
 
 const app = express();
 
+// Trust reverse proxy (e.g. Render, Nginx, Cloudflare) for accurate client IP resolution
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 

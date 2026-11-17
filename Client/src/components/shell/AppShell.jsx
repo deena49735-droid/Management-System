@@ -32,37 +32,39 @@ const roleMenus = {
     { name: 'Dashboard', path: '/admin', exact: true, icon: LayoutDashboard },
     { name: 'Members', path: '/admin/users', icon: Users },
     { name: 'Teams', path: '/admin/teams', icon: Shield },
-    { name: 'Game criteria', path: '/admin/criteria', icon: BookOpen },
-    { name: 'Entries', path: '/admin/entries', icon: CheckSquare },
+    { name: 'Game criteria', path: '/admin/criteria', exact: true, icon: BookOpen },
+    { name: 'Entries', path: '/admin/entries', exact: true, icon: CheckSquare },
+    { name: 'Submit entry', path: '/admin/entries/new', exact: true, icon: PlusCircle },
     { name: 'Meetings', path: '/admin/meetings', icon: Calendar },
-    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-    { name: 'Settings', path: '/admin/settings', icon: Settings },
+    { name: 'Leaderboard', path: '/leaderboard', exact: true, icon: Trophy },
+    { name: 'Settings', path: '/admin/settings', exact: true, icon: Settings },
   ],
   teamHead: [
     { name: 'Dashboard', path: '/head', exact: true, icon: LayoutDashboard },
-    { name: 'Approvals', path: '/head/approvals', icon: CheckCircle2, hasBadge: true },
-    { name: 'My team', path: '/head/team', icon: Users },
-    { name: 'History', path: '/head/history', icon: History },
+    { name: 'Approvals', path: '/head/approvals', exact: true, icon: CheckCircle2, hasBadge: true },
+    { name: 'My team', path: '/head/team', exact: true, icon: Users },
+    { name: 'Submit activity', path: '/head/entries/new', exact: true, icon: PlusCircle },
+    { name: 'History', path: '/head/history', exact: true, icon: History },
     { name: 'Meetings', path: '/head/meetings', icon: Calendar },
-    { name: 'Team scorecard', path: '/head/scorecard', icon: BarChart3 },
-    { name: 'Game criteria', path: '/criteria', icon: BookOpen },
-    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+    { name: 'Team scorecard', path: '/head/scorecard', exact: true, icon: BarChart3 },
+    { name: 'Game criteria', path: '/criteria', exact: true, icon: BookOpen },
+    { name: 'Leaderboard', path: '/leaderboard', exact: true, icon: Trophy },
   ],
   teamAssistant: [
     { name: 'Dashboard', path: '/assistant', exact: true, icon: LayoutDashboard },
-    { name: 'Approvals', path: '/assistant/approvals', icon: CheckCircle2, hasBadge: true },
-    { name: 'My team', path: '/assistant/team', icon: Users },
-    { name: 'Add entry', path: '/assistant/entries/new', icon: PlusCircle },
+    { name: 'Approvals', path: '/assistant/approvals', exact: true, icon: CheckCircle2, hasBadge: true },
+    { name: 'My team', path: '/assistant/team', exact: true, icon: Users },
+    { name: 'Submit activity', path: '/assistant/entries/new', exact: true, icon: PlusCircle },
     { name: 'Meeting sheet', path: '/assistant/meetings', icon: Calendar },
-    { name: 'Team scorecard', path: '/assistant/scorecard', icon: BarChart3 },
-    { name: 'My submissions', path: '/assistant/submissions', icon: FileCheck },
-    { name: 'Game criteria', path: '/criteria', icon: BookOpen },
-    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+    { name: 'Team scorecard', path: '/assistant/scorecard', exact: true, icon: BarChart3 },
+    { name: 'My submissions', path: '/assistant/submissions', exact: true, icon: FileCheck },
+    { name: 'Game criteria', path: '/criteria', exact: true, icon: BookOpen },
+    { name: 'Leaderboard', path: '/leaderboard', exact: true, icon: Trophy },
   ],
   member: [
     { name: 'Dashboard', path: '/dashboard', exact: true, icon: LayoutDashboard },
-    { name: 'Game criteria', path: '/criteria', icon: BookOpen },
-    { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+    { name: 'Game criteria', path: '/criteria', exact: true, icon: BookOpen },
+    { name: 'Leaderboard', path: '/leaderboard', exact: true, icon: Trophy },
   ],
 };
 
@@ -74,6 +76,8 @@ const getPageTitle = (pathname) => {
   if (pathname.startsWith('/admin/teams/')) return 'Team Details';
   if (pathname === '/admin/criteria' || pathname === '/criteria') return 'Game Criteria';
   if (pathname === '/admin/entries') return 'Entries Ledger';
+  if (pathname === '/admin/entries/new') return 'Submit Entry';
+  if (pathname === '/head/entries/new' || pathname === '/assistant/entries/new') return 'Submit Activity';
   if (pathname.includes('/meetings')) {
     if (pathname.endsWith('/meetings')) return 'Meeting Sheets';
     return 'Meeting Sheet';
@@ -84,7 +88,6 @@ const getPageTitle = (pathname) => {
   if (pathname === '/head/history') return 'Approval History';
   if (pathname.includes('/scorecard')) return 'Team Scorecard';
   if (pathname === '/assistant') return 'Assistant Dashboard';
-  if (pathname === '/assistant/entries/new') return 'Add Point Entry';
   if (pathname === '/assistant/submissions') return 'My Submissions';
   if (pathname === '/dashboard') return 'Member Dashboard';
   if (pathname === '/leaderboard') return 'Leaderboard';
@@ -160,15 +163,23 @@ const AppShell = ({ children }) => {
     <nav className="flex flex-col gap-1 p-3">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = item.exact
+
+        // Auto-detect if another navigation item has a more specific sub-path
+        // (e.g. /admin/entries/new vs /admin/entries) to prevent parent prefix hijacking
+        const hasMoreSpecificSibling = navItems.some(
+          (other) => other.path !== item.path && other.path.startsWith(item.path)
+        );
+        const shouldMatchExact = Boolean(item.exact || hasMoreSpecificSibling);
+
+        const isActive = shouldMatchExact
           ? location.pathname === item.path
-          : location.pathname.startsWith(item.path);
+          : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
 
         return (
           <NavLink
             key={item.path}
             to={item.path}
-            end={item.exact}
+            end={shouldMatchExact}
             onClick={onItemClick}
             className={`flex min-h-[44px] items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
               isActive

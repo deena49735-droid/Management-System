@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Team = require('../models/Team');
+const loginRateLimiter = require('../middleware/loginRateLimiter');
 
 /**
  * Helper to generate JWT token
@@ -34,6 +35,7 @@ exports.login = async (req, res, next) => {
 
     // Validate credentials types before any trim or database lookup
     if (typeof rawIdentifier !== 'string' || typeof password !== 'string') {
+      loginRateLimiter.recordFailure(null, req);
       return res.status(400).json({
         success: false,
         message: 'Invalid credentials format.',
@@ -43,6 +45,7 @@ exports.login = async (req, res, next) => {
     // Validate request inputs
     const cleanIdentifier = rawIdentifier.trim().toLowerCase();
     if (!cleanIdentifier || !password) {
+      loginRateLimiter.recordFailure(cleanIdentifier, req);
       return res.status(400).json({
         success: false,
         message: 'Please provide both email and password.',
@@ -59,6 +62,7 @@ exports.login = async (req, res, next) => {
 
     // Return the same generic error for non-existent user or invalid password
     if (!user) {
+      loginRateLimiter.recordFailure(cleanIdentifier, req);
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password.',
@@ -67,6 +71,7 @@ exports.login = async (req, res, next) => {
 
     // Check if account is active
     if (!user.isActive) {
+      loginRateLimiter.recordFailure(cleanIdentifier, req);
       return res.status(401).json({
         success: false,
         message: 'Your account is not active. Please contact your admin.',
@@ -76,11 +81,15 @@ exports.login = async (req, res, next) => {
     // Compare candidate password with stored hashed password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      loginRateLimiter.recordFailure(cleanIdentifier, req);
       return res.status(401).json({
         success: false,
         message: 'Invalid username or password.',
       });
     }
+
+    // Reset failed login counter for this account upon successful authentication
+    loginRateLimiter.recordSuccess(cleanIdentifier, req);
 
     // Token lifetime: JWT_REMEMBER_EXPIRES_IN only when remember is true AND role is not admin
     const isRemember = Boolean(remember) && user.role !== 'admin';

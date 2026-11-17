@@ -13,6 +13,7 @@ import {
   ArrowRight,
   RefreshCw,
   AlertCircle,
+  PlusCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -114,6 +115,18 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
+  // Listen for live approval & submission events to keep stats in sync without manual refresh
+  useEffect(() => {
+    const handleApprovalChanged = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    return () => {
+      window.removeEventListener('kadambas:approvals-changed', handleApprovalChanged);
+    };
+  }, []);
+
   const greeting = `${getGreeting()}, ${user?.name || 'Admin'}`;
 
   return (
@@ -123,15 +136,22 @@ const AdminDashboard = () => {
         title={greeting}
         subtitle="Platform Administrator • Overview of members, teams, chapter rankings, and meetings"
         actions={
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={fetchDashboardData}
-            isLoading={loading}
-            icon={RefreshCw}
-          >
-            Refresh
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link to="/admin/entries/new">
+              <Button variant="primary" size="sm" icon={PlusCircle}>
+                Submit Entry
+              </Button>
+            </Link>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchDashboardData}
+              isLoading={loading}
+              icon={RefreshCw}
+            >
+              Refresh
+            </Button>
+          </div>
         }
       />
 
@@ -191,7 +211,25 @@ const AdminDashboard = () => {
       </div>
 
       {/* 2. Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <Link
+          to="/admin/entries/new"
+          className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <PlusCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
+                Submit Entry
+              </p>
+              <p className="text-xs text-slate-500">Record activity or penalty</p>
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />
+        </Link>
+
         <Link
           to="/admin/users"
           className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-brand-300 hover:shadow-xs transition"
