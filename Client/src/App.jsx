@@ -117,6 +117,7 @@ function App() {
               <Route path="users" element={<AdminUsers />} />
               <Route path="teams" element={<AdminTeams />} />
               <Route path="teams/:id" element={<AdminTeamDetail />} />
+              <Route path="scorecard" element={<TeamScorecard />} />
               <Route path="criteria" element={<AdminCriteria />} />
               <Route path="entries" element={<AdminEntries />} />
               <Route path="entries/new" element={<AdminNewEntry />} />
@@ -126,24 +127,24 @@ function App() {
               <Route path="profile" element={<Navigate to="/admin/settings" replace />} />
             </Route>
 
-          {/* Protected Team Head Routes */}
-          <Route
-            path="/head"
-            element={
-              <ProtectedRoute roles={['teamHead']}>
-                <HeadLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<HeadOverview />} />
-            <Route path="approvals" element={<HeadApprovals />} />
-            <Route path="team" element={<MyTeam />} />
-            <Route path="entries/new" element={<AssistantNewEntry />} />
-            <Route path="history" element={<HeadHistory />} />
-            <Route path="scorecard" element={<TeamScorecard />} />
-            <Route path="meetings" element={<MeetingsList />} />
-            <Route path="meetings/:id" element={<MeetingSheet />} />
-          </Route>
+            {/* Protected Team Head Routes */}
+            <Route
+              path="/head"
+              element={
+                <ProtectedRoute roles={['teamHead']}>
+                  <HeadLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<HeadOverview />} />
+              <Route path="approvals" element={<HeadApprovals />} />
+              <Route path="team" element={<MyTeam />} />
+              <Route path="entries/new" element={<AssistantNewEntry />} />
+              <Route path="history" element={<HeadHistory />} />
+              <Route path="scorecard" element={<TeamScorecard />} />
+              <Route path="meetings" element={<MeetingsList />} />
+              <Route path="meetings/:id" element={<MeetingSheet />} />
+            </Route>
 
             {/* Protected Team Assistant Routes */}
             <Route

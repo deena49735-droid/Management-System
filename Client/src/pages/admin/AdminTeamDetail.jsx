@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Edit2, Plus, Users, UserCheck, Shield, Award } from 'lucide-react';
+import { Edit2, Plus, Users, UserCheck, Shield, Award, BarChart3 } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -228,6 +228,14 @@ const AdminTeamDetail = () => {
         badge={<Badge status={team.isActive} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="secondary"
+              icon={BarChart3}
+              onClick={() => navigate(`/admin/scorecard?team=${team._id}`)}
+            >
+              Scorecard
+            </Button>
+
             <Button
               variant="secondary"
               icon={Edit2}

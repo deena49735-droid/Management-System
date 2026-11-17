@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -11,7 +12,7 @@ import Badge from '../components/Badge';
 import Button from '../components/Button';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
-import { Trophy } from 'lucide-react';
+import { Trophy, CheckCircle2 } from 'lucide-react';
 
 const MONTHS = [
   { value: 1, label: 'January' },
@@ -51,14 +52,31 @@ const statusStyles = {
 
 const TeamScorecard = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentDate = new Date();
+
+  const isAdmin = user?.role === 'admin';
+  const isTeamHead = user?.role === 'teamHead';
+  const isTeamAssistant = user?.role === 'teamAssistant';
+
+  // Monthly criteria submission is authorized for Admin, Team Head, and Team Assistant
+  const canSubmitMonthly = isAdmin || isTeamHead || isTeamAssistant;
+
+  // One-time bonus submission remains authorized for Admin and Team Assistant (unchanged)
+  const canSubmitOneTime = isAdmin || isTeamAssistant;
 
   const [month, setMonth] = useState(currentDate.getMonth() + 1);
   const [year, setYear] = useState(currentDate.getFullYear());
   const [scorecard, setScorecard] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Submit Modal State (Team Assistant)
+  // Teams list for Admin team switcher
+  const [teams, setTeams] = useState([]);
+  const [selectedTeamId, setSelectedTeamId] = useState(
+    searchParams.get('teamId') || searchParams.get('team') || ''
+  );
+
+  // Submit Modal State
   const [submittingCriterion, setSubmittingCriterion] = useState(null);
   const [note, setNote] = useState('');
   const [proofImage, setProofImage] = useState('');
@@ -66,12 +84,34 @@ const TeamScorecard = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Load teams list if Admin
+  useEffect(() => {
+    if (isAdmin) {
+      const fetchTeams = async () => {
+        try {
+          const res = await api.get('/teams');
+          const teamList = res.data?.data || [];
+          setTeams(teamList);
+          if (!selectedTeamId && teamList.length > 0) {
+            setSelectedTeamId(teamList[0]._id);
+          }
+        } catch (err) {
+          console.error('Failed to load teams for admin scorecard:', err);
+        }
+      };
+      fetchTeams();
+    }
+  }, [isAdmin]);
+
   const fetchScorecard = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/team-scorecard', {
-        params: { month, year },
-      });
+      const params = { month, year };
+      if (isAdmin && selectedTeamId) {
+        params.teamId = selectedTeamId;
+        params.team = selectedTeamId;
+      }
+      const res = await api.get('/team-scorecard', { params });
       setScorecard(res.data.data);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load team scorecard.');
@@ -82,7 +122,7 @@ const TeamScorecard = () => {
 
   useEffect(() => {
     fetchScorecard();
-  }, [month, year]);
+  }, [month, year, selectedTeamId]);
 
   const handleOpenSubmit = (item) => {
     setSubmittingCriterion(item);
@@ -93,10 +133,16 @@ const TeamScorecard = () => {
 
   const handleSubmitScorecardItem = async (e) => {
     e.preventDefault();
-    if (!submittingCriterion) return;
+    if (!submittingCriterion || submitting) return;
 
     if (submittingCriterion?.criterion?.needsProof && !proofImage) {
       toast.error(`Photo proof is required for "${submittingCriterion.criterion.name}". Please upload an image.`);
+      return;
+    }
+
+    const targetTeam = scorecard?.team?._id || selectedTeamId || user?.team;
+    if (!targetTeam) {
+      toast.error('Please select a team.');
       return;
     }
 
@@ -109,13 +155,21 @@ const TeamScorecard = () => {
         note: note.trim(),
         proofImage: proofImage.trim() || undefined,
         proofPublicId: proofPublicId || undefined,
-        team: scorecard?.team?._id || user?.team,
+        team: targetTeam,
       });
 
-      toast.success('Team entry submitted successfully for review.');
+      const isAutoApproved = isAdmin || isTeamHead;
+      toast.success(
+        isAutoApproved
+          ? 'Team monthly points submitted and auto-approved!'
+          : 'Team entry submitted successfully for review.'
+      );
+
       setSubmittingCriterion(null);
       setProofImage('');
       setProofPublicId('');
+      setNote('');
+      window.dispatchEvent(new CustomEvent('kadambas:approvals-changed'));
       await fetchScorecard();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to submit team entry.');
@@ -124,8 +178,6 @@ const TeamScorecard = () => {
     }
   };
 
-  const isAssistant = user?.role === 'teamAssistant' || user?.role === 'admin';
-
   return (
     <div className="space-y-6">
       {/* Header with Back button */}
@@ -133,7 +185,21 @@ const TeamScorecard = () => {
         title={scorecard?.team?.name ? `${scorecard.team.name} scorecard` : 'Team scorecard'}
         subtitle="Monthly criteria points and one-time bonus achievements tracking."
         actions={
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {isAdmin && teams.length > 0 && (
+              <select
+                value={selectedTeamId}
+                onChange={(e) => setSelectedTeamId(e.target.value)}
+                className="flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+              >
+                {teams.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <select
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
@@ -188,13 +254,13 @@ const TeamScorecard = () => {
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
-                    {isAssistant && <th className="py-3 px-5 text-right">Action</th>}
+                    {canSubmitMonthly && <th className="py-3 px-5 text-right">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {scorecard?.monthly?.items?.map((item) => {
                     const badge = statusStyles[item.status] || statusStyles.not_submitted;
-                    const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+                    const canSubmit = canSubmitMonthly && (item.status === 'not_submitted' || item.status === 'rejected');
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
@@ -212,7 +278,7 @@ const TeamScorecard = () => {
                             {badge.label}
                           </Badge>
                         </td>
-                        {isAssistant && (
+                        {canSubmitMonthly && (
                           <td className="py-3.5 px-5 text-right">
                             {canSubmit ? (
                               <Button
@@ -223,7 +289,9 @@ const TeamScorecard = () => {
                                 Submit
                               </Button>
                             ) : item.status === 'pending' ? (
-                              <span className="text-xs text-slate-400">Awaiting Head</span>
+                              <span className="text-xs text-amber-600 font-medium">
+                                {isAdmin || isTeamHead ? 'Pending Approval' : 'Awaiting Approval'}
+                              </span>
                             ) : item.status === 'approved' ? (
                               <span className="text-xs text-emerald-600 font-semibold">Earned</span>
                             ) : null}
@@ -236,7 +304,7 @@ const TeamScorecard = () => {
                 <tfoot>
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
                     <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total monthly points</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
+                    <td colSpan={canSubmitMonthly ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
                       <span className="text-brand-600 font-bold text-base">
                         {scorecard?.monthly?.earned || 0}
                       </span>
@@ -253,7 +321,7 @@ const TeamScorecard = () => {
             <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
               {scorecard?.monthly?.items?.map((item) => {
                 const badge = statusStyles[item.status] || statusStyles.not_submitted;
-                const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+                const canSubmit = canSubmitMonthly && (item.status === 'not_submitted' || item.status === 'rejected');
 
                 return (
                   <div key={item.criterion.id || item.criterion._id} className="p-4 space-y-3">
@@ -274,7 +342,7 @@ const TeamScorecard = () => {
                     <div className="flex items-center justify-between pt-1">
                       <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
 
-                      {isAssistant && (
+                      {canSubmitMonthly && (
                         <div>
                           {canSubmit ? (
                             <Button
@@ -285,7 +353,9 @@ const TeamScorecard = () => {
                               Submit
                             </Button>
                           ) : item.status === 'pending' ? (
-                            <span className="text-xs text-slate-400">Awaiting Head</span>
+                            <span className="text-xs text-amber-600 font-medium">
+                              {isAdmin || isTeamHead ? 'Pending Approval' : 'Awaiting Approval'}
+                            </span>
                           ) : item.status === 'approved' ? (
                             <span className="text-xs text-emerald-600 font-semibold">Earned</span>
                           ) : null}
@@ -326,13 +396,13 @@ const TeamScorecard = () => {
                     <th className="py-3 px-4 text-right">Points</th>
                     <th className="py-3 px-4 text-center">Proof</th>
                     <th className="py-3 px-4 text-center">Status</th>
-                    {isAssistant && <th className="py-3 px-5 text-right">Action</th>}
+                    {canSubmitOneTime && <th className="py-3 px-5 text-right">Action</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {scorecard?.oneTime?.items?.map((item) => {
                     const badge = statusStyles[item.status] || statusStyles.not_submitted;
-                    const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+                    const canSubmit = canSubmitOneTime && (item.status === 'not_submitted' || item.status === 'rejected');
 
                     return (
                       <tr key={item.criterion.id || item.criterion._id} className="hover:bg-slate-50/60 transition">
@@ -350,7 +420,7 @@ const TeamScorecard = () => {
                             {badge.label}
                           </Badge>
                         </td>
-                        {isAssistant && (
+                        {canSubmitOneTime && (
                           <td className="py-3.5 px-5 text-right">
                             {canSubmit ? (
                               <Button
@@ -361,7 +431,7 @@ const TeamScorecard = () => {
                                 Submit
                               </Button>
                             ) : item.status === 'pending' ? (
-                              <span className="text-xs text-slate-400">Awaiting Head</span>
+                              <span className="text-xs text-slate-400">Awaiting Approval</span>
                             ) : item.status === 'approved' ? (
                               <span className="text-xs text-emerald-600 font-semibold">Earned</span>
                             ) : null}
@@ -374,7 +444,7 @@ const TeamScorecard = () => {
                 <tfoot>
                   <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-900">
                     <td className="py-3.5 px-5 text-xs uppercase tracking-wider text-slate-600">Total one-time points</td>
-                    <td colSpan={isAssistant ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
+                    <td colSpan={canSubmitOneTime ? 4 : 3} className="py-3.5 px-5 text-right tabular-nums">
                       <span className="text-brand-600 font-bold text-base">
                         {scorecard?.oneTime?.earned || 0}
                       </span>
@@ -391,7 +461,7 @@ const TeamScorecard = () => {
             <div className="grid grid-cols-1 divide-y divide-slate-100 md:hidden">
               {scorecard?.oneTime?.items?.map((item) => {
                 const badge = statusStyles[item.status] || statusStyles.not_submitted;
-                const canSubmit = isAssistant && (item.status === 'not_submitted' || item.status === 'rejected');
+                const canSubmit = canSubmitOneTime && (item.status === 'not_submitted' || item.status === 'rejected');
 
                 return (
                   <div key={item.criterion.id || item.criterion._id} className="p-4 space-y-3">
@@ -412,7 +482,7 @@ const TeamScorecard = () => {
                     <div className="flex items-center justify-between pt-1">
                       <ProofImage src={item.entry?.proofImage} alt={item.criterion.name} />
 
-                      {isAssistant && (
+                      {canSubmitOneTime && (
                         <div>
                           {canSubmit ? (
                             <Button
@@ -423,7 +493,7 @@ const TeamScorecard = () => {
                               Submit
                             </Button>
                           ) : item.status === 'pending' ? (
-                            <span className="text-xs text-slate-400">Awaiting Head</span>
+                            <span className="text-xs text-slate-400">Awaiting Approval</span>
                           ) : item.status === 'approved' ? (
                             <span className="text-xs text-emerald-600 font-semibold">Earned</span>
                           ) : null}
@@ -446,13 +516,17 @@ const TeamScorecard = () => {
         </div>
       )}
 
-      {/* Submission Modal for Team Assistant */}
-      {isAssistant && (
+      {/* Submission Modal for Monthly / One-Time Points */}
+      {(canSubmitMonthly || canSubmitOneTime) && (
         <Modal
           isOpen={!!submittingCriterion}
           onClose={() => setSubmittingCriterion(null)}
           title={`Submit team goal: ${submittingCriterion?.criterion?.name || ''}`}
-          subtitle="Submit points claim for chapter leadership review"
+          subtitle={
+            isAdmin || isTeamHead
+              ? 'Submissions are automatically approved and immediately credited to the team score'
+              : 'Submit points claim for chapter leadership review'
+          }
         >
           <form onSubmit={handleSubmitScorecardItem} className="space-y-4">
             <div className="rounded-lg bg-slate-50 p-3.5 border border-slate-200 flex items-center justify-between">
@@ -469,6 +543,16 @@ const TeamScorecard = () => {
                 </p>
               </div>
             </div>
+
+            {/* Auto-Approval Notice for Admin / Team Head */}
+            {(isAdmin || isTeamHead) && (
+              <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+                <span>
+                  {isAdmin ? 'Admin' : 'Team Head'} submissions are automatically approved and credited immediately.
+                </span>
+              </div>
+            )}
 
             {/* Photo Proof Upload */}
             <ProofUpload
@@ -510,7 +594,11 @@ const TeamScorecard = () => {
                 isLoading={submitting}
                 disabled={submitting || uploadingProof}
               >
-                {uploadingProof ? 'Uploading photo...' : 'Confirm and submit'}
+                {uploadingProof
+                  ? 'Uploading photo...'
+                  : isAdmin || isTeamHead
+                  ? 'Submit & Auto-Approve'
+                  : 'Confirm and submit'}
               </Button>
             </div>
           </form>

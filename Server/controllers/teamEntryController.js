@@ -39,15 +39,7 @@ exports.createTeamEntry = async (req, res, next) => {
     const { criteria, month, year, note, proofImage, proofPublicId, team } = req.body;
     const userRole = req.user.role;
 
-    if (userRole === 'teamHead') {
-      await session.abortTransaction();
-      return res.status(403).json({
-        success: false,
-        message: 'Team heads cannot submit team entries. Data entry is handled by team assistants.',
-      });
-    }
-
-    if (userRole === 'member') {
+    if (!['admin', 'teamHead', 'teamAssistant'].includes(userRole)) {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,
@@ -55,14 +47,37 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
-    // Determine target team
+    // Determine and enforce target team
     let targetTeamId;
-    if (userRole === 'teamAssistant') {
+    if (userRole === 'teamHead') {
       if (!req.user.team) {
         await session.abortTransaction();
         return res.status(400).json({
           success: false,
           message: 'You are not assigned to any team.',
+        });
+      }
+      if (team && team.toString() !== req.user.team.toString()) {
+        await session.abortTransaction();
+        return res.status(403).json({
+          success: false,
+          message: 'Team heads can only submit team entries for their own team.',
+        });
+      }
+      targetTeamId = req.user.team;
+    } else if (userRole === 'teamAssistant') {
+      if (!req.user.team) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          success: false,
+          message: 'You are not assigned to any team.',
+        });
+      }
+      if (team && team.toString() !== req.user.team.toString()) {
+        await session.abortTransaction();
+        return res.status(403).json({
+          success: false,
+          message: 'Team assistants can only submit team entries for their own team.',
         });
       }
       targetTeamId = req.user.team;
@@ -140,6 +155,15 @@ exports.createTeamEntry = async (req, res, next) => {
     // Standardized frequency: 'monthly' or 'one_time'
     const frequency = criteriaDoc.frequency === 'one_time' || criteriaDoc.category === 'one_time' ? 'one_time' : 'monthly';
 
+    // Team Head is authorized specifically for monthly team points
+    if (userRole === 'teamHead' && frequency !== 'monthly') {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'Team heads can only submit monthly team points. One-time bonus achievements are submitted by team assistants or awarded by administrators.',
+      });
+    }
+
     const currentDate = new Date();
     const entryMonth = month !== undefined ? parseInt(month, 10) : currentDate.getMonth() + 1;
     const entryYear = year !== undefined ? parseInt(year, 10) : currentDate.getFullYear();
@@ -187,6 +211,12 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
+    // Auto-approval logic: Admin and Team Head submissions are automatically approved
+    const isAutoApproved = userRole === 'admin' || userRole === 'teamHead';
+    const entryStatus = isAutoApproved ? 'approved' : 'pending';
+    const approvedBy = isAutoApproved ? req.user._id : null;
+    const approvedAt = isAutoApproved ? new Date() : null;
+
     const [newEntry] = await TeamPointEntry.create(
       [
         {
@@ -199,8 +229,10 @@ exports.createTeamEntry = async (req, res, next) => {
           proofImage: proofImage || null,
           proofPublicId: proofPublicId || null,
           note: typeof note === 'string' && note.trim() ? note.trim() : '',
-          status: 'pending',
+          status: entryStatus,
           submittedBy: req.user._id,
+          approvedBy,
+          approvedAt,
           isAdminAdjustment: false,
           isReversal: false,
           reversalOf: null,
@@ -209,32 +241,48 @@ exports.createTeamEntry = async (req, res, next) => {
       { session }
     );
 
-    await AuditLog.create(
-      [
-        {
-          action: 'ENTRY_CREATE',
-          targetType: 'TeamPointEntry',
-          targetId: newEntry._id,
-          performedBy: req.user._id,
-          previousStatus: null,
-          newStatus: 'pending',
-          points: criteriaDoc.points,
-          reason: typeof note === 'string' && note.trim() ? note.trim() : '',
-          metadata: {
-            criteriaKey: criteriaDoc.key,
-            frequency,
-          },
+    const auditLogsToCreate = [
+      {
+        action: 'ENTRY_CREATE',
+        targetType: 'TeamPointEntry',
+        targetId: newEntry._id,
+        performedBy: req.user._id,
+        previousStatus: null,
+        newStatus: entryStatus,
+        points: criteriaDoc.points,
+        reason: typeof note === 'string' && note.trim() ? note.trim() : '',
+        metadata: {
+          criteriaKey: criteriaDoc.key,
+          frequency,
+          autoApproved: isAutoApproved,
+          ...(isAutoApproved ? { approvedAt } : {}),
         },
-      ],
-      { session }
-    );
+      },
+    ];
+
+    if (isAutoApproved) {
+      auditLogsToCreate.push({
+        action: 'ENTRY_APPROVE',
+        targetType: 'TeamPointEntry',
+        targetId: newEntry._id,
+        performedBy: req.user._id,
+        previousStatus: 'pending',
+        newStatus: 'approved',
+        points: criteriaDoc.points,
+        reason: 'Auto-approved upon submission by leadership.',
+        metadata: { approvedAt },
+      });
+    }
+
+    await AuditLog.create(auditLogsToCreate, { session, ordered: true });
 
     await session.commitTransaction();
 
     const populatedEntry = await TeamPointEntry.findById(newEntry._id)
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
-      .populate('submittedBy', 'name username phone role');
+      .populate('submittedBy', 'name username phone role')
+      .populate('approvedBy', 'name username phone role');
 
     res.status(201).json({
       success: true,

@@ -50,6 +50,12 @@ const AdminNewEntry = () => {
   const [proofPublicId, setProofPublicId] = useState('');
   const [uploadingProof, setUploadingProof] = useState(false);
 
+  // Dedicated member loading state
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [membersError, setMembersError] = useState('');
+  const [membersReloadKey, setMembersReloadKey] = useState(0);
+
   useEffect(() => {
     const fetchFormData = async () => {
       try {
@@ -90,10 +96,116 @@ const AdminNewEntry = () => {
     fetchFormData();
   }, []);
 
-  const selectedTeam = teams.find((t) => (t._id || t.id) === selectedTeamId);
-  const teamMembers = (selectedTeam?.members || []).filter(
-    (m) => m && m._id && m.isActive !== false
-  );
+  // Fetch eligible team members whenever selected team changes
+  useEffect(() => {
+    if (!selectedTeamId) {
+      setTeamMembers([]);
+      setMemberId('');
+      setLoadingMembers(false);
+      setMembersError('');
+      return;
+    }
+
+    let isMounted = true;
+    setLoadingMembers(true);
+    setMembersError('');
+    setMemberId('');
+
+    const fetchTeamMembers = async () => {
+      try {
+        // Fetch team details (populates head, assistant, members) and users in this team
+        const [teamRes, usersRes] = await Promise.allSettled([
+          api.get(`/teams/${selectedTeamId}`),
+          api.get('/users', { params: { team: selectedTeamId, isActive: 'true', limit: 100 } }),
+        ]);
+
+        if (!isMounted) return;
+
+        const candidateList = [];
+
+        if (teamRes.status === 'fulfilled' && teamRes.value?.data?.data) {
+          const teamDoc = teamRes.value.data.data;
+          if (teamDoc.head && typeof teamDoc.head === 'object') {
+            candidateList.push(teamDoc.head);
+          }
+          if (teamDoc.assistant && typeof teamDoc.assistant === 'object') {
+            candidateList.push(teamDoc.assistant);
+          }
+          if (Array.isArray(teamDoc.members)) {
+            teamDoc.members.forEach((m) => {
+              if (m && typeof m === 'object') {
+                candidateList.push(m);
+              }
+            });
+          }
+        }
+
+        if (usersRes.status === 'fulfilled' && usersRes.value?.data?.data) {
+          const userArray = usersRes.value.data.data.users || usersRes.value.data.data;
+          if (Array.isArray(userArray)) {
+            userArray.forEach((u) => {
+              if (u && typeof u === 'object') {
+                candidateList.push(u);
+              }
+            });
+          }
+        }
+
+        if (teamRes.status === 'rejected' && usersRes.status === 'rejected') {
+          const errorMsg =
+            teamRes.reason?.response?.data?.message ||
+            usersRes.reason?.response?.data?.message ||
+            'Failed to load team members.';
+          throw new Error(errorMsg);
+        }
+
+        // Deduplicate and filter strictly
+        const seen = new Set();
+        const validMembers = [];
+
+        candidateList.forEach((u) => {
+          const uid = (u._id || u.id)?.toString();
+          if (!uid) return;
+          if (seen.has(uid)) return;
+          seen.add(uid);
+
+          // Enforce: Must be active, must NOT be admin, must have valid chapter role
+          if (u.isActive === false) return;
+          if (u.role === 'admin') return;
+          if (!['member', 'teamHead', 'teamAssistant'].includes(u.role)) return;
+
+          validMembers.push(u);
+        });
+
+        // Sort: Team Head first, then Team Assistant, then Members alphabetically by name
+        validMembers.sort((a, b) => {
+          const roleOrder = { teamHead: 1, teamAssistant: 2, member: 3 };
+          const orderA = roleOrder[a.role] || 4;
+          const orderB = roleOrder[b.role] || 4;
+          if (orderA !== orderB) return orderA - orderB;
+          return (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+        });
+
+        setTeamMembers(validMembers);
+      } catch (err) {
+        if (!isMounted) return;
+        const msg = err.message || 'Failed to load team members.';
+        console.error('Error fetching team members:', err);
+        setMembersError(msg);
+        setTeamMembers([]);
+      } finally {
+        if (isMounted) {
+          setLoadingMembers(false);
+        }
+      }
+    };
+
+    fetchTeamMembers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedTeamId, membersReloadKey]);
 
   const selectedCriteria = criteriaList.find((c) => (c.id || c._id) === criteriaId);
   const showQuantity = selectedCriteria && allowsMultipleQuantity(selectedCriteria.basisLabel);
@@ -204,7 +316,8 @@ const AdminNewEntry = () => {
                   setMemberId('');
                 }}
                 required
-                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                disabled={loading || submitting}
+                className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600 disabled:bg-slate-50 disabled:text-slate-400"
               >
                 <option value="">-- Choose team --</option>
                 {teams.map((t) => (
@@ -223,18 +336,61 @@ const AdminNewEntry = () => {
                 value={memberId}
                 onChange={(e) => setMemberId(e.target.value)}
                 required
-                disabled={!selectedTeamId}
+                disabled={!selectedTeamId || loadingMembers || submitting || (!loadingMembers && teamMembers.length === 0)}
                 className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600 disabled:bg-slate-50 disabled:text-slate-400"
               >
-                <option value="">
-                  {!selectedTeamId ? '-- Choose team first --' : '-- Choose member --'}
-                </option>
-                {teamMembers.map((m) => (
-                  <option key={m._id} value={m._id}>
-                    {m.name} (@{m.username})
-                  </option>
-                ))}
+                {!selectedTeamId ? (
+                  <option value="">-- Choose team first --</option>
+                ) : loadingMembers ? (
+                  <option value="">Loading members...</option>
+                ) : membersError ? (
+                  <option value="">Error loading members</option>
+                ) : teamMembers.length === 0 ? (
+                  <option value="">No active members found in this team</option>
+                ) : (
+                  <>
+                    <option value="">-- Choose member ({teamMembers.length} available) --</option>
+                    {teamMembers.map((m) => {
+                      const roleTag =
+                        m.role === 'teamHead'
+                          ? ' • Team Head'
+                          : m.role === 'teamAssistant'
+                          ? ' • Team Assistant'
+                          : '';
+                      const usernameTag = m.username ? ` (@${m.username})` : '';
+                      return (
+                        <option key={m._id} value={m._id}>
+                          {m.name}{usernameTag}{roleTag}
+                        </option>
+                      );
+                    })}
+                  </>
+                )}
               </select>
+
+              {/* Status feedback helpers */}
+              {loadingMembers && (
+                <p className="mt-1 text-xs text-slate-500 animate-pulse">
+                  Loading eligible team accounts...
+                </p>
+              )}
+              {!loadingMembers && selectedTeamId && teamMembers.length === 0 && !membersError && (
+                <p className="mt-1 text-xs text-amber-600">
+                  No active members, heads, or assistants found assigned to this team.
+                </p>
+              )}
+              {membersError && (
+                <div className="mt-1 flex items-center justify-between text-xs text-rose-600">
+                  <span>{membersError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setMembersReloadKey((k) => k + 1)}
+                    className="ml-2 font-semibold underline hover:text-rose-700"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

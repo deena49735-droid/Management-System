@@ -32,6 +32,7 @@ const roleMenus = {
     { name: 'Dashboard', path: '/admin', exact: true, icon: LayoutDashboard },
     { name: 'Members', path: '/admin/users', icon: Users },
     { name: 'Teams', path: '/admin/teams', icon: Shield },
+    { name: 'Team scorecard', path: '/admin/scorecard', exact: true, icon: BarChart3 },
     { name: 'Game criteria', path: '/admin/criteria', exact: true, icon: BookOpen },
     { name: 'Entries', path: '/admin/entries', exact: true, icon: CheckSquare },
     { name: 'Submit entry', path: '/admin/entries/new', exact: true, icon: PlusCircle },

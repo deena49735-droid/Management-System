@@ -276,7 +276,7 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
-    await AuditLog.create(auditLogsToCreate, { session });
+    await AuditLog.create(auditLogsToCreate, { session, ordered: true });
 
     await session.commitTransaction();
 
@@ -284,7 +284,8 @@ exports.createEntry = async (req, res, next) => {
       .populate('member', 'name email username phone role')
       .populate('team', 'name')
       .populate('criteria', 'key name category points basis frequency needsProof')
-      .populate('enteredBy', 'name username phone role');
+      .populate('enteredBy', 'name username phone role')
+      .populate('approvedBy', 'name username phone role');
 
     res.status(201).json({
       success: true,
