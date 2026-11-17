@@ -137,7 +137,7 @@ const AssistantOverview = () => {
         <EmptyState
           icon={AlertCircle}
           title="No team assignment"
-          description="Your user account is not currently assigned as Assistant of any chapter team. Please contact your administrator."
+          description="Your account is not currently assigned as Assistant of any chapter team. Please contact your administrator."
         />
       </div>
     );

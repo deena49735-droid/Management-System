@@ -99,7 +99,7 @@ const AdminUsers = () => {
       }
     } catch (err) {
       console.error('Error fetching users:', err);
-      toast.error(err.response?.data?.message || 'Failed to load users.');
+      toast.error(err.response?.data?.message || 'Failed to load members.');
     } finally {
       setLoading(false);
     }
@@ -154,12 +154,12 @@ const AdminUsers = () => {
       };
 
       await api.post('/users', payload);
-      toast.success('User created successfully!');
+      toast.success('Member created successfully!');
       setIsAddModalOpen(false);
       setAddForm({ name: '', email: '', phone: '', password: '' });
       fetchUsers();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to create user.';
+      const msg = err.response?.data?.message || 'Failed to create member.';
       setFormError(msg);
       toast.error(msg);
     } finally {
@@ -214,11 +214,11 @@ const AdminUsers = () => {
       };
 
       await api.put(`/users/${editingUser._id}`, payload);
-      toast.success('User updated successfully!');
+      toast.success('Member updated successfully!');
       setEditingUser(null);
       fetchUsers();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to update user.';
+      const msg = err.response?.data?.message || 'Failed to update member.';
       setFormError(msg);
       toast.error(msg);
     } finally {
@@ -267,7 +267,7 @@ const AdminUsers = () => {
       const targetState = !togglingUser.isActive;
       await api.put(`/users/${togglingUser._id}`, { isActive: targetState });
       toast.success(
-        `User ${targetState ? 'activated' : 'deactivated'} successfully.`
+        `Member ${targetState ? 'activated' : 'deactivated'} successfully.`
       );
       setTogglingUser(null);
       fetchUsers();
@@ -282,7 +282,7 @@ const AdminUsers = () => {
     <div className="space-y-6">
       {/* Header and Add Button */}
       <PageHeader
-        title="Chapter users"
+        title="Chapter members"
         subtitle="Create and maintain chapter members, team heads, and team assistants."
         actions={
           <Button
@@ -294,7 +294,7 @@ const AdminUsers = () => {
               setIsAddModalOpen(true);
             }}
           >
-            Add user
+            Add member
           </Button>
         }
       />
@@ -348,18 +348,18 @@ const AdminUsers = () => {
         </div>
       </Card>
 
-      {/* Users Content Container */}
+      {/* Members Content Container */}
       <Card className="overflow-hidden p-0">
         {loading ? (
           <SkeletonTable rows={5} cols={5} />
         ) : users.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="No users found"
+            title="No members found"
             description={
               debouncedSearch || roleFilter || statusFilter
                 ? 'Try adjusting your search query or filter options.'
-                : 'Click "Add user" above to create your first user.'
+                : 'Click "Add member" above to create your first member.'
             }
           />
         ) : (
@@ -369,7 +369,7 @@ const AdminUsers = () => {
               <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50/75 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                   <tr>
-                    <th scope="col" className="px-5 py-3.5">User</th>
+                    <th scope="col" className="px-5 py-3.5">Member</th>
                     <th scope="col" className="px-5 py-3.5">Phone</th>
                     <th scope="col" className="px-5 py-3.5">Role</th>
                     <th scope="col" className="px-5 py-3.5">Team</th>
@@ -450,7 +450,7 @@ const AdminUsers = () => {
               {users.filter((item) => item.role !== 'admin').map((item) => {
                 return (
                   <div key={item._id} className="p-4 space-y-3">
-                    {/* User Header: Avatar, Name, Email, Status */}
+                    {/* Member Header: Avatar, Name, Email, Status */}
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Avatar name={item.name} size="sm" />
@@ -534,11 +534,11 @@ const AdminUsers = () => {
         )}
       </Card>
 
-      {/* Add User Modal */}
+      {/* Add Member Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add new user"
+        title="Add new member"
         subtitle="Create a new chapter member account"
       >
         <form onSubmit={handleAddSubmit} className="space-y-4">
@@ -608,17 +608,17 @@ const AdminUsers = () => {
               variant="primary"
               isLoading={submitting}
             >
-              Create user
+              Create member
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Edit User Modal */}
+      {/* Edit Member Modal */}
       <Modal
         isOpen={!!editingUser}
         onClose={() => setEditingUser(null)}
-        title={`Edit user: ${editingUser?.name || ''}`}
+        title={`Edit member: ${editingUser?.name || ''}`}
         subtitle="Update profile details and assignments"
       >
         <form onSubmit={handleEditSubmit} className="space-y-4">
@@ -787,13 +787,13 @@ const AdminUsers = () => {
         isOpen={!!togglingUser}
         onClose={() => setTogglingUser(null)}
         onConfirm={handleToggleActiveConfirm}
-        title={togglingUser?.isActive ? 'Deactivate user account?' : 'Activate user account?'}
+        title={togglingUser?.isActive ? 'Deactivate member account?' : 'Activate member account?'}
         message={`Are you sure you want to ${
           togglingUser?.isActive ? 'deactivate' : 'activate'
         } ${togglingUser?.name}? ${
           togglingUser?.isActive
-            ? 'The user will be blocked from logging into the platform.'
-            : 'The user will regain login access.'
+            ? 'The member will be blocked from logging into the platform.'
+            : 'The member will regain login access.'
         }`}
         confirmText={togglingUser?.isActive ? 'Deactivate' : 'Activate'}
         confirmVariant={togglingUser?.isActive ? 'danger' : 'primary'}

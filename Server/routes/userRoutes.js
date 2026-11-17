@@ -57,7 +57,7 @@ const createUserValidation = [
     .optional()
     .custom((val) => {
       if (val && val !== 'member') {
-        throw new Error('New users can only be created with the Member role. Team role assignments are managed after creation.');
+        throw new Error('New members can only be created with the Member role. Team role assignments are managed after creation.');
       }
       return true;
     }),
@@ -65,7 +65,7 @@ const createUserValidation = [
     .optional({ nullable: true, checkFalsy: true })
     .custom((val) => {
       if (val) {
-        throw new Error('Team assignment during user creation is not allowed. Assign users to teams after creation.');
+        throw new Error('Team assignment during member creation is not allowed. Assign members to teams after creation.');
       }
       return true;
     }),

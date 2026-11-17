@@ -387,14 +387,14 @@ exports.assignHead = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot assign an inactive user as team head.',
+        message: 'Cannot assign an inactive member as team head.',
       });
     }
 
@@ -406,19 +406,19 @@ exports.assignHead = async (req, res, next) => {
       });
     }
 
-    // Role eligibility: only chapter users can be assigned as team head
+    // Role eligibility: only chapter members can be assigned as team head
     if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: 'Only chapter users can be assigned as team head.',
+        message: 'Only chapter members can be assigned as team head.',
       });
     }
 
-    // A user can belong to only one team at a time
+    // A member can belong to only one team at a time
     if (user.team && user.team.toString() !== team._id.toString()) {
       return res.status(400).json({
         success: false,
-        message: 'User already belongs to another team. Remove them from their current team first.',
+        message: 'Member already belongs to another team. Remove them from their current team first.',
       });
     }
 
@@ -498,14 +498,14 @@ exports.assignAssistant = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot assign an inactive user as team assistant.',
+        message: 'Cannot assign an inactive member as team assistant.',
       });
     }
 
@@ -517,19 +517,19 @@ exports.assignAssistant = async (req, res, next) => {
       });
     }
 
-    // Role eligibility: only chapter users can be assigned as team assistant
+    // Role eligibility: only chapter members can be assigned as team assistant
     if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: 'Only chapter users can be assigned as team assistant.',
+        message: 'Only chapter members can be assigned as team assistant.',
       });
     }
 
-    // A user can belong to only one team at a time
+    // A member can belong to only one team at a time
     if (user.team && user.team.toString() !== team._id.toString()) {
       return res.status(400).json({
         success: false,
-        message: 'User already belongs to another team. Remove them from their current team first.',
+        message: 'Member already belongs to another team. Remove them from their current team first.',
       });
     }
 
@@ -632,7 +632,7 @@ exports.createMyTeamMember = async (req, res, next) => {
     if (existingUsername) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this username already exists.',
+        message: 'A member with this username already exists.',
       });
     }
 
@@ -641,7 +641,7 @@ exports.createMyTeamMember = async (req, res, next) => {
     if (existingPhone) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this phone number already exists.',
+        message: 'A member with this phone number already exists.',
       });
     }
 
@@ -673,13 +673,13 @@ exports.createMyTeamMember = async (req, res, next) => {
       if (field === 'username') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this username already exists.',
+          message: 'A member with this username already exists.',
         });
       }
       if (field === 'phone') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this phone number already exists.',
+          message: 'A member with this phone number already exists.',
         });
       }
     }
@@ -781,14 +781,14 @@ exports.addExistingMemberToMyTeam = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot add an inactive user to a team.',
+        message: 'Cannot add an inactive member to a team.',
       });
     }
 
@@ -800,25 +800,25 @@ exports.addExistingMemberToMyTeam = async (req, res, next) => {
       });
     }
 
-    // Only active chapter users can be assigned to teams
+    // Only active chapter members can be assigned to teams
     if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: 'Only chapter users can be assigned to a team.',
+        message: 'Only chapter members can be assigned to a team.',
       });
     }
 
     if (user.role !== 'member') {
       return res.status(400).json({
         success: false,
-        message: 'Only users with the member role can be added to the team.',
+        message: 'Only accounts with the member role can be added to the team.',
       });
     }
 
     if (user.team || team.members.map((m) => m.toString()).includes(user._id.toString())) {
       return res.status(409).json({
         success: false,
-        message: 'This user already belongs to a team.',
+        message: 'This member already belongs to a team.',
       });
     }
 
@@ -875,14 +875,14 @@ exports.addMember = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot add an inactive user to a team.',
+        message: 'Cannot add an inactive member to a team.',
       });
     }
 
@@ -894,26 +894,26 @@ exports.addMember = async (req, res, next) => {
       });
     }
 
-    // Only active chapter users can be assigned to teams
+    // Only active chapter members can be assigned to teams
     if (!['member', 'teamHead', 'teamAssistant'].includes(user.role)) {
       return res.status(400).json({
         success: false,
-        message: 'Only chapter users can be assigned to a team.',
+        message: 'Only chapter members can be assigned to a team.',
       });
     }
 
-    // A user can belong to only one team at a time
+    // A member can belong to only one team at a time
     if (user.team && user.team.toString() !== team._id.toString()) {
       return res.status(400).json({
         success: false,
-        message: 'User already belongs to another team. Remove them from their current team first.',
+        message: 'Member already belongs to another team. Remove them from their current team first.',
       });
     }
 
     if (team.members.map((m) => m.toString()).includes(user._id.toString())) {
       return res.status(400).json({
         success: false,
-        message: 'User is already a member of this team.',
+        message: 'Member is already assigned to this team.',
       });
     }
 
@@ -982,7 +982,7 @@ exports.removeMember = async (req, res, next) => {
     if (!teamId || !mongoose.Types.ObjectId.isValid(teamId) || !userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(404).json({
         success: false,
-        message: 'Team or User not found.',
+        message: 'Team or member not found.',
       });
     }
 
@@ -1017,16 +1017,16 @@ exports.removeMember = async (req, res, next) => {
     if (!isMember && !isHead && !isAssistant) {
       return res.status(404).json({
         success: false,
-        message: 'User is not a member of this team.',
+        message: 'Member is not assigned to this team.',
       });
     }
 
-    // 4. Look up target user
+    // 4. Look up target member
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 

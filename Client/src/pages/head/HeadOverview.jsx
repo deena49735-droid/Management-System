@@ -136,7 +136,7 @@ const HeadOverview = () => {
         <EmptyState
           icon={AlertCircle}
           title="No team assignment"
-          description="Your user account is not currently assigned as Head of any chapter team. Please contact the administrator."
+          description="Your account is not currently assigned as Head of any chapter team. Please contact the administrator."
         />
       </div>
     );

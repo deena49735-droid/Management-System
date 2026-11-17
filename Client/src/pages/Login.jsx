@@ -51,7 +51,10 @@ const Login = () => {
       navigate(targetPath, { replace: true });
     } catch (error) {
       const msg =
-        error.response?.data?.message || 'Invalid username or password.';
+        error.response?.data?.message ||
+        (error.message === 'Network Error' || !error.response
+          ? 'Unable to connect to server. Please check your internet connection or wait a moment for the server to wake up.'
+          : 'Invalid username or password.');
       setErrorMessage(msg);
       toast.error(msg);
     } finally {

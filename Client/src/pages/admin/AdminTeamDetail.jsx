@@ -168,7 +168,7 @@ const AdminTeamDetail = () => {
   const handleAddMember = async (e) => {
     e.preventDefault();
     if (!selectedMemberToAdd) {
-      toast.error('Please select an active user to add.');
+      toast.error('Please select an active member to add.');
       return;
     }
 
@@ -294,7 +294,7 @@ const AdminTeamDetail = () => {
               onChange={(e) => handleAssignHead(e.target.value)}
               className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
-              <option value="">Select an active user...</option>
+              <option value="">Select an active member...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
                   {u.name} (@{u.username}) — {u.role === 'teamHead' ? 'Team Head' : u.role === 'teamAssistant' ? 'Team Assistant' : u.role}
@@ -350,7 +350,7 @@ const AdminTeamDetail = () => {
               onChange={(e) => handleAssignAssistant(e.target.value)}
               className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-sm text-slate-900 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition disabled:bg-slate-50 disabled:text-slate-400"
             >
-              <option value="">Select an active user...</option>
+              <option value="">Select an active member...</option>
               {eligibleLeaders.map((u) => (
                 <option key={u._id} value={u._id}>
                   {u.name} (@{u.username}) — {u.role === 'teamHead' ? 'Team Head' : u.role === 'teamAssistant' ? 'Team Assistant' : u.role}
@@ -372,7 +372,7 @@ const AdminTeamDetail = () => {
             <div>
               <h2 className="text-base font-semibold text-slate-900">Team members roster</h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Manage members assigned to this team. Users can belong to only one team at a time.
+                Manage members assigned to this team. Members can belong to only one team at a time.
               </p>
             </div>
 
@@ -386,8 +386,8 @@ const AdminTeamDetail = () => {
               >
                 <option value="">
                   {eligibleNewMembers.length === 0
-                    ? 'No unassigned users available'
-                    : 'Select user to add...'}
+                    ? 'No unassigned members available'
+                    : 'Select member to add...'}
                 </option>
                 {eligibleNewMembers.map((u) => (
                   <option key={u._id} value={u._id}>
@@ -413,7 +413,7 @@ const AdminTeamDetail = () => {
           <EmptyState
             icon={Users}
             title="No members in this team"
-            description="Use the dropdown above to add active users to this team roster."
+            description="Use the dropdown above to add active members to this team roster."
           />
         ) : (
           <>

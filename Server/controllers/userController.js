@@ -31,19 +31,19 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    // Enforce role restriction: New users can only be created with the Member role
+    // Enforce role restriction: New members can only be created with the Member role
     if (role && role !== 'member') {
       return res.status(400).json({
         success: false,
-        message: 'New users can only be created with the Member role. Team role assignments are managed after creation.',
+        message: 'New members can only be created with the Member role. Team role assignments are managed after creation.',
       });
     }
 
-    // Enforce team restriction: Team assignment during user creation is not allowed
+    // Enforce team restriction: Team assignment during member creation is not allowed
     if (team) {
       return res.status(400).json({
         success: false,
-        message: 'Team assignment during user creation is not allowed. Assign users to teams after creation.',
+        message: 'Team assignment during member creation is not allowed. Assign members to teams after creation.',
       });
     }
 
@@ -52,7 +52,7 @@ exports.createUser = async (req, res, next) => {
     if (existingEmail) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this email address already exists.',
+        message: 'A member with this email address already exists.',
       });
     }
 
@@ -61,7 +61,7 @@ exports.createUser = async (req, res, next) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this phone number already exists.',
+        message: 'A member with this phone number already exists.',
       });
     }
 
@@ -71,7 +71,7 @@ exports.createUser = async (req, res, next) => {
       if (existingUsername) {
         return res.status(409).json({
           success: false,
-          message: 'A user with this username already exists.',
+          message: 'A member with this username already exists.',
         });
       }
     }
@@ -100,24 +100,24 @@ exports.createUser = async (req, res, next) => {
       if (field === 'email') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this email address already exists.',
+          message: 'A member with this email address already exists.',
         });
       }
       if (field === 'username') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this username already exists.',
+          message: 'A member with this username already exists.',
         });
       }
       if (field === 'phone') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this phone number already exists.',
+          message: 'A member with this phone number already exists.',
         });
       }
       return res.status(409).json({
         success: false,
-        message: 'A user with this detail already exists.',
+        message: 'A member with this detail already exists.',
       });
     }
     next(error);
@@ -208,7 +208,7 @@ exports.getUserById = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -216,7 +216,7 @@ exports.getUserById = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -224,7 +224,7 @@ exports.getUserById = async (req, res, next) => {
     if (user.role === 'admin' && user._id.toString() !== req.user._id.toString()) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -255,7 +255,7 @@ exports.updateUser = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -263,7 +263,7 @@ exports.updateUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -293,11 +293,11 @@ exports.updateUser = async (req, res, next) => {
       });
     }
 
-    // Prevent promoting any chapter user to admin
+    // Prevent promoting any chapter member to admin
     if (user.role !== 'admin' && req.body.role === 'admin') {
       return res.status(400).json({
         success: false,
-        message: 'Promoting a user to administrator is not allowed.',
+        message: 'Promoting a member to administrator is not allowed.',
       });
     }
 
@@ -330,7 +330,7 @@ exports.updateUser = async (req, res, next) => {
         if (emailExists) {
           return res.status(409).json({
             success: false,
-            message: 'A user with this email address already exists.',
+            message: 'A member with this email address already exists.',
           });
         }
         user.email = trimmedEmail;
@@ -356,7 +356,7 @@ exports.updateUser = async (req, res, next) => {
         if (usernameExists) {
           return res.status(409).json({
             success: false,
-            message: 'A user with this username already exists.',
+            message: 'A member with this username already exists.',
           });
         }
         user.username = trimmedUsername;
@@ -381,7 +381,7 @@ exports.updateUser = async (req, res, next) => {
         if (phoneExists) {
           return res.status(409).json({
             success: false,
-            message: 'A user with this phone number already exists.',
+            message: 'A member with this phone number already exists.',
           });
         }
         user.phone = trimmedPhone;
@@ -522,24 +522,24 @@ exports.updateUser = async (req, res, next) => {
       if (field === 'email') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this email address already exists.',
+          message: 'A member with this email address already exists.',
         });
       }
       if (field === 'username') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this username already exists.',
+          message: 'A member with this username already exists.',
         });
       }
       if (field === 'phone') {
         return res.status(409).json({
           success: false,
-          message: 'A user with this phone number already exists.',
+          message: 'A member with this phone number already exists.',
         });
       }
       return res.status(409).json({
         success: false,
-        message: 'A user with this detail already exists.',
+        message: 'A member with this detail already exists.',
       });
     }
     next(error);
@@ -564,7 +564,7 @@ exports.resetPassword = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -573,7 +573,7 @@ exports.resetPassword = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -620,7 +620,7 @@ exports.deactivateUser = async (req, res, next) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -635,7 +635,7 @@ exports.deactivateUser = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found.',
+        message: 'Member not found.',
       });
     }
 
@@ -651,7 +651,7 @@ exports.deactivateUser = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'User deactivated successfully.',
+      message: 'Member deactivated successfully.',
       data: user,
     });
   } catch (error) {

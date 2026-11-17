@@ -358,17 +358,22 @@ exports.getEntries = async (req, res, next) => {
         } else if (userRole === 'admin') {
           obj.canActOnMine = true;
         } else {
-          const sameTeam =
-            req.user.team &&
-            entry.team &&
-            (entry.team._id || entry.team).toString() === req.user.team.toString();
-          const notEnteredByMe =
-            entry.enteredBy &&
-            (entry.enteredBy._id || entry.enteredBy).toString() !== req.user._id.toString();
-          const notAboutMe =
-            entry.member &&
-            (entry.member._id || entry.member).toString() !== req.user._id.toString();
-          obj.canActOnMine = Boolean(sameTeam && notEnteredByMe && notAboutMe);
+          const isNegative = (entry.points || 0) < 0;
+          if (isNegative && userRole === 'teamAssistant') {
+            obj.canActOnMine = false;
+          } else {
+            const sameTeam =
+              req.user.team &&
+              entry.team &&
+              (entry.team._id || entry.team).toString() === req.user.team.toString();
+            const notEnteredByMe =
+              entry.enteredBy &&
+              (entry.enteredBy._id || entry.enteredBy).toString() !== req.user._id.toString();
+            const notAboutMe =
+              entry.member &&
+              (entry.member._id || entry.member).toString() !== req.user._id.toString();
+            obj.canActOnMine = Boolean(sameTeam && notEnteredByMe && notAboutMe);
+          }
         }
         return obj;
       });
@@ -427,12 +432,21 @@ exports.approveEntry = async (req, res, next) => {
     }
 
     const userRole = req.user.role;
+    const isNegative = (entry.points || 0) < 0;
 
     if (userRole !== 'admin' && userRole !== 'teamHead' && userRole !== 'teamAssistant') {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,
         message: 'Only team heads, team assistants, or admins can approve entries.',
+      });
+    }
+
+    if (isNegative && userRole === 'teamAssistant') {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'Team assistants cannot approve negative point entries.',
       });
     }
 
@@ -565,12 +579,21 @@ exports.rejectEntry = async (req, res, next) => {
     }
 
     const userRole = req.user.role;
+    const isNegative = (entry.points || 0) < 0;
 
     if (userRole !== 'admin' && userRole !== 'teamHead' && userRole !== 'teamAssistant') {
       await session.abortTransaction();
       return res.status(403).json({
         success: false,
         message: 'Only team heads, team assistants, or admins can reject entries.',
+      });
+    }
+
+    if (isNegative && userRole === 'teamAssistant') {
+      await session.abortTransaction();
+      return res.status(403).json({
+        success: false,
+        message: 'Team assistants cannot reject negative point entries.',
       });
     }
 

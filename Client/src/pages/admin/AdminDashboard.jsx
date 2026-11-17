@@ -151,7 +151,7 @@ const AdminDashboard = () => {
       {/* 1. Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Total Users"
+          label="Total Members"
           value={stats.totalUsers}
           icon={Users}
           variant="brand"
@@ -159,13 +159,13 @@ const AdminDashboard = () => {
           loading={loading}
         />
         <StatCard
-          label="Active Users"
+          label="Active Members"
           value={stats.activeUsers}
           icon={UserCheck}
           variant="emerald"
           hint={
             stats.totalUsers > 0
-              ? `${Math.round((stats.activeUsers / stats.totalUsers) * 100)}% active accounts`
+              ? `${Math.round((stats.activeUsers / stats.totalUsers) * 100)}% active members`
               : 'Eligible for roster'
           }
           hintType="success"
@@ -202,9 +202,9 @@ const AdminDashboard = () => {
             </div>
             <div>
               <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
-                Add User
+                Add Member
               </p>
-              <p className="text-xs text-slate-500">Create & manage accounts</p>
+              <p className="text-xs text-slate-500">Create & manage member accounts</p>
             </div>
           </div>
           <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-brand-600 transition-colors" />

@@ -222,10 +222,12 @@ const HeadApprovals = () => {
           prominentProof={true}
           emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
           renderActions={(entry) => {
+            const isNegative = (entry.points || 0) < 0;
             const canAct =
               entry.canActOnMine !== undefined
                 ? entry.canActOnMine
-                : entry.member?._id !== user?._id &&
+                : (!isAssistant || !isNegative) &&
+                  entry.member?._id !== user?._id &&
                   (entry.enteredBy?._id || entry.enteredBy) !== user?._id;
 
             const isActing = actionLoadingId === entry._id;

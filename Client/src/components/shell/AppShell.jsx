@@ -30,7 +30,7 @@ import api from '../../api/axios';
 const roleMenus = {
   admin: [
     { name: 'Dashboard', path: '/admin', exact: true, icon: LayoutDashboard },
-    { name: 'Users', path: '/admin/users', icon: Users },
+    { name: 'Members', path: '/admin/users', icon: Users },
     { name: 'Teams', path: '/admin/teams', icon: Shield },
     { name: 'Game criteria', path: '/admin/criteria', icon: BookOpen },
     { name: 'Entries', path: '/admin/entries', icon: CheckSquare },
@@ -69,7 +69,7 @@ const roleMenus = {
 const getPageTitle = (pathname) => {
   if (pathname === '/admin') return 'Admin Dashboard';
   if (pathname === '/admin/settings' || pathname === '/admin/profile') return 'Admin Settings';
-  if (pathname === '/admin/users') return 'Users Management';
+  if (pathname === '/admin/users') return 'Member Management';
   if (pathname === '/admin/teams') return 'Teams Management';
   if (pathname.startsWith('/admin/teams/')) return 'Team Details';
   if (pathname === '/admin/criteria' || pathname === '/criteria') return 'Game Criteria';
