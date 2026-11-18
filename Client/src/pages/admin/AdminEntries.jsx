@@ -66,7 +66,9 @@ const AdminEntries = () => {
   };
 
   useEffect(() => {
-    fetchEntries();
+    if (activeTab !== 'period') {
+      fetchEntries();
+    }
   }, [activeTab, selectedTeam, statusFilter, monthFilter, yearFilter]);
 
   // Client-side pagination

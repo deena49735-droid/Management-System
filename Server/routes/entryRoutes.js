@@ -118,7 +118,7 @@ const reverseValidation = [
 // Routes
 router.post('/', createEntryValidation, entryController.createEntry);
 router.get('/', entryController.getEntries);
-router.get('/by-period', roleCheck(['admin', 'teamHead', 'teamAssistant']), entryController.getEntriesByPeriod);
+router.get('/by-period', roleCheck('admin', 'teamHead', 'teamAssistant'), entryController.getEntriesByPeriod);
 router.get('/my-summary', entryController.getMySummary);
 router.get('/my-breakdown', entryController.getMyBreakdown);
 

@@ -43,7 +43,9 @@ const HeadHistory = () => {
   };
 
   useEffect(() => {
-    fetchHistory();
+    if (activeTab !== 'period') {
+      fetchHistory();
+    }
   }, [activeTab, statusFilter, monthFilter, yearFilter]);
 
   const totalPages = Math.ceil(entries.length / PAGE_SIZE) || 1;
