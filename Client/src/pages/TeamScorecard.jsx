@@ -135,11 +135,6 @@ const TeamScorecard = () => {
     e.preventDefault();
     if (!submittingCriterion || submitting) return;
 
-    if (submittingCriterion?.criterion?.needsProof && !proofImage) {
-      toast.error(`Photo proof is required for "${submittingCriterion.criterion.name}". Please upload an image.`);
-      return;
-    }
-
     const targetTeam = scorecard?.team?._id || selectedTeamId || user?.team;
     if (!targetTeam) {
       toast.error('Please select a team.');
@@ -562,7 +557,7 @@ const TeamScorecard = () => {
                 setProofPublicId(publicId);
               }}
               onUploadingChange={setUploadingProof}
-              required={Boolean(submittingCriterion?.criterion?.needsProof)}
+              required={false}
               disabled={submitting}
             />
 

@@ -233,13 +233,6 @@ const AdminNewEntry = () => {
       return;
     }
 
-    if (selectedCriteria?.needsProof && !proofImage) {
-      const msg = `Photo proof is required for "${selectedCriteria.name}". Please upload a proof photo.`;
-      setServerError(msg);
-      toast.error(msg);
-      return;
-    }
-
     try {
       setSubmitting(true);
       await api.post('/entries', {
@@ -491,7 +484,7 @@ const AdminNewEntry = () => {
               setProofPublicId(publicId);
             }}
             onUploadingChange={setUploadingProof}
-            required={Boolean(selectedCriteria?.needsProof)}
+            required={false}
             disabled={submitting}
           />
 

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const PointEntry = require('../models/PointEntry');
+const TeamPointEntry = require('../models/TeamPointEntry');
 const Criteria = require('../models/Criteria');
 const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
@@ -105,15 +106,7 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
-    // Validate proof requirements
-    if (criteriaDoc.needsProof && !proofImage) {
-      await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
-        message: `Photo proof is required for "${criteriaDoc.name}". Please upload a photo proof.`,
-      });
-    }
-
+    // Validate proof image URL if provided (proof is optional)
     if (proofImage && !validateProofUrl(proofImage)) {
       await session.abortTransaction();
       return res.status(400).json({
@@ -1312,6 +1305,241 @@ exports.getMyBreakdown = async (req, res, next) => {
           earned: penaltyEarned,
         },
         totalNet: meetingDayEarned + nonMeetingDayEarned + penaltyEarned,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Get entries by period (weekly and monthly) for a selected calendar date
+ * @route   GET /api/entries/by-period?date=YYYY-MM-DD[&team=teamId]
+ * @access  Private (admin, teamHead, teamAssistant)
+ */
+exports.getEntriesByPeriod = async (req, res, next) => {
+  try {
+    const userRole = req.user.role;
+    if (!['admin', 'teamHead', 'teamAssistant'].includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Only admin, team head, and team assistant can view period points.',
+      });
+    }
+
+    const { date: dateQuery, team: teamQuery } = req.query;
+
+    // Resolve date (default to today if missing or invalid)
+    let targetYear, targetMonth, targetDay;
+    if (typeof dateQuery === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateQuery.trim())) {
+      const parts = dateQuery.trim().split('-').map(Number);
+      targetYear = parts[0];
+      targetMonth = parts[1]; // 1-12
+      targetDay = parts[2];
+    } else {
+      const now = new Date();
+      targetYear = now.getFullYear();
+      targetMonth = now.getMonth() + 1;
+      targetDay = now.getDate();
+    }
+
+    // Midday UTC reference safely avoids timezone or DST boundary shifts
+    const refDate = new Date(Date.UTC(targetYear, targetMonth - 1, targetDay, 12, 0, 0));
+    if (isNaN(refDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date provided. Format must be YYYY-MM-DD.',
+      });
+    }
+
+    const weekNumber = getWeekNumber(refDate);
+    const dayOfWeek = refDate.getUTCDay() || 7; // 1 = Monday ... 7 = Sunday
+
+    const startOfWeek = new Date(Date.UTC(targetYear, targetMonth - 1, targetDay - (dayOfWeek - 1), 0, 0, 0, 0));
+    const endOfWeek = new Date(Date.UTC(targetYear, targetMonth - 1, targetDay + (7 - dayOfWeek), 23, 59, 59, 999));
+
+    const startOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, 1, 0, 0, 0, 0));
+    const lastDayOfMonth = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+    const endOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, lastDayOfMonth, 23, 59, 59, 999));
+
+    // Team scoping
+    let scopedTeamId = null;
+    if (userRole === 'admin') {
+      if (teamQuery && mongoose.Types.ObjectId.isValid(teamQuery)) {
+        scopedTeamId = new mongoose.Types.ObjectId(teamQuery);
+      }
+    } else {
+      if (!req.user.team) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            selectedDate: `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`,
+            week: {
+              weekNumber,
+              year: targetYear,
+              startDate: startOfWeek.toISOString().split('T')[0],
+              endDate: endOfWeek.toISOString().split('T')[0],
+              summary: { approvedPoints: 0, pendingPoints: 0, rejectedPoints: 0, totalEntries: 0 },
+              entries: [],
+            },
+            month: {
+              month: targetMonth,
+              year: targetYear,
+              startDate: startOfMonth.toISOString().split('T')[0],
+              endDate: endOfMonth.toISOString().split('T')[0],
+              summary: { approvedPoints: 0, memberApprovedPoints: 0, teamApprovedPoints: 0, pendingPoints: 0, rejectedPoints: 0, totalEntries: 0 },
+              memberEntries: [],
+              teamEntries: [],
+            },
+          },
+        });
+      }
+      scopedTeamId = req.user.team;
+    }
+
+    const teamFilter = scopedTeamId ? { team: scopedTeamId } : {};
+
+    // 1. Fetch Weekly Member Entries
+    const weeklyFilter = {
+      ...teamFilter,
+      $or: [
+        { date: { $gte: startOfWeek, $lte: endOfWeek } },
+        { weekNumber, year: { $in: [startOfWeek.getUTCFullYear(), endOfWeek.getUTCFullYear()] } },
+      ],
+    };
+
+    const weeklyEntries = await PointEntry.find(weeklyFilter)
+      .populate('member', 'name email username phone role')
+      .populate('team', 'name')
+      .populate('criteria', 'key name category points basis frequency needsProof')
+      .populate('enteredBy', 'name username phone role')
+      .populate('approvedBy', 'name username phone role')
+      .sort({ date: -1, createdAt: -1 });
+
+    const uniqueWeeklyMap = new Map();
+    for (const entry of weeklyEntries) {
+      uniqueWeeklyMap.set(entry._id.toString(), entry);
+    }
+    const uniqueWeeklyEntries = Array.from(uniqueWeeklyMap.values());
+
+    let weeklyApprovedPoints = 0;
+    let weeklyPendingPoints = 0;
+    let weeklyRejectedPoints = 0;
+
+    for (const e of uniqueWeeklyEntries) {
+      if (e.status === 'approved') {
+        weeklyApprovedPoints += e.points || 0;
+      } else if (e.status === 'pending') {
+        weeklyPendingPoints += e.points || 0;
+      } else if (e.status === 'rejected') {
+        weeklyRejectedPoints += e.points || 0;
+      }
+    }
+
+    // 2. Fetch Monthly Member Entries
+    const monthlyMemberFilter = {
+      ...teamFilter,
+      $or: [
+        { date: { $gte: startOfMonth, $lte: endOfMonth } },
+        { month: targetMonth, year: targetYear },
+      ],
+    };
+
+    const monthlyMemberEntries = await PointEntry.find(monthlyMemberFilter)
+      .populate('member', 'name email username phone role')
+      .populate('team', 'name')
+      .populate('criteria', 'key name category points basis frequency needsProof')
+      .populate('enteredBy', 'name username phone role')
+      .populate('approvedBy', 'name username phone role')
+      .sort({ date: -1, createdAt: -1 });
+
+    const uniqueMonthlyMemberMap = new Map();
+    for (const entry of monthlyMemberEntries) {
+      uniqueMonthlyMemberMap.set(entry._id.toString(), entry);
+    }
+    const uniqueMonthlyMemberEntries = Array.from(uniqueMonthlyMemberMap.values());
+
+    // 3. Fetch Monthly Team Point Entries
+    const monthlyTeamFilter = {
+      ...teamFilter,
+      month: targetMonth,
+      year: targetYear,
+    };
+
+    const monthlyTeamEntries = await TeamPointEntry.find(monthlyTeamFilter)
+      .populate('team', 'name')
+      .populate('criteria', 'key name category points basis frequency needsProof')
+      .populate('submittedBy', 'name username phone role')
+      .populate('approvedBy', 'name username phone role')
+      .sort({ createdAt: -1 });
+
+    let monthlyMemberApprovedPoints = 0;
+    let monthlyTeamApprovedPoints = 0;
+    let monthlyPendingPoints = 0;
+    let monthlyRejectedPoints = 0;
+
+    for (const e of uniqueMonthlyMemberEntries) {
+      if (e.status === 'approved') {
+        monthlyMemberApprovedPoints += e.points || 0;
+      } else if (e.status === 'pending') {
+        monthlyPendingPoints += e.points || 0;
+      } else if (e.status === 'rejected') {
+        monthlyRejectedPoints += e.points || 0;
+      }
+    }
+
+    for (const e of monthlyTeamEntries) {
+      if (e.status === 'approved') {
+        monthlyTeamApprovedPoints += e.points || 0;
+      } else if (e.status === 'pending') {
+        monthlyPendingPoints += e.points || 0;
+      } else if (e.status === 'rejected') {
+        monthlyRejectedPoints += e.points || 0;
+      }
+    }
+
+    const totalMonthlyApprovedPoints = monthlyMemberApprovedPoints + monthlyTeamApprovedPoints;
+    const totalMonthlyEntriesCount = uniqueMonthlyMemberEntries.length + monthlyTeamEntries.length;
+
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        selectedDate: `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`,
+        week: {
+          weekNumber,
+          year: targetYear,
+          startDate: startOfWeek.toISOString().split('T')[0],
+          endDate: endOfWeek.toISOString().split('T')[0],
+          summary: {
+            approvedPoints: weeklyApprovedPoints,
+            pendingPoints: weeklyPendingPoints,
+            rejectedPoints: weeklyRejectedPoints,
+            totalEntries: uniqueWeeklyEntries.length,
+          },
+          entries: uniqueWeeklyEntries,
+        },
+        month: {
+          month: targetMonth,
+          monthName: monthNames[targetMonth - 1],
+          year: targetYear,
+          startDate: startOfMonth.toISOString().split('T')[0],
+          endDate: endOfMonth.toISOString().split('T')[0],
+          summary: {
+            approvedPoints: totalMonthlyApprovedPoints,
+            memberApprovedPoints: monthlyMemberApprovedPoints,
+            teamApprovedPoints: monthlyTeamApprovedPoints,
+            pendingPoints: monthlyPendingPoints,
+            rejectedPoints: monthlyRejectedPoints,
+            totalEntries: totalMonthlyEntriesCount,
+          },
+          memberEntries: uniqueMonthlyMemberEntries,
+          teamEntries: monthlyTeamEntries,
+        },
       },
     });
   } catch (error) {

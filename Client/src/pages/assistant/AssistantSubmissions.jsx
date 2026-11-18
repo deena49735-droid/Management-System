@@ -9,11 +9,13 @@ import Pagination from '../../components/Pagination';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import PeriodPointsView from '../../components/PeriodPointsView';
 
 const PAGE_SIZE = 15;
 
 const AssistantSubmissions = () => {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('my'); // 'my' | 'period'
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
@@ -58,16 +60,47 @@ const AssistantSubmissions = () => {
         title="My recorded submissions"
         subtitle="Track the approval status of member point entries you have submitted."
         actions={
-          <Link to="/assistant/entries/new">
-            <Button variant="primary" size="sm" icon={PlusCircle}>
-              Submit Activity
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+            <Link to="/assistant/entries/new">
+              <Button variant="primary" size="sm" icon={PlusCircle} className="w-full sm:w-auto">
+                Submit Activity
+              </Button>
+            </Link>
+            <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setActiveTab('my')}
+                className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                  activeTab === 'my'
+                    ? 'bg-white text-brand-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                My submissions
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('period')}
+                className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                  activeTab === 'period'
+                    ? 'bg-white text-brand-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                By date / period
+              </button>
+            </div>
+          </div>
         }
       />
 
-      {/* Filter Bar */}
-      <Card className="p-4">
+      {/* Period View or Submissions List */}
+      {activeTab === 'period' ? (
+        <PeriodPointsView isAdmin={false} />
+      ) : (
+        <>
+          {/* Filter Bar */}
+          <Card className="p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
@@ -119,6 +152,8 @@ const AssistantSubmissions = () => {
           emptyMessage="You have not submitted any entries matching this filter."
         />
       </Card>
+      </>
+      )}
     </div>
   );
 };

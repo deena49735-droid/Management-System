@@ -135,15 +135,7 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
-    // Validate proof requirements
-    if (criteriaDoc.needsProof && !proofImage) {
-      await session.abortTransaction();
-      return res.status(400).json({
-        success: false,
-        message: `Photo proof is required for "${criteriaDoc.name}". Please upload a photo proof.`,
-      });
-    }
-
+    // Validate proof image URL if provided (proof is optional)
     if (proofImage && !validateProofUrl(proofImage)) {
       await session.abortTransaction();
       return res.status(400).json({

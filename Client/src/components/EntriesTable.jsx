@@ -109,11 +109,13 @@ const EntriesTable = ({
                   <span className="font-medium text-slate-700">
                     Qty: <span className="font-bold tabular-nums text-slate-900">{entry.quantity || 1}</span>
                   </span>
-                  {entry.proofImage && (
+                  {entry.proofImage ? (
                     <div className="shrink-0 flex items-center gap-1.5">
                       <span className="text-slate-400 text-[11px]">Proof:</span>
                       <ProofImage src={entry.proofImage} alt={entry.criteria?.name} prominent={prominentProof} />
                     </div>
+                  ) : (
+                    <span className="text-slate-400 text-[11px] font-medium">No image</span>
                   )}
                 </div>
                 {entry.enteredBy && (

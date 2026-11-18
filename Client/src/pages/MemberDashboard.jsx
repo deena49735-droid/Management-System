@@ -192,13 +192,6 @@ const MemberDashboard = () => {
       return;
     }
 
-    if (selectedCriterion?.needsProof && !proofImage) {
-      const msg = `Photo proof is required for "${selectedCriterion.name}". Please upload a proof photo.`;
-      setSubmitError(msg);
-      toast.error(msg);
-      return;
-    }
-
     try {
       setSubmitting(true);
       await api.post('/entries', {
@@ -612,16 +605,9 @@ const MemberDashboard = () => {
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700">
                         {selectedCriterion.categoryLabel || CATEGORY_LABELS[selectedCriterion.categoryKey] || 'Activity'}
                       </span>
-                      {selectedCriterion.needsProof ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                          <Camera className="w-3 h-3 text-amber-600 shrink-0" />
-                          Proof photo required
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
-                          Proof optional
-                        </span>
-                      )}
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
+                        Proof optional
+                      </span>
                     </div>
                     <p className="text-sm font-bold text-slate-900 leading-snug break-words">
                       {selectedCriterion.name}
@@ -846,7 +832,7 @@ const MemberDashboard = () => {
               setProofPublicId(publicId);
             }}
             onUploadingChange={setUploadingProof}
-            required={Boolean(selectedCriterion?.needsProof)}
+            required={false}
             disabled={submitting}
           />
 

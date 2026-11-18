@@ -127,11 +127,15 @@ const ProofUpload = ({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold text-slate-700">
-          Photo Proof {required && <span className="text-rose-500 font-bold">*</span>}
+          Photo Proof {required ? <span className="text-rose-500 font-bold">*</span> : <span className="text-xs font-normal text-slate-400 ml-1">(Optional)</span>}
         </label>
-        {required && (
+        {required ? (
           <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
             Proof Required
+          </span>
+        ) : (
+          <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+            Optional
           </span>
         )}
       </div>

@@ -8,6 +8,7 @@ import Pagination from '../../components/Pagination';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import PeriodPointsView from '../../components/PeriodPointsView';
 
 const PAGE_SIZE = 15;
 
@@ -87,13 +88,29 @@ const HeadHistory = () => {
               >
                 Team monthly / bonus
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('period')}
+                className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
+                  activeTab === 'period'
+                    ? 'bg-white text-brand-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                By date / period
+              </button>
             </div>
           </div>
         }
       />
 
-      {/* Filters Toolbar */}
-      <Card className="p-4">
+      {/* Period View or Ledger Table */}
+      {activeTab === 'period' ? (
+        <PeriodPointsView isAdmin={false} />
+      ) : (
+        <>
+          {/* Filters Toolbar */}
+          <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -169,6 +186,8 @@ const HeadHistory = () => {
           emptyMessage={`No ${activeTab} history found matching your filters.`}
         />
       </Card>
+      </>
+      )}
     </div>
   );
 };
