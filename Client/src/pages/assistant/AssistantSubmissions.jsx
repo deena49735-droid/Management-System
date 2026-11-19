@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { PlusCircle } from 'lucide-react';
@@ -9,6 +9,7 @@ import Pagination from '../../components/Pagination';
 import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
+import SearchBar from '../../components/SearchBar';
 import PeriodPointsView from '../../components/PeriodPointsView';
 
 const PAGE_SIZE = 15;
@@ -18,40 +19,73 @@ const AssistantSubmissions = () => {
   const [activeTab, setActiveTab] = useState('my'); // 'my' | 'period'
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
+    if (!user?._id) return;
     try {
       setLoading(true);
-      const params = {};
+      const params = {
+        enteredBy: user._id,
+        page: currentPage,
+        limit: PAGE_SIZE,
+      };
       if (statusFilter) params.status = statusFilter;
+      if (debouncedSearch) params.search = debouncedSearch;
 
       const res = await api.get('/entries', { params });
-      // Only keep entries submitted by this assistant
-      const allEntries = res.data.data || [];
-      const myEntries = allEntries.filter(
-        (e) => e.enteredBy?._id === user?._id || e.enteredBy === user?._id
+      const dataList = res.data.data || [];
+      // Safety filter for assistant's own entries
+      const myEntries = dataList.filter(
+        (e) => (e.enteredBy?._id || e.enteredBy) === user._id
       );
 
       setEntries(myEntries);
-      setCurrentPage(1);
+      const total = res.data.pagination?.total ?? myEntries.length;
+      const pages = res.data.pagination?.totalPages ?? Math.ceil(total / PAGE_SIZE) ?? 1;
+      setTotalItems(total);
+      setTotalPages(pages);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load your submissions.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id, statusFilter, debouncedSearch, currentPage]);
 
   useEffect(() => {
-    fetchSubmissions();
-  }, [statusFilter, user?._id]);
+    if (activeTab === 'my') {
+      fetchSubmissions();
+    }
+  }, [fetchSubmissions, activeTab]);
 
-  const totalPages = Math.ceil(entries.length / PAGE_SIZE) || 1;
-  const paginatedEntries = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return entries.slice(start, start + PAGE_SIZE);
-  }, [entries, currentPage]);
+  const handleSearchChange = (val) => {
+    setSearchQuery(val);
+    setDebouncedSearch(val.trim());
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (key) => {
+    setStatusFilter(key);
+    setCurrentPage(1);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setCurrentPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +103,7 @@ const AssistantSubmissions = () => {
             <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
               <button
                 type="button"
-                onClick={() => setActiveTab('my')}
+                onClick={() => handleTabChange('my')}
                 className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'my'
                     ? 'bg-white text-brand-700 shadow-xs'
@@ -80,7 +114,7 @@ const AssistantSubmissions = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('period')}
+                onClick={() => handleTabChange('period')}
                 className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'period'
                     ? 'bg-white text-brand-700 shadow-xs'
@@ -100,62 +134,90 @@ const AssistantSubmissions = () => {
       ) : (
         <>
           {/* Filter Bar */}
-          <Card className="p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {[
-              { key: '', label: 'All' },
-              { key: 'pending', label: 'Pending' },
-              { key: 'approved', label: 'Approved' },
-              { key: 'rejected', label: 'Rejected' },
-            ].map((st) => (
-              <button
-                key={st.key}
-                type="button"
-                onClick={() => setStatusFilter(st.key)}
-                className={`h-11 min-h-[44px] rounded-lg px-3.5 text-xs font-semibold capitalize transition ${
-                  statusFilter === st.key
-                    ? 'bg-brand-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-                }`}
-              >
-                {st.label}
-              </button>
-            ))}
-          </div>
-
-          <span className="text-xs text-slate-500 tabular-nums">
-            Total: <strong className="text-slate-800">{entries.length}</strong> entries
-          </span>
-        </div>
-      </Card>
-
-      {/* Entries Table */}
-      <Card
-        className="overflow-hidden p-0"
-        footer={
-          totalPages > 1 ? (
-            <div className="flex justify-center">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={entries.length}
-                onPageChange={setCurrentPage}
+          <Card className="p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <SearchBar
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onClear={handleClearSearch}
+                debounceMs={300}
+                placeholder="Search by member name, username, criterion, or note..."
               />
+              <span className="text-xs text-slate-500 tabular-nums shrink-0">
+                Total: <strong className="text-slate-800">{totalItems}</strong> entries
+              </span>
             </div>
-          ) : null
-        }
-      >
-        <EntriesTable
-          entries={paginatedEntries}
-          loading={loading}
-          emptyMessage="You have not submitted any entries matching this filter."
-        />
-      </Card>
-      </>
+
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+              <span className="text-xs font-semibold text-slate-500 mr-1">Status:</span>
+              {[
+                { key: '', label: 'All' },
+                { key: 'pending', label: 'Pending' },
+                { key: 'approved', label: 'Approved' },
+                { key: 'rejected', label: 'Rejected' },
+              ].map((st) => (
+                <button
+                  key={st.key}
+                  type="button"
+                  onClick={() => handleStatusChange(st.key)}
+                  className={`h-9 min-h-[36px] rounded-lg px-3.5 text-xs font-semibold capitalize transition ${
+                    statusFilter === st.key
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+
+              {(searchQuery || statusFilter) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setDebouncedSearch('');
+                    setStatusFilter('');
+                    setCurrentPage(1);
+                  }}
+                  className="text-xs font-semibold text-brand-600 hover:text-brand-800 ml-auto min-h-[36px] px-2 flex items-center"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+          </Card>
+
+          {/* Entries Table */}
+          <Card
+            className="overflow-hidden p-0"
+            footer={
+              totalPages > 1 ? (
+                <div className="flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    onPageChange={setCurrentPage}
+                  />
+                </div>
+              ) : null
+            }
+          >
+            <EntriesTable
+              entries={entries}
+              loading={loading}
+              emptyMessage={
+                debouncedSearch
+                  ? `No submissions found matching "${debouncedSearch}".`
+                  : 'You have not submitted any entries matching this filter.'
+              }
+            />
+          </Card>
+        </>
       )}
     </div>
   );
 };
 
 export default AssistantSubmissions;
+

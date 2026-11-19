@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -11,6 +11,7 @@ import PageHeader from '../../components/PageHeader';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import Button from '../../components/Button';
+import SearchBar from '../../components/SearchBar';
 
 const HeadApprovals = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const HeadApprovals = () => {
   const [memberEntries, setMemberEntries] = useState([]);
   const [teamEntries, setTeamEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Global approvals context to keep sidebar and dashboards in sync
   const { decrementPendingCount, setPendingCount, refreshPendingCount } = useApprovals();
@@ -163,6 +165,34 @@ const HeadApprovals = () => {
 
   const currentList = activeTab === 'member' ? memberEntries : teamEntries;
 
+  const filteredList = useMemo(() => {
+    if (!searchQuery.trim()) return currentList;
+    const q = searchQuery.trim().toLowerCase();
+    return currentList.filter((entry) => {
+      const memberName = entry.member?.name?.toLowerCase() || '';
+      const memberUser = entry.member?.username?.toLowerCase() || '';
+      const teamName = entry.team?.name?.toLowerCase() || '';
+      const critName = entry.criteria?.name?.toLowerCase() || '';
+      const critCat = entry.criteria?.category?.toLowerCase() || '';
+      const submitterName = (entry.enteredBy?.name || entry.submittedBy?.name || '').toLowerCase();
+      const note = (entry.note || '').toLowerCase();
+      return (
+        memberName.includes(q) ||
+        memberUser.includes(q) ||
+        teamName.includes(q) ||
+        critName.includes(q) ||
+        critCat.includes(q) ||
+        submitterName.includes(q) ||
+        note.includes(q)
+      );
+    });
+  }, [currentList, searchQuery]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -178,7 +208,7 @@ const HeadApprovals = () => {
             <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
               <button
                 type="button"
-                onClick={() => setActiveTab('member')}
+                onClick={() => handleTabChange('member')}
                 className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'member'
                     ? 'bg-white text-brand-700 shadow-xs'
@@ -195,7 +225,7 @@ const HeadApprovals = () => {
 
               <button
                 type="button"
-                onClick={() => setActiveTab('team')}
+                onClick={() => handleTabChange('team')}
                 className={`flex-1 sm:flex-initial min-h-[44px] md:min-h-[36px] flex items-center justify-center gap-2 rounded-md px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeTab === 'team'
                     ? 'bg-white text-brand-700 shadow-xs'
@@ -214,13 +244,39 @@ const HeadApprovals = () => {
         }
       />
 
+      {/* Search Toolbar */}
+      {(currentList.length > 0 || searchQuery) && (
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={
+                activeTab === 'member'
+                  ? 'Search pending entries by member name, username, or criterion...'
+                  : 'Search pending team points by criterion, note, or submitter...'
+              }
+            />
+            {searchQuery && (
+              <span className="text-xs text-slate-500 tabular-nums shrink-0 self-center sm:self-auto">
+                Matching: <strong className="text-slate-800">{filteredList.length}</strong> of {currentList.length}
+              </span>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Table of Entries in a Card */}
       <Card className="overflow-hidden p-0">
         <EntriesTable
-          entries={currentList}
+          entries={filteredList}
           loading={loading}
           prominentProof={true}
-          emptyMessage={`No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`}
+          emptyMessage={
+            searchQuery
+              ? `No pending ${activeTab === 'member' ? 'member' : 'team'} entries match "${searchQuery}".`
+              : `No pending ${activeTab === 'member' ? 'member' : 'team'} entries awaiting approval.`
+          }
           renderActions={(entry) => {
             const isNegative = (entry.points || 0) < 0;
             const canAct =

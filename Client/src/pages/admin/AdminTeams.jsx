@@ -12,6 +12,7 @@ import Input from '../../components/Input';
 import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonTable } from '../../components/Skeleton';
+import SearchBar from '../../components/SearchBar';
 
 const AdminTeams = () => {
   const navigate = useNavigate();
@@ -48,7 +49,14 @@ const AdminTeams = () => {
 
   // Filtered teams list
   const filteredTeams = teams.filter((t) => {
-    const matchesSearch = t.name.toLowerCase().includes(searchTerm.trim().toLowerCase());
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      t.name?.toLowerCase().includes(q) ||
+      (t.head?.name && t.head.name.toLowerCase().includes(q)) ||
+      (t.head?.username && t.head.username.toLowerCase().includes(q)) ||
+      (t.assistant?.name && t.assistant.name.toLowerCase().includes(q)) ||
+      (t.assistant?.username && t.assistant.username.toLowerCase().includes(q));
     const matchesStatus =
       statusFilter === ''
         ? true
@@ -113,18 +121,12 @@ const AdminTeams = () => {
       {/* Search and Filters Toolbar */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="relative flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-              <Search className="h-4 w-4" />
-            </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search teams by name..."
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-            />
-          </div>
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search teams by name, head, or assistant..."
+            className="flex-1"
+          />
 
           <select
             value={statusFilter}

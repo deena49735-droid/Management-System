@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, Shield, Award, Users } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Calendar, ChevronLeft, ChevronRight, RefreshCw, AlertCircle, Shield, Award, Users, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import Card from './Card';
 import Badge from './Badge';
 import ProofImage from './ProofImage';
 import Button from './Button';
+import SearchBar from './SearchBar';
 
 // Format YYYY-MM-DD to readable date (e.g., Nov 18, 2026)
 const formatShortDate = (isoStr) => {
@@ -61,6 +62,69 @@ const PeriodPointsView = ({ isAdmin = false }) => {
 
   // Sub-tab for monthly view ('member' | 'team')
   const [monthlyTab, setMonthlyTab] = useState('member');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredWeeklyEntries = useMemo(() => {
+    const list = data?.week?.entries || [];
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.trim().toLowerCase();
+    return list.filter((e) => {
+      const memberName = (e.member?.name || '').toLowerCase();
+      const memberUser = (e.member?.username || '').toLowerCase();
+      const teamName = (e.team?.name || '').toLowerCase();
+      const critName = (e.criteria?.name || '').toLowerCase();
+      const critCat = (e.criteria?.category || '').toLowerCase();
+      const note = (e.note || '').toLowerCase();
+      return (
+        memberName.includes(q) ||
+        memberUser.includes(q) ||
+        teamName.includes(q) ||
+        critName.includes(q) ||
+        critCat.includes(q) ||
+        note.includes(q)
+      );
+    });
+  }, [data?.week?.entries, searchQuery]);
+
+  const filteredMonthlyMemberEntries = useMemo(() => {
+    const list = data?.month?.memberEntries || [];
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.trim().toLowerCase();
+    return list.filter((e) => {
+      const memberName = (e.member?.name || '').toLowerCase();
+      const memberUser = (e.member?.username || '').toLowerCase();
+      const teamName = (e.team?.name || '').toLowerCase();
+      const critName = (e.criteria?.name || '').toLowerCase();
+      const critCat = (e.criteria?.category || '').toLowerCase();
+      const note = (e.note || '').toLowerCase();
+      return (
+        memberName.includes(q) ||
+        memberUser.includes(q) ||
+        teamName.includes(q) ||
+        critName.includes(q) ||
+        critCat.includes(q) ||
+        note.includes(q)
+      );
+    });
+  }, [data?.month?.memberEntries, searchQuery]);
+
+  const filteredMonthlyTeamEntries = useMemo(() => {
+    const list = data?.month?.teamEntries || [];
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.trim().toLowerCase();
+    return list.filter((e) => {
+      const teamName = (e.team?.name || '').toLowerCase();
+      const critName = (e.criteria?.name || '').toLowerCase();
+      const critCat = (e.criteria?.category || '').toLowerCase();
+      const note = (e.note || '').toLowerCase();
+      return (
+        teamName.includes(q) ||
+        critName.includes(q) ||
+        critCat.includes(q) ||
+        note.includes(q)
+      );
+    });
+  }, [data?.month?.teamEntries, searchQuery]);
 
   // Load teams for admin filter dropdown
   useEffect(() => {
@@ -220,6 +284,35 @@ const PeriodPointsView = ({ isAdmin = false }) => {
             )}
           </div>
         )}
+
+        {/* Search Bar for Period Entries */}
+        {data && (
+          <div className="mt-3 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search period entries by member name, criterion, or team..."
+              className="max-w-md"
+            />
+            {searchQuery && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 self-center sm:self-auto shrink-0">
+                <span>
+                  Week matches: <strong className="text-slate-800">{filteredWeeklyEntries.length}</strong> • Month matches:{' '}
+                  <strong className="text-slate-800">
+                    {monthlyTab === 'member' ? filteredMonthlyMemberEntries.length : filteredMonthlyTeamEntries.length}
+                  </strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="font-semibold text-brand-600 hover:text-brand-800 ml-1"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       {/* Error State */}
@@ -270,13 +363,23 @@ const PeriodPointsView = ({ isAdmin = false }) => {
             </div>
 
             {/* Weekly Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Card className="p-4 bg-emerald-50/40 border-emerald-200/80">
                 <span className="block text-xs font-semibold text-emerald-800 mb-1">Approved Weekly Total</span>
                 <span className="text-2xl font-black text-emerald-700 tracking-tight">
                   {data.week.summary.approvedPoints > 0 ? `+${data.week.summary.approvedPoints}` : data.week.summary.approvedPoints} pts
                 </span>
                 <span className="block text-[11px] text-emerald-600/90 mt-1 font-medium">Contributes to scoreboard</span>
+              </Card>
+
+              <Card className="p-4 bg-brand-50/40 border-brand-200/80">
+                <span className="block text-xs font-semibold text-brand-800 mb-1">Average / Member</span>
+                <span className="text-2xl font-black text-brand-700 tracking-tight">
+                  {data.week.summary.averagePointsPerMember != null ? data.week.summary.averagePointsPerMember.toFixed(2) : '0.00'} pts
+                </span>
+                <span className="block text-[11px] text-brand-600/90 mt-1 font-medium">
+                  {data.week.summary.eligibleMemberCount || 0} eligible members
+                </span>
               </Card>
 
               <Card className="p-4 bg-amber-50/40 border-amber-200/80">
@@ -307,6 +410,23 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                   </p>
                 </div>
               </Card>
+            ) : filteredWeeklyEntries.length === 0 ? (
+              <Card className="p-8 text-center bg-slate-50/50">
+                <div className="max-w-xs mx-auto text-center space-y-1">
+                  <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-700">No Matching Weekly Entries</p>
+                  <p className="text-xs text-slate-500">
+                    No entries in Week {data.week.weekNumber} matched &ldquo;{searchQuery}&rdquo;.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="mt-2 inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-800"
+                  >
+                    Clear search query
+                  </button>
+                </div>
+              </Card>
             ) : (
               <Card className="overflow-hidden">
                 {/* Desktop Table */}
@@ -324,7 +444,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {data.week.entries.map((entry) => {
+                      {filteredWeeklyEntries.map((entry) => {
                         const isNeg = (entry.points || 0) < 0;
                         return (
                           <tr key={entry._id} className="hover:bg-slate-50/70 transition">
@@ -368,7 +488,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
 
                 {/* Mobile Card Layout */}
                 <div className="md:hidden divide-y divide-slate-100">
-                  {data.week.entries.map((entry) => {
+                  {filteredWeeklyEntries.map((entry) => {
                     const isNeg = (entry.points || 0) < 0;
                     return (
                       <div key={entry._id} className="p-3.5 space-y-2">
@@ -445,7 +565,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
             </div>
 
             {/* Monthly Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <Card className="p-4 bg-emerald-50/40 border-emerald-200/80">
                 <span className="block text-xs font-semibold text-emerald-800 mb-1">Approved Monthly Total</span>
                 <span className="text-2xl font-black text-emerald-700 tracking-tight">
@@ -453,6 +573,16 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                 </span>
                 <span className="block text-[11px] text-emerald-700/90 mt-1 font-medium">
                   Member: +{data.month.summary.memberApprovedPoints} • Team: +{data.month.summary.teamApprovedPoints}
+                </span>
+              </Card>
+
+              <Card className="p-4 bg-brand-50/40 border-brand-200/80">
+                <span className="block text-xs font-semibold text-brand-800 mb-1">Average / Member</span>
+                <span className="text-2xl font-black text-brand-700 tracking-tight">
+                  {data.month.summary.averagePointsPerMember != null ? data.month.summary.averagePointsPerMember.toFixed(2) : '0.00'} pts
+                </span>
+                <span className="block text-[11px] text-brand-600/90 mt-1 font-medium">
+                  {data.month.summary.eligibleMemberCount || 0} eligible members
                 </span>
               </Card>
 
@@ -487,6 +617,23 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                     </p>
                   </div>
                 </Card>
+              ) : filteredMonthlyMemberEntries.length === 0 ? (
+                <Card className="p-8 text-center bg-slate-50/50">
+                  <div className="max-w-xs mx-auto text-center space-y-1">
+                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold text-slate-700">No Matching Member Entries</p>
+                    <p className="text-xs text-slate-500">
+                      No member entries in {data.month.monthName} {data.month.year} matched &ldquo;{searchQuery}&rdquo;.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="mt-2 inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-800"
+                    >
+                      Clear search query
+                    </button>
+                  </div>
+                </Card>
               ) : (
                 <Card className="overflow-hidden">
                   <div className="hidden md:block overflow-x-auto">
@@ -503,7 +650,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {data.month.memberEntries.map((entry) => {
+                        {filteredMonthlyMemberEntries.map((entry) => {
                           const isNeg = (entry.points || 0) < 0;
                           return (
                             <tr key={entry._id} className="hover:bg-slate-50/70 transition">
@@ -547,7 +694,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
 
                   {/* Mobile Layout */}
                   <div className="md:hidden divide-y divide-slate-100">
-                    {data.month.memberEntries.map((entry) => {
+                    {filteredMonthlyMemberEntries.map((entry) => {
                       const isNeg = (entry.points || 0) < 0;
                       return (
                         <div key={entry._id} className="p-3.5 space-y-2">
@@ -590,6 +737,23 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                     </p>
                   </div>
                 </Card>
+              ) : filteredMonthlyTeamEntries.length === 0 ? (
+                <Card className="p-8 text-center bg-slate-50/50">
+                  <div className="max-w-xs mx-auto text-center space-y-1">
+                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs font-semibold text-slate-700">No Matching Team Points</p>
+                    <p className="text-xs text-slate-500">
+                      No team points in {data.month.monthName} {data.month.year} matched &ldquo;{searchQuery}&rdquo;.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="mt-2 inline-flex items-center text-xs font-semibold text-brand-600 hover:text-brand-800"
+                    >
+                      Clear search query
+                    </button>
+                  </div>
+                </Card>
               ) : (
                 <Card className="overflow-hidden">
                   <div className="hidden md:block overflow-x-auto">
@@ -606,7 +770,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {data.month.teamEntries.map((entry) => {
+                        {filteredMonthlyTeamEntries.map((entry) => {
                           const isNeg = (entry.points || 0) < 0;
                           return (
                             <tr key={entry._id} className="hover:bg-slate-50/70 transition">
@@ -649,7 +813,7 @@ const PeriodPointsView = ({ isAdmin = false }) => {
 
                   {/* Mobile Layout */}
                   <div className="md:hidden divide-y divide-slate-100">
-                    {data.month.teamEntries.map((entry) => {
+                    {filteredMonthlyTeamEntries.map((entry) => {
                       const isNeg = (entry.points || 0) < 0;
                       return (
                         <div key={entry._id} className="p-3.5 space-y-2">

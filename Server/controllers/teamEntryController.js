@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const TeamPointEntry = require('../models/TeamPointEntry');
+const PointEntry = require('../models/PointEntry');
+const User = require('../models/User');
 const Criteria = require('../models/Criteria');
 const Team = require('../models/Team');
 const AuditLog = require('../models/AuditLog');
@@ -330,9 +332,52 @@ exports.getTeamEntries = async (req, res, next) => {
     if (req.query.year) {
       filter.year = parseInt(req.query.year, 10);
     }
+    if (req.query.submittedBy && mongoose.Types.ObjectId.isValid(req.query.submittedBy)) {
+      filter.submittedBy = req.query.submittedBy;
+    }
+
+    // Search query support (searches criteria name/key, team name, submitter name, and note)
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    if (search) {
+      const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escaped = escapeRegex(search);
+      const regex = new RegExp(escaped, 'i');
+
+      const matchingCriteria = await Criteria.find({
+        $or: [{ name: regex }, { key: regex }, { category: regex }],
+      }).select('_id').lean();
+      const criteriaIds = matchingCriteria.map((c) => c._id);
+
+      let teamIds = [];
+      if (userRole === 'admin') {
+        const matchingTeams = await Team.find({ name: regex }).select('_id').lean();
+        teamIds = matchingTeams.map((t) => t._id);
+      }
+
+      const matchingSubmitters = await User.find({
+        $or: [{ name: regex }, { username: regex }, { phone: regex }],
+      }).select('_id').lean();
+      const submitterIds = matchingSubmitters.map((u) => u._id);
+
+      const searchOr = [{ note: regex }];
+      if (criteriaIds.length > 0) {
+        searchOr.push({ criteria: { $in: criteriaIds } });
+      }
+      if (teamIds.length > 0) {
+        searchOr.push({ team: { $in: teamIds } });
+      }
+      if (submitterIds.length > 0) {
+        searchOr.push({ submittedBy: { $in: submitterIds } });
+      }
+
+      filter.$and = filter.$and || [];
+      filter.$and.push({ $or: searchOr });
+    }
 
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const limit = req.query.limit !== undefined
+      ? Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20))
+      : (req.query.status === 'pending' ? 100 : 20);
     const skip = (page - 1) * limit;
 
     const total = await TeamPointEntry.countDocuments(filter);
@@ -1135,12 +1180,63 @@ exports.getTeamScorecard = async (req, res, next) => {
 
     const totalOneTime = oneTimeCriteria.reduce((sum, c) => sum + (c.points || 0), 0);
 
+    // Calculate eligible member count for this team in this month
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+    const monthEnd = new Date(Date.UTC(targetYear, targetMonth - 1, lastDay, 23, 59, 59, 999));
+
+    const currentMembers = await User.find({
+      team: targetTeamId,
+      isActive: true,
+      role: { $ne: 'admin' },
+      createdAt: { $lte: monthEnd },
+    }).select('_id');
+
+    const pointMemberIds = await PointEntry.distinct('member', {
+      team: targetTeamId,
+      month: targetMonth,
+      year: targetYear,
+      status: 'approved',
+    });
+
+    const allEligibleMemberIds = new Set([
+      ...currentMembers.map((m) => m._id.toString()),
+      ...pointMemberIds.map((id) => id.toString()),
+    ]);
+    const eligibleMemberCount = allEligibleMemberIds.size;
+
+    // Calculate member point total for this month to provide full team points total
+    const memberPointAgg = await PointEntry.aggregate([
+      {
+        $match: {
+          team: new mongoose.Types.ObjectId(targetTeamId),
+          month: targetMonth,
+          year: targetYear,
+          status: 'approved',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$points' },
+        },
+      },
+    ]);
+    const memberPointsTotal = memberPointAgg[0]?.total || 0;
+    const totalTeamPoints = memberPointsTotal + earnedMonthly + earnedOneTime;
+    const unroundedAverage = eligibleMemberCount > 0 ? totalTeamPoints / eligibleMemberCount : 0;
+    const averagePointsPerMember = Number(unroundedAverage.toFixed(2));
+
     res.status(200).json({
       success: true,
       data: {
         team: teamDoc,
         month: targetMonth,
         year: targetYear,
+        eligibleMemberCount,
+        memberPointsTotal,
+        totalTeamPoints,
+        averagePointsPerMember,
+        unroundedAverage,
         monthly: {
           items: monthlyItems,
           earned: earnedMonthly,

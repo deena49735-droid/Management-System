@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   UserPlus,
@@ -27,6 +27,7 @@ import EmptyState from '../../components/EmptyState';
 import { Skeleton, SkeletonTable } from '../../components/Skeleton';
 import PasswordInputWithStrength from '../../components/PasswordInputWithStrength';
 import { validatePasswordClient } from '../../utils/passwordPolicy';
+import SearchBar from '../../components/SearchBar';
 
 const MyTeam = () => {
   const { user } = useAuth();
@@ -259,6 +260,20 @@ const MyTeam = () => {
   });
   const allMembers = Array.from(rosterMap.values());
 
+  const [rosterSearch, setRosterSearch] = useState('');
+
+  const filteredMembers = useMemo(() => {
+    if (!rosterSearch.trim()) return allMembers;
+    const q = rosterSearch.trim().toLowerCase();
+    return allMembers.filter((m) => {
+      const name = (m.name || '').toLowerCase();
+      const username = (m.username || '').toLowerCase();
+      const phone = (m.phone || '').toLowerCase();
+      const role = (m.teamRoleLabel || m.role || '').toLowerCase();
+      return name.includes(q) || username.includes(q) || phone.includes(q) || role.includes(q);
+    });
+  }, [allMembers, rosterSearch]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -291,6 +306,33 @@ const MyTeam = () => {
         </div>
       )}
 
+      {/* Roster Search Bar */}
+      {!loading && allMembers.length > 0 && (
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <SearchBar
+              value={rosterSearch}
+              onChange={setRosterSearch}
+              placeholder="Search team roster by name, username, phone, or role..."
+            />
+            {rosterSearch && (
+              <div className="flex items-center gap-2 self-center sm:self-auto shrink-0 text-xs text-slate-500">
+                <span>
+                  Matching: <strong className="text-slate-800">{filteredMembers.length}</strong> of {allMembers.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setRosterSearch('')}
+                  className="font-semibold text-brand-600 hover:text-brand-800 ml-1"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {/* Main Roster Card */}
       <Card className="overflow-hidden p-0">
         {loading ? (
@@ -302,6 +344,14 @@ const MyTeam = () => {
             description="Add existing or newly registered members to build your squad."
             actionLabel="Add member"
             onAction={handleOpenModal}
+          />
+        ) : filteredMembers.length === 0 && rosterSearch ? (
+          <EmptyState
+            icon={Search}
+            title="No team members match your search"
+            description={`No members found matching "${rosterSearch}".`}
+            actionLabel="Clear search"
+            onAction={() => setRosterSearch('')}
           />
         ) : (
           <>
@@ -320,7 +370,7 @@ const MyTeam = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {allMembers.map((m) => {
+                  {filteredMembers.map((m) => {
                     const isRemovable =
                       canRemoveMembers &&
                       m.teamRoleLabel === 'Member' &&
@@ -383,7 +433,7 @@ const MyTeam = () => {
 
             {/* Mobile Cards View (< 768px) */}
             <div className="md:hidden divide-y divide-slate-100">
-              {allMembers.map((m) => {
+              {filteredMembers.map((m) => {
                 const isRemovable =
                   canRemoveMembers &&
                   m.teamRoleLabel === 'Member' &&

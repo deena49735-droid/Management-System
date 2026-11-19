@@ -4,6 +4,7 @@ const PointEntry = require('../models/PointEntry');
 const TeamPointEntry = require('../models/TeamPointEntry');
 const Criteria = require('../models/Criteria');
 const User = require('../models/User');
+const Team = require('../models/Team');
 const AuditLog = require('../models/AuditLog');
 const { allowsMultipleQuantity } = require('../constants/criteriaConstants');
 
@@ -338,9 +339,60 @@ exports.getEntries = async (req, res, next) => {
     if (req.query.year) {
       filter.year = parseInt(req.query.year, 10);
     }
+    if (req.query.enteredBy && mongoose.Types.ObjectId.isValid(req.query.enteredBy)) {
+      filter.enteredBy = req.query.enteredBy;
+    }
+
+    // Search query support (searches member name/username/phone, criteria name/key, team name, and note)
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    if (search) {
+      const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escaped = escapeRegex(search);
+      const regex = new RegExp(escaped, 'i');
+
+      const memberQuery = {
+        $or: [
+          { name: regex },
+          { username: regex },
+          { phone: regex },
+        ],
+      };
+      if (userRole === 'teamHead' || userRole === 'teamAssistant') {
+        memberQuery.team = req.user.team;
+      }
+      const matchingUsers = await User.find(memberQuery).select('_id').lean();
+      const userIds = matchingUsers.map((u) => u._id);
+
+      const matchingCriteria = await Criteria.find({
+        $or: [{ name: regex }, { key: regex }, { category: regex }],
+      }).select('_id').lean();
+      const criteriaIds = matchingCriteria.map((c) => c._id);
+
+      let teamIds = [];
+      if (userRole === 'admin') {
+        const matchingTeams = await Team.find({ name: regex }).select('_id').lean();
+        teamIds = matchingTeams.map((t) => t._id);
+      }
+
+      const searchOr = [{ note: regex }];
+      if (userIds.length > 0) {
+        searchOr.push({ member: { $in: userIds } });
+      }
+      if (criteriaIds.length > 0) {
+        searchOr.push({ criteria: { $in: criteriaIds } });
+      }
+      if (teamIds.length > 0) {
+        searchOr.push({ team: { $in: teamIds } });
+      }
+
+      filter.$and = filter.$and || [];
+      filter.$and.push({ $or: searchOr });
+    }
 
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const limit = req.query.limit !== undefined
+      ? Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20))
+      : (req.query.status === 'pending' ? 100 : 20);
     const skip = (page - 1) * limit;
 
     const total = await PointEntry.countDocuments(filter);
@@ -1379,7 +1431,15 @@ exports.getEntriesByPeriod = async (req, res, next) => {
               year: targetYear,
               startDate: startOfWeek.toISOString().split('T')[0],
               endDate: endOfWeek.toISOString().split('T')[0],
-              summary: { approvedPoints: 0, pendingPoints: 0, rejectedPoints: 0, totalEntries: 0 },
+              summary: {
+                approvedPoints: 0,
+                pendingPoints: 0,
+                rejectedPoints: 0,
+                totalEntries: 0,
+                eligibleMemberCount: 0,
+                averagePointsPerMember: 0,
+                unroundedAverage: 0,
+              },
               entries: [],
             },
             month: {
@@ -1387,7 +1447,17 @@ exports.getEntriesByPeriod = async (req, res, next) => {
               year: targetYear,
               startDate: startOfMonth.toISOString().split('T')[0],
               endDate: endOfMonth.toISOString().split('T')[0],
-              summary: { approvedPoints: 0, memberApprovedPoints: 0, teamApprovedPoints: 0, pendingPoints: 0, rejectedPoints: 0, totalEntries: 0 },
+              summary: {
+                approvedPoints: 0,
+                memberApprovedPoints: 0,
+                teamApprovedPoints: 0,
+                pendingPoints: 0,
+                rejectedPoints: 0,
+                totalEntries: 0,
+                eligibleMemberCount: 0,
+                averagePointsPerMember: 0,
+                unroundedAverage: 0,
+              },
               memberEntries: [],
               teamEntries: [],
             },
@@ -1501,6 +1571,78 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     const totalMonthlyApprovedPoints = monthlyMemberApprovedPoints + monthlyTeamApprovedPoints;
     const totalMonthlyEntriesCount = uniqueMonthlyMemberEntries.length + monthlyTeamEntries.length;
 
+    // Calculate eligible member counts and averages for week and month
+    let weeklyEligibleMemberCount = 0;
+    let monthlyEligibleMemberCount = 0;
+
+    if (scopedTeamId) {
+      const teamWeeklyUsers = await User.find({
+        team: scopedTeamId,
+        isActive: true,
+        role: { $ne: 'admin' },
+        createdAt: { $lte: endOfWeek },
+      }).select('_id');
+
+      const weeklyPointMemberIds = await PointEntry.distinct('member', {
+        team: scopedTeamId,
+        status: 'approved',
+        $or: [
+          { date: { $gte: startOfWeek, $lte: endOfWeek } },
+          { weekNumber, year: { $in: [startOfWeek.getUTCFullYear(), endOfWeek.getUTCFullYear()] } },
+        ],
+      });
+
+      const weeklyMemberSet = new Set([
+        ...teamWeeklyUsers.map((m) => m._id.toString()),
+        ...weeklyPointMemberIds.map((id) => id.toString()),
+      ]);
+      weeklyEligibleMemberCount = weeklyMemberSet.size;
+
+      const teamMonthlyUsers = await User.find({
+        team: scopedTeamId,
+        isActive: true,
+        role: { $ne: 'admin' },
+        createdAt: { $lte: endOfMonth },
+      }).select('_id');
+
+      const monthlyPointMemberIds = await PointEntry.distinct('member', {
+        team: scopedTeamId,
+        status: 'approved',
+        $or: [
+          { date: { $gte: startOfMonth, $lte: endOfMonth } },
+          { month: targetMonth, year: targetYear },
+        ],
+      });
+
+      const monthlyMemberSet = new Set([
+        ...teamMonthlyUsers.map((m) => m._id.toString()),
+        ...monthlyPointMemberIds.map((id) => id.toString()),
+      ]);
+      monthlyEligibleMemberCount = monthlyMemberSet.size;
+    } else {
+      const allWeeklyUsers = await User.find({
+        team: { $ne: null },
+        isActive: true,
+        role: { $ne: 'admin' },
+        createdAt: { $lte: endOfWeek },
+      }).select('_id');
+      weeklyEligibleMemberCount = allWeeklyUsers.length;
+
+      const allMonthlyUsers = await User.find({
+        team: { $ne: null },
+        isActive: true,
+        role: { $ne: 'admin' },
+        createdAt: { $lte: endOfMonth },
+      }).select('_id');
+      monthlyEligibleMemberCount = allMonthlyUsers.length;
+    }
+
+    const unroundedWeeklyAvg = weeklyEligibleMemberCount > 0 ? weeklyApprovedPoints / weeklyEligibleMemberCount : 0;
+    const weeklyAvgPointsPerMember = Number(unroundedWeeklyAvg.toFixed(2));
+
+    const unroundedMonthlyAvg = monthlyEligibleMemberCount > 0 ? totalMonthlyApprovedPoints / monthlyEligibleMemberCount : 0;
+    const monthlyAvgPointsPerMember = Number(unroundedMonthlyAvg.toFixed(2));
+
     const monthNames = [
       'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
@@ -1520,6 +1662,9 @@ exports.getEntriesByPeriod = async (req, res, next) => {
             pendingPoints: weeklyPendingPoints,
             rejectedPoints: weeklyRejectedPoints,
             totalEntries: uniqueWeeklyEntries.length,
+            eligibleMemberCount: weeklyEligibleMemberCount,
+            averagePointsPerMember: weeklyAvgPointsPerMember,
+            unroundedAverage: unroundedWeeklyAvg,
           },
           entries: uniqueWeeklyEntries,
         },
@@ -1536,6 +1681,9 @@ exports.getEntriesByPeriod = async (req, res, next) => {
             pendingPoints: monthlyPendingPoints,
             rejectedPoints: monthlyRejectedPoints,
             totalEntries: totalMonthlyEntriesCount,
+            eligibleMemberCount: monthlyEligibleMemberCount,
+            averagePointsPerMember: monthlyAvgPointsPerMember,
+            unroundedAverage: unroundedMonthlyAvg,
           },
           memberEntries: uniqueMonthlyMemberEntries,
           teamEntries: monthlyTeamEntries,

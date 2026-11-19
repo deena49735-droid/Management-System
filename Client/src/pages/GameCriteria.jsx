@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ShieldCheck, Edit3, Power, AlertCircle, FileText } from 'lucide-react';
+import { ShieldCheck, Edit3, Power, AlertCircle, FileText, Search } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
@@ -12,6 +12,8 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import Card from '../components/Card';
+import SearchBar from '../components/SearchBar';
 
 const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
   const { user } = useAuth();
@@ -25,6 +27,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Edit Modal State (Admin only)
   const [editingItem, setEditingItem] = useState(null);
@@ -104,6 +107,34 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
     }
   };
 
+  // Filter categories and criteria by search query
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return categories;
+    const q = searchQuery.trim().toLowerCase();
+
+    return categories
+      .map((cat) => {
+        const catMatches = cat.label?.toLowerCase().includes(q) || cat.key?.toLowerCase().includes(q);
+        const matchingItems = (cat.items || []).filter((item) => {
+          if (catMatches) return true;
+          return (
+            item.name?.toLowerCase().includes(q) ||
+            item.basisLabel?.toLowerCase().includes(q) ||
+            item.frequency?.toLowerCase().includes(q) ||
+            item.key?.toLowerCase().includes(q)
+          );
+        });
+
+        if (matchingItems.length === 0) return null;
+        return {
+          ...cat,
+          items: matchingItems,
+          totalOriginalItems: cat.items?.length || 0,
+        };
+      })
+      .filter(Boolean);
+  }, [categories, searchQuery]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,6 +148,33 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
         }
       />
 
+      {/* Search Toolbar */}
+      {!loading && categories.length > 0 && (
+        <Card className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search criteria by activity name, parameter, basis, or category..."
+            />
+            {searchQuery && (
+              <div className="flex items-center gap-2 self-center sm:self-auto shrink-0 text-xs text-slate-500">
+                <span>
+                  Found in <strong className="text-slate-800">{filteredCategories.length}</strong> categories
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="font-semibold text-brand-600 hover:text-brand-800 ml-1"
+                >
+                  Clear search
+                </button>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       {loading ? (
         <div className="space-y-6">
           <SkeletonTable rows={5} cols={5} />
@@ -128,9 +186,17 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
           title="No game criteria configured"
           description="Criteria definitions have not been loaded yet."
         />
+      ) : filteredCategories.length === 0 && searchQuery ? (
+        <EmptyState
+          icon={Search}
+          title="No criteria match your search"
+          description={`No game parameters found matching "${searchQuery}". Try a different keyword.`}
+          actionLabel="Clear search"
+          onAction={() => setSearchQuery('')}
+        />
       ) : (
         <div className="space-y-6">
-          {categories.map((cat) => {
+          {filteredCategories.map((cat) => {
             const isPenalty = cat.key === 'penalty';
 
             return (
@@ -149,7 +215,14 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                     <h2 className="text-base font-semibold text-slate-900">{cat.label}</h2>
                   </div>
                   <span className="text-xs font-medium text-slate-500">
-                    {cat.level === 'team' ? 'Team level' : 'Member level'} • {cat.items?.length || 0} criteria
+                    {cat.level === 'team' ? 'Team level' : 'Member level'} •{' '}
+                    {searchQuery ? (
+                      <span className="text-brand-700 font-semibold">
+                        {cat.items?.length} of {cat.totalOriginalItems} criteria matching
+                      </span>
+                    ) : (
+                      `${cat.items?.length || 0} criteria`
+                    )}
                   </span>
                 </div>
 

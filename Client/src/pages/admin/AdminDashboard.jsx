@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -14,6 +14,8 @@ import {
   RefreshCw,
   AlertCircle,
   PlusCircle,
+  Medal,
+  Award,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/axios';
@@ -23,6 +25,7 @@ import StatCard from '../../components/StatCard';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
 import Button from '../../components/Button';
+import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
 import { Skeleton, SkeletonCard, SkeletonTable } from '../../components/Skeleton';
 
@@ -56,6 +59,8 @@ const AdminDashboard = () => {
     pendingApprovals: 0,
   });
   const [topTeams, setTopTeams] = useState([]);
+  const [allRankedTeams, setAllRankedTeams] = useState([]);
+  const [topMembers, setTopMembers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [recentMeetings, setRecentMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +77,8 @@ const AdminDashboard = () => {
         teamsRes,
         memberPendingRes,
         teamPendingRes,
-        leaderboardRes,
+        teamLeaderboardRes,
+        memberLeaderboardRes,
         meetingsRes,
       ] = await Promise.all([
         api.get('/users?limit=1'),
@@ -81,6 +87,7 @@ const AdminDashboard = () => {
         api.get('/entries', { params: { status: 'pending' } }),
         api.get('/team-entries', { params: { status: 'pending' } }),
         api.get('/leaderboard/teams', { params: { period: 'month' } }),
+        api.get('/leaderboard/members', { params: { period: 'month' } }),
         api.get('/meetings'),
       ]);
 
@@ -99,7 +106,10 @@ const AdminDashboard = () => {
       });
 
       setTeams(loadedTeams);
-      setTopTeams((leaderboardRes.data?.data || []).slice(0, 5));
+      const rankedTeams = teamLeaderboardRes.data?.data || [];
+      setAllRankedTeams(rankedTeams);
+      setTopTeams(rankedTeams.slice(0, 5));
+      setTopMembers((memberLeaderboardRes.data?.data || []).slice(0, 5));
       setRecentMeetings((meetingsRes.data?.data || []).slice(0, 5));
     } catch (err) {
       console.error('Failed to load admin dashboard:', err);
@@ -110,6 +120,15 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  const teamScoresMap = useMemo(() => {
+    const map = {};
+    (allRankedTeams || []).forEach((t) => {
+      const tid = (t.teamId || t._id)?.toString();
+      if (tid) map[tid] = t;
+    });
+    return map;
+  }, [allRankedTeams]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -285,7 +304,7 @@ const AdminDashboard = () => {
         </Link>
       </div>
 
-      {/* 3. Team Standings & Recent Meetings (Two Columns on Desktop) */}
+      {/* 3. Team Standings & Member Scores Summary (Two Columns on Desktop) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Section: Team Standings */}
         <Card
@@ -323,13 +342,14 @@ const AdminDashboard = () => {
             <div className="divide-y divide-slate-100">
               {topTeams.map((team, idx) => {
                 const teamScore = team.total ?? team.totalPoints ?? 0;
-                const firstTeamScore = topTeams[0]?.total ?? topTeams[0]?.totalPoints ?? 1;
-                const maxScore = firstTeamScore > 0 ? firstTeamScore : 1;
-                const percent = Math.max(8, Math.min(100, Math.round((teamScore / maxScore) * 100)));
+                const teamAvg = team.averageRounded ?? (team.memberCount ? teamScore / team.memberCount : 0);
+                const firstTeamAvg = topTeams[0]?.averageRounded ?? (topTeams[0]?.memberCount ? (topTeams[0]?.total ?? 0) / topTeams[0].memberCount : 1);
+                const maxAvg = firstTeamAvg > 0 ? firstTeamAvg : 1;
+                const percent = Math.max(8, Math.min(100, Math.round((teamAvg / maxAvg) * 100)));
 
                 return (
                   <div key={team.teamId || idx} className="py-3 first:pt-0 last:pb-0 space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm gap-2">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span
                           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${idx === 0
@@ -341,15 +361,20 @@ const AdminDashboard = () => {
                                   : 'bg-slate-100 text-slate-500'
                             }`}
                         >
-                          {team.rank || idx + 1}
+                          #{team.rank || idx + 1}
                         </span>
                         <span className="font-semibold text-slate-900 truncate">
                           {team.name || team.teamName}
                         </span>
                       </div>
-                      <span className="font-semibold text-slate-900 tabular-nums shrink-0">
-                        {teamScore.toLocaleString()} pts
-                      </span>
+                      <div className="text-right shrink-0">
+                        <span className="font-bold text-slate-900 tabular-nums block text-xs sm:text-sm">
+                          Avg: {team.averageRounded != null ? team.averageRounded.toFixed(2) : (team.memberCount ? (teamScore / team.memberCount).toFixed(2) : '0.00')} pts
+                        </span>
+                        <span className="text-[11px] text-slate-500 tabular-nums">
+                          Total: {teamScore.toLocaleString()} pts • {team.memberCount || 0} mbrs
+                        </span>
+                      </div>
                     </div>
 
                     <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
@@ -357,8 +382,8 @@ const AdminDashboard = () => {
                         className={`h-full rounded-full transition-all duration-300 ${idx === 0
                             ? 'bg-amber-500'
                             : idx === 1
-                              ? 'bg-brand-500'
-                              : 'bg-brand-200'
+                                ? 'bg-brand-500'
+                                : 'bg-brand-200'
                           }`}
                         style={{ width: `${percent}%` }}
                       />
@@ -370,13 +395,13 @@ const AdminDashboard = () => {
           )}
         </Card>
 
-        {/* Section: Recent Meetings */}
+        {/* Section: Top Member Scores Summary */}
         <Card
-          title="Recent Meetings"
-          subtitle="Latest weekly attendance sheets"
+          title="Top Member Scores (This Month)"
+          subtitle="Top performing chapter members"
           action={
             <Link
-              to="/admin/meetings"
+              to="/leaderboard"
               className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
             >
               <span>View all</span>
@@ -388,44 +413,58 @@ const AdminDashboard = () => {
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <Skeleton className="h-4 w-36" />
-                  <Skeleton className="h-5 w-16 rounded-full" />
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
                 </div>
               ))}
             </div>
-          ) : recentMeetings.length === 0 ? (
+          ) : topMembers.length === 0 ? (
             <EmptyState
-              icon={Calendar}
-              title="No recent meetings"
-              description="No attendance sheets have been created yet."
+              icon={Medal}
+              title="No member scores yet"
+              description="Member scores will appear here once earned activity points are approved."
             />
           ) : (
             <div className="divide-y divide-slate-100">
-              {recentMeetings.map((m) => (
-                <Link
-                  key={m._id}
-                  to={`/admin/meetings/${m._id}`}
-                  className="group flex items-center justify-between py-2.5 first:pt-0 last:pb-0 hover:bg-slate-50 -mx-2 px-2 rounded-lg transition"
+              {topMembers.map((member, idx) => (
+                <div
+                  key={member.userId || idx}
+                  className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition truncate">
-                      {formatDate(m.date)}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">
-                      {m.team?.name ? `${m.team.name} • ` : ''}Week {m.weekNumber}
-                    </p>
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        idx === 0
+                          ? 'bg-amber-100 text-amber-800'
+                          : idx === 1
+                          ? 'bg-slate-200 text-slate-700'
+                          : idx === 2
+                          ? 'bg-amber-50 text-amber-700'
+                          : 'bg-slate-100 text-slate-500'
+                      }`}
+                    >
+                      #{member.rank || idx + 1}
+                    </span>
+                    <Avatar name={member.name} size="sm" />
+                    <div className="min-w-0 truncate">
+                      <p className="text-sm font-semibold text-slate-900 truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-xs text-slate-400 truncate">
+                        {member.team || 'Unassigned'} • @{member.username}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span
-                      className={`text-xs font-semibold tabular-nums ${m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
-                        }`}
-                    >
-                      {m.totalPoints < 0 ? m.totalPoints : `+${m.totalPoints}`} pts
+                  <div className="text-right shrink-0">
+                    <span className="font-bold tabular-nums text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs">
+                      +{member.total ?? 0} pts
                     </span>
-                    <Badge status={m.status} />
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}
@@ -434,8 +473,8 @@ const AdminDashboard = () => {
 
       {/* 4. Section: Teams Overview */}
       <Card
-        title="Teams Overview"
-        subtitle="Chapter teams, designated leadership, and member counts"
+        title="Teams Overview (This Month)"
+        subtitle="Chapter teams, designated leadership, member counts, and monthly scores"
         action={
           <Link
             to="/admin/teams"
@@ -447,7 +486,7 @@ const AdminDashboard = () => {
         }
       >
         {loading ? (
-          <SkeletonTable rows={4} cols={5} />
+          <SkeletonTable rows={4} cols={7} />
         ) : teams.length === 0 ? (
           <EmptyState
             icon={Shield}
@@ -467,6 +506,8 @@ const AdminDashboard = () => {
                     <th className="px-5 py-3.5">Team Head</th>
                     <th className="px-5 py-3.5">Team Assistant</th>
                     <th className="px-4 py-3.5 text-center">Members</th>
+                    <th className="px-4 py-3.5 text-right">Total Score (This Month)</th>
+                    <th className="px-4 py-3.5 text-right">Avg / Member (This Month)</th>
                     <th className="px-5 py-3.5 text-right">Action</th>
                   </tr>
                 </thead>
@@ -474,6 +515,9 @@ const AdminDashboard = () => {
                   {teams.map((t) => {
                     const memberCount =
                       (t.members?.length || 0) + (t.head ? 1 : 0) + (t.assistant ? 1 : 0);
+                    const scoreData = teamScoresMap[t._id?.toString()];
+                    const totalScore = scoreData?.total ?? 0;
+                    const avgScore = scoreData?.averageRounded ?? (scoreData?.memberCount ? totalScore / scoreData.memberCount : 0);
 
                     return (
                       <tr key={t._id} className="hover:bg-slate-50/80 transition">
@@ -502,6 +546,12 @@ const AdminDashboard = () => {
                         <td className="px-4 py-3.5 text-center text-xs font-semibold text-slate-800 tabular-nums">
                           {memberCount}
                         </td>
+                        <td className="px-4 py-3.5 text-right text-xs font-bold text-slate-900 tabular-nums">
+                          {totalScore.toLocaleString()} pts
+                        </td>
+                        <td className="px-4 py-3.5 text-right text-xs font-semibold text-slate-700 tabular-nums">
+                          {Number(avgScore).toFixed(2)} pts
+                        </td>
                         <td className="px-5 py-3.5 text-right whitespace-nowrap">
                           <Link
                             to={`/admin/teams/${t._id}`}
@@ -523,6 +573,10 @@ const AdminDashboard = () => {
               {teams.map((t) => {
                 const memberCount =
                   (t.members?.length || 0) + (t.head ? 1 : 0) + (t.assistant ? 1 : 0);
+                const scoreData = teamScoresMap[t._id?.toString()];
+                const totalScore = scoreData?.total ?? 0;
+                const avgScore = scoreData?.averageRounded ?? (scoreData?.memberCount ? totalScore / scoreData.memberCount : 0);
+
                 return (
                   <div key={t._id} className="p-4 space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
@@ -556,6 +610,18 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                      <span className="text-slate-500 font-medium">Scores (This Month):</span>
+                      <div className="text-right">
+                        <span className="font-bold text-slate-900 tabular-nums">
+                          {totalScore.toLocaleString()} pts
+                        </span>
+                        <span className="text-slate-500 font-normal ml-1">
+                          (Avg: {Number(avgScore).toFixed(2)} / mbr)
+                        </span>
+                      </div>
+                    </div>
+
                     <div className="pt-1 flex justify-end">
                       <Link
                         to={`/admin/teams/${t._id}`}
@@ -570,6 +636,67 @@ const AdminDashboard = () => {
               })}
             </div>
           </>
+        )}
+      </Card>
+
+      {/* 5. Section: Recent Meetings */}
+      <Card
+        title="Recent Meetings"
+        subtitle="Latest weekly attendance sheets"
+        action={
+          <Link
+            to="/admin/meetings"
+            className="min-h-[44px] inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-brand-600 hover:text-brand-800 -mr-2"
+          >
+            <span>View all</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        }
+      >
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100">
+                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : recentMeetings.length === 0 ? (
+          <EmptyState
+            icon={Calendar}
+            title="No recent meetings"
+            description="No attendance sheets have been created yet."
+          />
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {recentMeetings.map((m) => (
+              <Link
+                key={m._id}
+                to={`/admin/meetings/${m._id}`}
+                className="group flex items-center justify-between py-2.5 first:pt-0 last:pb-0 hover:bg-slate-50 -mx-2 px-2 rounded-lg transition"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-600 transition truncate">
+                    {formatDate(m.date)}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5 truncate">
+                    {m.team?.name ? `${m.team.name} • ` : ''}Week {m.weekNumber}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <span
+                    className={`text-xs font-semibold tabular-nums ${m.totalPoints < 0 ? 'text-rose-600' : 'text-emerald-600'
+                      }`}
+                  >
+                    {m.totalPoints < 0 ? m.totalPoints : `+${m.totalPoints}`} pts
+                  </span>
+                  <Badge status={m.status} />
+                </div>
+              </Link>
+            ))}
+          </div>
         )}
       </Card>
     </div>

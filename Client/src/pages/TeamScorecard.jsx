@@ -229,6 +229,41 @@ const TeamScorecard = () => {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* Team Points & Average Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <Card className="p-4 bg-emerald-50/40 border-emerald-200/80">
+              <span className="block text-xs font-semibold text-emerald-800 mb-1">Total Team Points</span>
+              <span className="text-2xl font-black text-emerald-700 tracking-tight">
+                {(scorecard?.totalTeamPoints ?? (scorecard?.monthly?.earned || 0)) > 0
+                  ? `+${scorecard?.totalTeamPoints ?? scorecard?.monthly?.earned}`
+                  : scorecard?.totalTeamPoints ?? (scorecard?.monthly?.earned || 0)} pts
+              </span>
+              <span className="block text-[11px] text-emerald-700/90 mt-1 font-medium">
+                Member: +{scorecard?.memberPointsTotal || 0} • Bonus: +{(scorecard?.earnedMonthly || 0) + (scorecard?.earnedOneTime || 0)}
+              </span>
+            </Card>
+
+            <Card className="p-4 bg-brand-50/40 border-brand-200/80">
+              <span className="block text-xs font-semibold text-brand-800 mb-1">Average / Member</span>
+              <span className="text-2xl font-black text-brand-700 tracking-tight">
+                {scorecard?.averagePointsPerMember != null ? scorecard.averagePointsPerMember.toFixed(2) : '0.00'} pts
+              </span>
+              <span className="block text-[11px] text-brand-700/90 mt-1 font-medium">
+                Fair ranking metric (Total ÷ Members)
+              </span>
+            </Card>
+
+            <Card className="p-4 bg-slate-50 border-slate-200">
+              <span className="block text-xs font-semibold text-slate-700 mb-1">Eligible Members</span>
+              <span className="text-2xl font-black text-slate-800 tracking-tight">
+                {scorecard?.eligibleMemberCount ?? 0}
+              </span>
+              <span className="block text-[11px] text-slate-500 mt-1 font-medium">
+                Active roster for {MONTHS.find((m) => m.value === month)?.label} {year}
+              </span>
+            </Card>
+          </div>
+
           {/* SECTION 1: Monthly Points */}
           <Card
             title="Monthly points"

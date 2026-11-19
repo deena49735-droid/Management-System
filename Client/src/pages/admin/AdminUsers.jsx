@@ -13,6 +13,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
+import SearchBar from '../../components/SearchBar';
 import { SkeletonTable } from '../../components/Skeleton';
 import PasswordInputWithStrength from '../../components/PasswordInputWithStrength';
 import { validatePasswordClient } from '../../utils/passwordPolicy';
@@ -302,18 +303,22 @@ const AdminUsers = () => {
       {/* Filter and Search Bar */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="relative flex-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
-              <Search className="h-4 w-4" />
-            </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              placeholder="Search by name, email or phone..."
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white pl-10 pr-4 text-base md:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:outline-hidden focus:ring-2 focus:ring-brand-100 transition"
-            />
-          </div>
+          <SearchBar
+            value={searchTerm}
+            onChange={(val) => {
+              setSearchTerm(val);
+              setDebouncedSearch(val);
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
+            onClear={() => {
+              setSearchTerm('');
+              setDebouncedSearch('');
+              setPagination((prev) => ({ ...prev, page: 1 }));
+            }}
+            debounceMs={350}
+            placeholder="Search by name, email or phone..."
+            className="flex-1"
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
             {/* Role Filter */}

@@ -3,6 +3,7 @@ const roleCheck = require('../middleware/roleCheck');
 const { getEntriesByPeriod } = require('../controllers/entryController');
 const PointEntry = require('../models/PointEntry');
 const TeamPointEntry = require('../models/TeamPointEntry');
+const User = require('../models/User');
 
 let passedCount = 0;
 let failedCount = 0;
@@ -165,6 +166,13 @@ async function runTests() {
   // Intercept Mongoose queries
   const origPointFind = PointEntry.find;
   const origTeamPointFind = TeamPointEntry.find;
+  const origUserFind = User.find;
+  const origPointDistinct = PointEntry.distinct;
+
+  User.find = () => ({
+    select: () => Promise.resolve([{ _id: member1Id }, { _id: member2Id }]),
+  });
+  PointEntry.distinct = () => Promise.resolve([]);
 
   PointEntry.find = function (filter) {
     let filtered = [...mockWeeklyEntries];
@@ -276,6 +284,8 @@ async function runTests() {
   // Restore mocks
   PointEntry.find = origPointFind;
   TeamPointEntry.find = origTeamPointFind;
+  User.find = origUserFind;
+  PointEntry.distinct = origPointDistinct;
 
   console.log(`\n=== RESULTS: ${passedCount} PASSED, ${failedCount} FAILED ===`);
   if (failedCount > 0) process.exit(1);

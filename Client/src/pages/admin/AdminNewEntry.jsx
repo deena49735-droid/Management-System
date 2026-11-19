@@ -9,6 +9,7 @@ import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { SkeletonCard } from '../../components/Skeleton';
+import ActivityCriteriaSelect from '../../components/ActivityCriteriaSelect';
 
 const CATEGORY_ORDER = ['meeting_day', 'non_meeting_day', 'penalty'];
 
@@ -265,15 +266,6 @@ const AdminNewEntry = () => {
     );
   }
 
-  // Group criteria in strict PDF category order
-  const groupedCriteria = CATEGORY_ORDER.reduce((acc, catKey) => {
-    const items = criteriaList.filter((c) => c.categoryKey === catKey);
-    if (items.length > 0) {
-      acc[catKey] = items;
-    }
-    return acc;
-  }, {});
-
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Header */}
@@ -388,32 +380,17 @@ const AdminNewEntry = () => {
           </div>
 
           {/* Section: Criteria Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Activity Criteria <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={criteriaId}
-              onChange={(e) => setCriteriaId(e.target.value)}
-              required
-              className="w-full h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
-            >
-              <option value="">-- Select activity or penalty --</option>
-              {CATEGORY_ORDER.map((catKey) => {
-                const items = groupedCriteria[catKey] || [];
-                if (items.length === 0) return null;
-                return (
-                  <optgroup key={catKey} label={CATEGORY_LABELS[catKey] || catKey}>
-                    {items.map((c) => (
-                      <option key={c.id || c._id} value={c.id || c._id}>
-                        {c.name} ({c.points > 0 ? `+${c.points}` : c.points} pts • {c.basisLabel})
-                      </option>
-                    ))}
-                  </optgroup>
-                );
-              })}
-            </select>
-          </div>
+          <ActivityCriteriaSelect
+            label="Activity Criteria"
+            required
+            criteriaList={criteriaList}
+            value={criteriaId}
+            onChange={(newId) => {
+              setCriteriaId(newId);
+              setQuantity(1);
+            }}
+            disabled={loading || submitting}
+          />
 
           {/* Points Preview Badge */}
           {selectedCriteria && (

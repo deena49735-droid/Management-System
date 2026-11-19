@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Calendar, ArrowRight } from 'lucide-react';
+import { Plus, Calendar, ArrowRight, Search } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Badge from '../../components/Badge';
@@ -12,6 +12,7 @@ import Modal from '../../components/Modal';
 import Input from '../../components/Input';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonTable } from '../../components/Skeleton';
+import SearchBar from '../../components/SearchBar';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
@@ -37,6 +38,7 @@ const MeetingsList = () => {
   const [teams, setTeams] = useState([]);
 
   // Filters
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
@@ -129,6 +131,27 @@ const MeetingsList = () => {
 
   const canCreate = user?.role === 'teamAssistant' || user?.role === 'teamHead' || user?.role === 'admin';
 
+  const filteredMeetings = useMemo(() => {
+    if (!searchQuery.trim()) return meetings;
+    const q = searchQuery.trim().toLowerCase();
+    return meetings.filter((m) => {
+      const teamName = m.team?.name?.toLowerCase() || '';
+      const dateFormatted = formatDate(m.date).toLowerCase();
+      const weekStr = `week ${m.weekNumber}`.toLowerCase();
+      const createdByName = m.createdBy?.name?.toLowerCase() || '';
+      const submittedByName = m.submittedBy?.name?.toLowerCase() || '';
+      const statusStr = (m.status || '').toLowerCase();
+      return (
+        teamName.includes(q) ||
+        dateFormatted.includes(q) ||
+        weekStr.includes(q) ||
+        createdByName.includes(q) ||
+        submittedByName.includes(q) ||
+        statusStr.includes(q)
+      );
+    });
+  }, [meetings, searchQuery]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -149,8 +172,32 @@ const MeetingsList = () => {
       />
 
       {/* Filter Toolbar */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <Card className="p-4 space-y-3">
+        {/* Search Bar Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search meetings by team, date, week number, or creator..."
+          />
+          {(statusFilter || monthFilter || yearFilter || searchQuery) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setStatusFilter('');
+                setMonthFilter('');
+                setYearFilter('');
+              }}
+              className="text-xs font-semibold text-brand-600 hover:text-brand-800 shrink-0 min-h-[44px] px-2 flex items-center justify-center sm:justify-start"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+
+        {/* Dropdowns Row */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100">
           {/* Status Filter */}
           <select
             value={statusFilter}
@@ -187,20 +234,6 @@ const MeetingsList = () => {
             <option value="2026">2026</option>
             <option value="2025">2025</option>
           </select>
-
-          {(statusFilter || monthFilter || yearFilter) && (
-            <button
-              type="button"
-              onClick={() => {
-                setStatusFilter('');
-                setMonthFilter('');
-                setYearFilter('');
-              }}
-              className="text-xs font-semibold text-brand-600 hover:text-brand-800 ml-auto min-h-[44px] px-2 flex items-center"
-            >
-              Clear filters
-            </button>
-          )}
         </div>
       </Card>
 
@@ -215,11 +248,19 @@ const MeetingsList = () => {
           actionLabel={canCreate ? 'Create a meeting sheet' : undefined}
           onAction={canCreate ? () => setIsCreateModalOpen(true) : undefined}
         />
+      ) : filteredMeetings.length === 0 && searchQuery ? (
+        <EmptyState
+          icon={Search}
+          title="No meeting sheets match your search"
+          description={`No meetings found matching "${searchQuery}".`}
+          actionLabel="Clear search"
+          onAction={() => setSearchQuery('')}
+        />
       ) : (
         <div className="space-y-3">
           {/* Mobile Cards (Below 768px: clean cards, no horizontal scroll) */}
           <div className="grid grid-cols-1 gap-3 md:hidden">
-            {meetings.map((m) => (
+            {filteredMeetings.map((m) => (
               <div
                 key={m._id}
                 onClick={() => navigate(`${basePath}/${m._id}`)}
@@ -277,7 +318,7 @@ const MeetingsList = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {meetings.map((m) => (
+                {filteredMeetings.map((m) => (
                   <tr key={m._id} className="hover:bg-slate-50/80 transition">
                     <td className="px-5 py-3.5 font-semibold text-slate-900">
                       <span>{formatDate(m.date)}</span>

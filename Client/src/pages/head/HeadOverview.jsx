@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users,
@@ -52,9 +52,11 @@ const HeadOverview = () => {
 
   const [team, setTeam] = useState(null);
   const [pendingEntries, setPendingEntries] = useState([]);
+  const [memberScores, setMemberScores] = useState([]);
   const [teamRank, setTeamRank] = useState(null);
   const [totalTeams, setTotalTeams] = useState(0);
   const [teamPointsMonth, setTeamPointsMonth] = useState(0);
+  const [teamAvgPointsMonth, setTeamAvgPointsMonth] = useState(0);
   const [recentMeetings, setRecentMeetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -92,6 +94,26 @@ const HeadOverview = () => {
       if (myRankEntry) {
         setTeamRank(myRankEntry.rank);
         setTeamPointsMonth(myRankEntry.total ?? myRankEntry.totalPoints ?? 0);
+        setTeamAvgPointsMonth(
+          myRankEntry.averageRounded ??
+            (myRankEntry.memberCount ? (myRankEntry.total ?? 0) / myRankEntry.memberCount : 0)
+        );
+      }
+
+      // Fetch member scores strictly for this team (This Month)
+      const myTeamId = user?.team?._id || user?.team || teamData?._id;
+      if (myTeamId) {
+        try {
+          const scoresRes = await api.get('/leaderboard/members', {
+            params: { period: 'month', team: myTeamId },
+          });
+          setMemberScores(scoresRes.data?.data || []);
+        } catch (scoresErr) {
+          console.warn('Could not load team member scores:', scoresErr);
+          setMemberScores([]);
+        }
+      } else {
+        setMemberScores([]);
       }
 
       setRecentMeetings((meetingsRes.data?.data || []).slice(0, 5));
@@ -152,6 +174,24 @@ const HeadOverview = () => {
   const allMembers = Array.from(
     new Map(rawMembers.filter((m) => m && m._id).map((m) => [m._id, m])).values()
   );
+
+  const memberScoresMap = useMemo(() => {
+    const map = {};
+    (memberScores || []).forEach((m) => {
+      const uid = (m.userId || m._id)?.toString();
+      if (uid) map[uid] = m;
+    });
+    return map;
+  }, [memberScores]);
+
+  const sortedMembers = useMemo(() => {
+    return [...allMembers].sort((a, b) => {
+      const aScore = memberScoresMap[a._id?.toString()]?.total ?? 0;
+      const bScore = memberScoresMap[b._id?.toString()]?.total ?? 0;
+      if (bScore !== aScore) return bScore - aScore;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [allMembers, memberScoresMap]);
 
   return (
     <div className="space-y-6">
@@ -223,7 +263,7 @@ const HeadOverview = () => {
           onClick={() => {}}
         />
         <StatCard
-          label="My Team Rank"
+          label="My Team Rank (This Month)"
           value={teamRank ? `#${teamRank}` : '—'}
           icon={Trophy}
           variant="brand"
@@ -231,11 +271,11 @@ const HeadOverview = () => {
           loading={loading}
         />
         <StatCard
-          label="Team Points (Month)"
+          label="Team Points (This Month)"
           value={teamPointsMonth.toLocaleString()}
           icon={Award}
           variant="emerald"
-          hint="Approved monthly total"
+          hint={`Total: ${teamPointsMonth} pts • Avg: ${Number(teamAvgPointsMonth).toFixed(2)} / mbr`}
           hintType="success"
           loading={loading}
         />
@@ -371,7 +411,7 @@ const HeadOverview = () => {
       {/* 3. Section: Team Members */}
       <Card
         title="Team Members"
-        subtitle={`Roster for ${team?.name} (${allMembers.length} active members)`}
+        subtitle={`Roster for ${team?.name} (${allMembers.length} active members) • Member Scores (This Month)`}
         action={
           <Link
             to="/head/team"
@@ -383,8 +423,8 @@ const HeadOverview = () => {
         }
       >
         {loading ? (
-          <SkeletonTable rows={4} cols={4} />
-        ) : allMembers.length === 0 ? (
+          <SkeletonTable rows={4} cols={5} />
+        ) : sortedMembers.length === 0 ? (
           <EmptyState
             icon={Users}
             title="No members in team"
@@ -398,33 +438,52 @@ const HeadOverview = () => {
                   <th className="px-5 py-3.5">Member</th>
                   <th className="px-5 py-3.5">Username</th>
                   <th className="px-5 py-3.5">Phone</th>
+                  <th className="px-5 py-3.5 text-right">Score (This Month)</th>
                   <th className="px-5 py-3.5 text-right">Role</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {allMembers.map((m, idx) => (
-                  <tr key={m._id || idx} className="hover:bg-slate-50/80 transition">
-                    <td className="px-5 py-3.5 font-semibold text-slate-900">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar name={m.name} size="sm" />
-                        <span className="truncate">{m.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-slate-500">
-                      {m.username ? `@${m.username}` : '—'}
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-slate-500">
-                      {m.phone || '—'}
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <span
-                        className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200"
-                      >
-                        {m.teamRole}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {sortedMembers.map((m, idx) => {
+                  const scoreObj = memberScoresMap[m._id?.toString()];
+                  const score = scoreObj?.total ?? 0;
+
+                  return (
+                    <tr key={m._id || idx} className="hover:bg-slate-50/80 transition">
+                      <td className="px-5 py-3.5 font-semibold text-slate-900">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={m.name} size="sm" />
+                          <span className="truncate">{m.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-slate-500">
+                        {m.username ? `@${m.username}` : '—'}
+                      </td>
+                      <td className="px-5 py-3.5 text-xs text-slate-500">
+                        {m.phone || '—'}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-bold tabular-nums">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border tabular-nums ${
+                            score > 0
+                              ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
+                              : score < 0
+                              ? 'text-rose-700 bg-rose-50 border-rose-100'
+                              : 'text-slate-600 bg-slate-50 border-slate-200'
+                          }`}
+                        >
+                          {score > 0 ? `+${score}` : score} pts
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <span
+                          className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200"
+                        >
+                          {m.teamRole}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

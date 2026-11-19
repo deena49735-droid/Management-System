@@ -74,6 +74,7 @@ const MemberDashboard = () => {
   const [totalMembers, setTotalMembers] = useState(0);
   const [teamRank, setTeamRank] = useState(null);
   const [totalTeams, setTotalTeams] = useState(0);
+  const [myTeamData, setMyTeamData] = useState(null);
   const [topMembers, setTopMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -134,12 +135,18 @@ const MemberDashboard = () => {
       });
       setCriteriaList(flattened);
 
-      // Extract ranks
+      // Extract ranks and team score
       const teamsList = teamLeaderboardRes.data.data || [];
       setTotalTeams(teamsList.length);
       const userTeamId = user?.team?._id || user?.team;
       const myTeam = teamsList.find((t) => t.teamId === userTeamId);
-      if (myTeam) setTeamRank(myTeam.rank);
+      if (myTeam) {
+        setTeamRank(myTeam.rank);
+        setMyTeamData(myTeam);
+      } else {
+        setTeamRank(null);
+        setMyTeamData(null);
+      }
 
       const membersList = memberLeaderboardRes.data.data || [];
       setTotalMembers(membersList.length);
@@ -311,41 +318,55 @@ const MemberDashboard = () => {
 
       {/* Stat Cards */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
-            label="Total points"
+            label="Total Points (Lifetime)"
             value={summary.approvedTotal ?? 0}
             icon={Award}
             tint="emerald"
             hint="Lifetime approved points"
           />
           <StatCard
-            label="This week"
+            label="My Points (This Week)"
             value={summary.weekTotal ?? 0}
             icon={Calendar}
             tint="brand"
             hint="Approved points this week"
           />
           <StatCard
-            label="Penalties"
+            label="My Rank (This Month)"
+            value={memberRank !== null ? `#${memberRank}` : '—'}
+            icon={Medal}
+            tint="amber"
+            hint={totalMembers ? `of ${totalMembers} members this month` : 'This month'}
+          />
+          <StatCard
+            label="Penalties (Lifetime)"
             value={summary.penaltyTotal ?? 0}
             icon={ShieldAlert}
             tint="rose"
             hint="Negative deductions"
           />
           <StatCard
-            label="My rank"
-            value={memberRank !== null ? `#${memberRank}` : '—'}
-            icon={Medal}
-            tint="amber"
-            hint={totalMembers ? `of ${totalMembers} members this month` : 'This month'}
+            label="Team Score (This Month)"
+            value={myTeamData ? `${(myTeamData.total ?? 0).toLocaleString()} pts` : (user?.team ? '0 pts' : 'Unassigned')}
+            icon={Trophy}
+            tint="brand"
+            hint={
+              myTeamData
+                ? `Avg: ${Number(myTeamData.averageRounded ?? 0).toFixed(2)} / mbr • Rank #${myTeamData.rank || '—'}`
+                : user?.team
+                ? 'No team entries this month'
+                : 'Not assigned to a team'
+            }
           />
         </div>
       )}
@@ -489,8 +510,62 @@ const MemberDashboard = () => {
           </Card>
         </div>
 
-        {/* Top 5 Leaderboard Preview */}
+        {/* Right Column: Team Score & Leaderboard */}
         <div className="space-y-4">
+          {/* My Team Score Card */}
+          <Card
+            title="My Team Score (This Month)"
+            subtitle={user?.team ? `${myTeamData?.name || user?.team?.name || 'My Team'} • Squad Performance` : 'Squad Performance'}
+          >
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ) : !user?.team ? (
+              <div className="py-2 text-center text-xs text-slate-500">
+                You are not currently assigned to a chapter team.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Team Total
+                    </p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900 tabular-nums">
+                      {(myTeamData?.total ?? 0).toLocaleString()} <span className="text-xs font-normal text-slate-500">pts</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                      Rank #{myTeamData?.rank || '—'}
+                    </span>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      of {totalTeams} teams
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Avg / Member:</span>
+                    <span className="font-bold text-slate-800 tabular-nums">
+                      {myTeamData?.averageRounded != null ? myTeamData.averageRounded.toFixed(2) : '0.00'} pts
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 block text-[11px]">Eligible Roster:</span>
+                    <span className="font-semibold text-slate-800 tabular-nums">
+                      {myTeamData?.memberCount ?? 0} members
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* Top 5 Leaderboard Preview */}
           <Card
             title="Top 5 leaderboard"
             subtitle="Current month standings"

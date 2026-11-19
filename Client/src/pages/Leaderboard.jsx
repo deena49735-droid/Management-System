@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Cell,
 } from 'recharts';
-import { Trophy, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, ChevronDown, ChevronUp, Search, Calendar, ChevronLeft, ChevronRight, Award } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/PageHeader';
@@ -18,6 +18,7 @@ import Card from '../components/Card';
 import Avatar from '../components/Avatar';
 import EmptyState from '../components/EmptyState';
 import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
+import SearchBar from '../components/SearchBar';
 
 const getWeekNumber = (d) => {
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -25,6 +26,45 @@ const getWeekNumber = (d) => {
   date.setUTCDate(date.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+};
+
+const getTodayString = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const shiftDate = (currentDateStr, days) => {
+  const parts = currentDateStr.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2] + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const formatShortDate = (isoStr) => {
+  if (!isoStr) return '';
+  try {
+    const parts = isoStr.split('T')[0].split('-').map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch {
+    return isoStr;
+  }
+};
+
+const formatLongDate = (isoStr) => {
+  if (!isoStr) return '';
+  try {
+    const parts = isoStr.split('T')[0].split('-').map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  } catch {
+    return isoStr;
+  }
 };
 
 const Leaderboard = () => {
@@ -38,16 +78,77 @@ const Leaderboard = () => {
   const currentWeek = getWeekNumber(now);
 
   const [period, setPeriod] = useState('month'); // 'week' | 'month' | 'all'
-  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth.toString());
-  const [selectedWeek, setSelectedWeek] = useState(currentWeek.toString());
+  const [selectedDate, setSelectedDate] = useState(getTodayString());
   const [selectedTeamFilter, setSelectedTeamFilter] = useState('');
+
+  // Period details derived from selectedDate
+  const periodDetails = useMemo(() => {
+    let y, m, d;
+    if (typeof selectedDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(selectedDate.trim())) {
+      const parts = selectedDate.trim().split('-').map(Number);
+      y = parts[0];
+      m = parts[1];
+      d = parts[2];
+    } else {
+      const today = new Date();
+      y = today.getFullYear();
+      m = today.getMonth() + 1;
+      d = today.getDate();
+    }
+    const ref = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    const w = getWeekNumber(ref);
+    const dayOfWeek = ref.getUTCDay() || 7;
+    const startOfWeek = new Date(Date.UTC(y, m - 1, d - (dayOfWeek - 1), 0, 0, 0, 0));
+    const endOfWeek = new Date(Date.UTC(y, m - 1, d + (7 - dayOfWeek), 23, 59, 59, 999));
+    const startOfMonth = new Date(Date.UTC(y, m - 1, 1, 0, 0, 0, 0));
+    const lastDayOfMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const endOfMonth = new Date(Date.UTC(y, m - 1, lastDayOfMonth, 23, 59, 59, 999));
+
+    const monthName = ref.toLocaleString('en-US', { month: 'long', timeZone: 'UTC' });
+
+    return {
+      year: y,
+      month: m,
+      day: d,
+      week: w,
+      startOfWeekStr: startOfWeek.toISOString().split('T')[0],
+      endOfWeekStr: endOfWeek.toISOString().split('T')[0],
+      startOfMonthStr: startOfMonth.toISOString().split('T')[0],
+      endOfMonthStr: endOfMonth.toISOString().split('T')[0],
+      monthName,
+    };
+  }, [selectedDate]);
+
+  const handlePrevPeriod = () => {
+    if (period === 'month') {
+      const parts = selectedDate.split('-').map(Number);
+      const prevMonth = new Date(Date.UTC(parts[0], parts[1] - 2, Math.min(parts[2], 28)));
+      setSelectedDate(prevMonth.toISOString().split('T')[0]);
+    } else {
+      setSelectedDate((prev) => shiftDate(prev, -7));
+    }
+  };
+
+  const handleNextPeriod = () => {
+    if (period === 'month') {
+      const parts = selectedDate.split('-').map(Number);
+      const nextMonth = new Date(Date.UTC(parts[0], parts[1], Math.min(parts[2], 28)));
+      setSelectedDate(nextMonth.toISOString().split('T')[0]);
+    } else {
+      setSelectedDate((prev) => shiftDate(prev, 7));
+    }
+  };
+
+  const handleToday = () => {
+    setSelectedDate(getTodayString());
+  };
 
   // Data states
   const [teamLeaderboard, setTeamLeaderboard] = useState([]);
   const [memberLeaderboard, setMemberLeaderboard] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Expanded team row IDs for breakdown
   const [expandedTeamId, setExpandedTeamId] = useState(null);
@@ -72,9 +173,10 @@ const Leaderboard = () => {
         setLoading(true);
         const params = { period };
         if (period !== 'all') {
-          params.year = selectedYear;
-          if (period === 'month') params.month = selectedMonth;
-          if (period === 'week') params.week = selectedWeek;
+          params.date = selectedDate;
+          params.year = periodDetails.year;
+          if (period === 'month') params.month = periodDetails.month;
+          if (period === 'week') params.week = periodDetails.week;
         }
 
         if (activeTab === 'teams') {
@@ -93,9 +195,26 @@ const Leaderboard = () => {
     };
 
     fetchLeaderboard();
-  }, [activeTab, period, selectedYear, selectedMonth, selectedWeek, selectedTeamFilter]);
+  }, [activeTab, period, selectedDate, selectedTeamFilter, periodDetails]);
 
   const currentList = activeTab === 'teams' ? teamLeaderboard : memberLeaderboard;
+
+  const filteredList = useMemo(() => {
+    if (!searchQuery.trim()) return currentList;
+    const q = searchQuery.trim().toLowerCase();
+    return currentList.filter((row) => {
+      const name = (row.name || '').toLowerCase();
+      const username = (row.username || '').toLowerCase();
+      const team = (row.team || '').toLowerCase();
+      return name.includes(q) || username.includes(q) || team.includes(q);
+    });
+  }, [currentList, searchQuery]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchQuery('');
+    setExpandedTeamId(null);
+  };
 
   // Top 3 entries for podium
   const topThree = useMemo(() => {
@@ -107,6 +226,8 @@ const Leaderboard = () => {
     return teamLeaderboard.map((t) => ({
       name: t.name,
       total: t.total,
+      average: t.averageRounded ?? 0,
+      memberCount: t.memberCount || 0,
       teamId: t.teamId,
     }));
   }, [teamLeaderboard]);
@@ -123,7 +244,7 @@ const Leaderboard = () => {
           <div className="inline-flex rounded-lg bg-slate-100 p-1 w-full sm:w-auto border border-slate-200">
             <button
               type="button"
-              onClick={() => setActiveTab('teams')}
+              onClick={() => handleTabChange('teams')}
               className={`flex-1 sm:flex-initial min-h-[44px] rounded-md px-3.5 py-2 text-xs font-semibold transition ${
                 activeTab === 'teams'
                   ? 'bg-white text-slate-900 shadow-xs'
@@ -134,7 +255,7 @@ const Leaderboard = () => {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('members')}
+              onClick={() => handleTabChange('members')}
               className={`flex-1 sm:flex-initial min-h-[44px] rounded-md px-3.5 py-2 text-xs font-semibold transition ${
                 activeTab === 'members'
                   ? 'bg-white text-slate-900 shadow-xs'
@@ -147,85 +268,101 @@ const Leaderboard = () => {
         }
       />
 
-      {/* Tidy Filters Toolbar */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          {/* Quick Period Buttons */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            {[
-              { key: 'week', label: 'This week' },
-              { key: 'month', label: 'This month' },
-              { key: 'all', label: 'All time' },
-            ].map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => {
-                  setPeriod(p.key);
-                  if (p.key === 'week') setSelectedWeek(currentWeek.toString());
-                  if (p.key === 'month') setSelectedMonth(currentMonth.toString());
-                  setSelectedYear(currentYear.toString());
-                }}
-                className={`flex-1 sm:flex-initial h-11 min-h-[44px] rounded-lg px-3.5 text-xs font-semibold transition ${
-                  period === p.key
-                    ? 'bg-brand-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
+      {/* Tidy Filters Toolbar with Date Picker & Navigation */}
+      <Card className="p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* Left: Quick Period Switcher & Date Controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Quick Period Buttons */}
+            <div className="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200">
+              {[
+                { key: 'week', label: 'This week' },
+                { key: 'month', label: 'This month' },
+                { key: 'all', label: 'All time' },
+              ].map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => {
+                    setPeriod(p.key);
+                    if (p.key !== 'all') {
+                      setSelectedDate(getTodayString());
+                    }
+                  }}
+                  className={`min-h-[38px] rounded-md px-3.5 text-xs font-semibold transition ${
+                    period === p.key
+                      ? 'bg-brand-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Date Picker & Controls (active for week/month, selecting date switches to week/month) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <label
+                  htmlFor="leaderboard-date-picker"
+                  className="text-xs font-semibold text-slate-700 flex items-center gap-1.5"
+                >
+                  <Calendar className="w-4 h-4 text-brand-600 shrink-0" />
+                  <span>Date:</span>
+                </label>
+                <input
+                  id="leaderboard-date-picker"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setSelectedDate(e.target.value);
+                      if (period === 'all') setPeriod('month');
+                    }
+                  }}
+                  className="h-9 px-3 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 shadow-2xs focus:border-brand-500 focus:outline-hidden focus:ring-2 focus:ring-brand-500/20"
+                />
+              </div>
+
+              {/* Prev / Today / Next Navigation */}
+              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={handlePrevPeriod}
+                  title={period === 'month' ? 'Previous month' : 'Previous week'}
+                  className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  title="Reset to today"
+                  className="px-2.5 py-1 text-xs font-medium text-slate-700 hover:text-brand-600 hover:bg-slate-50 transition border-x border-slate-100"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextPeriod}
+                  title={period === 'month' ? 'Next month' : 'Next week'}
+                  className="p-1.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Granular Period Selectors */}
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            {period === 'week' && (
+          {/* Right: Team filter for members tab */}
+          {activeTab === 'members' && (
+            <div className="flex items-center gap-2 self-start lg:self-auto">
+              <label htmlFor="team-filter-select" className="text-xs font-semibold text-slate-700">Team:</label>
               <select
-                value={selectedWeek}
-                onChange={(e) => setSelectedWeek(e.target.value)}
-                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
-              >
-                {Array.from({ length: 53 }, (_, i) => i + 1).map((w) => (
-                  <option key={w} value={w}>
-                    Week {w} {w === currentWeek ? '(Current)' : ''}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {period === 'month' && (
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
-              >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                  <option key={m} value={m}>
-                    {new Date(0, m - 1).toLocaleString('en', { month: 'long' })}{' '}
-                    {m === currentMonth ? '(Current)' : ''}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {period !== 'all' && (
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="h-11 min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
-              >
-                <option value="2025">2025</option>
-                <option value="2026">2026</option>
-                <option value="2027">2027</option>
-              </select>
-            )}
-
-            {/* Members tab team filter */}
-            {activeTab === 'members' && (
-              <select
+                id="team-filter-select"
                 value={selectedTeamFilter}
                 onChange={(e) => setSelectedTeamFilter(e.target.value)}
-                className="h-11 min-h-[44px] flex-1 sm:flex-initial rounded-lg border border-slate-200 bg-white px-3 text-base md:text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
+                className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-brand-100 focus:border-brand-600"
               >
                 <option value="">All teams</option>
                 {allTeams.map((t) => (
@@ -234,8 +371,38 @@ const Leaderboard = () => {
                   </option>
                 ))}
               </select>
+            </div>
+          )}
+        </div>
+
+        {/* Active Period Display Banner */}
+        <div className="mt-3.5 pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-slate-600">Active Period:</span>
+            {period === 'week' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-brand-50 text-brand-700 border border-brand-200/70">
+                <Calendar className="w-3.5 h-3.5 text-brand-600" />
+                Week {periodDetails.week} ({formatShortDate(periodDetails.startOfWeekStr)} – {formatShortDate(periodDetails.endOfWeekStr)})
+              </span>
+            )}
+            {period === 'month' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                <Award className="w-3.5 h-3.5 text-emerald-600" />
+                Month: {periodDetails.monthName} {periodDetails.year} ({formatShortDate(periodDetails.startOfMonthStr)} – {formatShortDate(periodDetails.endOfMonthStr)})
+              </span>
+            )}
+            {period === 'all' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md font-semibold bg-purple-50 text-purple-700 border border-purple-200/70">
+                <Trophy className="w-3.5 h-3.5 text-purple-600" />
+                All-Time Cumulative Standings
+              </span>
             )}
           </div>
+          {period !== 'all' && (
+            <span className="text-slate-500 font-medium text-[11px] sm:text-xs">
+              Selected date: {formatLongDate(selectedDate)}
+            </span>
+          )}
         </div>
       </Card>
 
@@ -314,15 +481,31 @@ const Leaderboard = () => {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-3">
-                      <span className="text-xs font-medium text-slate-500">Total score</span>
-                      <span
-                        className={`text-lg font-bold tabular-nums ${
-                          item.total < 0 ? 'text-rose-600' : 'text-emerald-600'
-                        }`}
-                      >
-                        {item.total > 0 ? `+${item.total}` : item.total} pts
-                      </span>
+                    <div className="mt-4 flex flex-col gap-1.5 border-t border-slate-100 pt-3">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-xs font-medium text-slate-500">
+                          {activeTab === 'teams' ? 'Average / member' : 'Total score'}
+                        </span>
+                        <span
+                          className={`text-lg font-bold tabular-nums ${
+                            (activeTab === 'teams' ? (item.averageRounded ?? item.total) : item.total) < 0
+                              ? 'text-rose-600'
+                              : 'text-emerald-600'
+                          }`}
+                        >
+                          {activeTab === 'teams'
+                            ? `${item.averageRounded != null ? item.averageRounded.toFixed(2) : '0.00'} pts`
+                            : `${item.total > 0 ? `+${item.total}` : item.total} pts`}
+                        </span>
+                      </div>
+                      {activeTab === 'teams' && (
+                        <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5 border-t border-slate-50">
+                          <span>
+                            Total: <strong className="font-semibold text-slate-700">{item.total > 0 ? `+${item.total}` : item.total} pts</strong>
+                          </span>
+                          <span className="font-medium text-slate-600">{item.memberCount || 0} members</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -356,7 +539,10 @@ const Leaderboard = () => {
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                         fontSize: '12px',
                       }}
-                      formatter={(val) => [`${val} points`, 'Total']}
+                      formatter={(val, name, props) => [
+                        `${val} total pts • Avg: ${props.payload.average} pts/member (${props.payload.memberCount} members)`,
+                        'Score',
+                      ]}
                     />
                     <Bar dataKey="total" radius={[6, 6, 0, 0]}>
                       {chartData.map((entry) => (
@@ -380,20 +566,44 @@ const Leaderboard = () => {
 
           {/* Full Standings List */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-              <h2 className="text-base font-semibold text-slate-800">
-                Full standings ({currentList.length})
-              </h2>
-              {activeTab === 'teams' && (
-                <span className="text-xs text-slate-400 hidden sm:inline">
-                  Click a team row to inspect breakdown
-                </span>
-              )}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">
+                  Full standings ({filteredList.length})
+                </h2>
+                {activeTab === 'teams' && (
+                  <span className="text-xs text-slate-400 hidden sm:inline">
+                    Click a team row to inspect breakdown
+                  </span>
+                )}
+              </div>
+
+              <div className="w-full sm:w-72">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder={
+                    activeTab === 'teams'
+                      ? 'Search team name...'
+                      : 'Search by name, username, or team...'
+                  }
+                />
+              </div>
             </div>
 
-            {/* Mobile Cards View (Below 768px: each row is a clean card) */}
-            <div className="grid grid-cols-1 gap-2.5 md:hidden">
-              {currentList.map((row, idx) => {
+            {filteredList.length === 0 ? (
+              <EmptyState
+                icon={Search}
+                title={`No ${activeTab} match your search`}
+                description={`No standings records found matching "${searchQuery}".`}
+                actionLabel="Clear search"
+                onAction={() => setSearchQuery('')}
+              />
+            ) : (
+              <>
+                {/* Mobile Cards View (Below 768px: each row is a clean card) */}
+                <div className="grid grid-cols-1 gap-2.5 md:hidden">
+                  {filteredList.map((row, idx) => {
                 const isUserRow =
                   activeTab === 'members'
                     ? row.userId === user?._id
@@ -440,40 +650,57 @@ const Leaderboard = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span
-                          className={`text-sm font-bold tabular-nums ${
-                            row.total < 0 ? 'text-rose-600' : 'text-emerald-600'
-                          }`}
-                        >
-                          {row.total > 0 ? `+${row.total}` : row.total} pts
-                        </span>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-sm font-bold tabular-nums ${
+                              (activeTab === 'teams' ? (row.averageRounded ?? row.total) : row.total) < 0
+                                ? 'text-rose-600'
+                                : 'text-emerald-600'
+                            }`}
+                          >
+                            {activeTab === 'teams'
+                              ? `Avg: ${row.averageRounded != null ? row.averageRounded.toFixed(2) : '0.00'} pts`
+                              : `${row.total > 0 ? `+${row.total}` : row.total} pts`}
+                          </span>
+                          {activeTab === 'teams' && (
+                            <div className="text-slate-400">
+                              {isExpanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </div>
+                          )}
+                        </div>
                         {activeTab === 'teams' && (
-                          <div className="text-slate-400">
-                            {isExpanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </div>
+                          <span className="text-[11px] font-medium text-slate-500 tabular-nums">
+                            Total: {row.total > 0 ? `+${row.total}` : row.total} pts • {row.memberCount || 0} mbrs
+                          </span>
                         )}
                       </div>
                     </div>
 
                     {/* Expandable breakdown for Teams on mobile */}
                     {activeTab === 'teams' && (
-                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs grid grid-cols-3 gap-2 text-slate-600">
-                        <div>
-                          <span className="block text-xs text-slate-400">Member:</span>
-                          <span className="font-semibold tabular-nums text-emerald-700">+{row.memberPoints}</span>
+                      <div className="mt-3 pt-2.5 border-t border-slate-100 text-xs space-y-2 text-slate-600">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <span className="block text-[11px] text-slate-400">Member pts:</span>
+                            <span className="font-semibold tabular-nums text-emerald-700">+{row.memberPoints}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[11px] text-slate-400">Team bonus:</span>
+                            <span className="font-semibold tabular-nums text-brand-700">+{row.teamPoints}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[11px] text-slate-400">Penalties:</span>
+                            <span className="font-semibold tabular-nums text-rose-600">{row.penalties}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="block text-xs text-slate-400">Team bonus:</span>
-                          <span className="font-semibold tabular-nums text-brand-700">+{row.teamPoints}</span>
-                        </div>
-                        <div>
-                          <span className="block text-xs text-slate-400">Penalties:</span>
-                          <span className="font-semibold tabular-nums text-rose-600">{row.penalties}</span>
+                        <div className="flex items-center justify-between pt-1.5 border-t border-slate-100/80 font-medium text-slate-700">
+                          <span>Avg / member: <strong className="text-brand-700 font-bold tabular-nums">{row.averageRounded != null ? row.averageRounded.toFixed(2) : '0.00'} pts</strong></span>
+                          <span className="text-slate-400">{row.total} ÷ {row.memberCount || 0} mbrs</span>
                         </div>
                       </div>
                     )}
@@ -504,22 +731,25 @@ const Leaderboard = () => {
                     {activeTab === 'members' && <th className="px-5 py-3">Team</th>}
                     {activeTab === 'teams' && (
                       <>
+                        <th className="px-3 py-3 text-center">Members</th>
                         <th className="px-4 py-3 text-right">Member pts</th>
                         <th className="px-4 py-3 text-right">Team bonus</th>
                         <th className="px-4 py-3 text-right">Penalties</th>
+                        <th className="px-4 py-3 text-right">Total points</th>
+                        <th className="px-5 py-3 text-right">Avg / member</th>
                       </>
                     )}
                     {activeTab === 'members' && (
                       <>
                         <th className="px-4 py-3 text-right">Rewards</th>
                         <th className="px-4 py-3 text-right">Penalties</th>
+                        <th className="px-5 py-3 text-right">Total score</th>
                       </>
                     )}
-                    <th className="px-5 py-3 text-right">Total score</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {currentList.map((row, idx) => {
+                  {filteredList.map((row, idx) => {
                     const isUserRow =
                       activeTab === 'members'
                         ? row.userId === user?._id
@@ -579,6 +809,11 @@ const Leaderboard = () => {
 
                           {activeTab === 'teams' && (
                             <>
+                              <td className="px-3 py-3 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold tabular-nums">
+                                  {row.memberCount || 0}
+                                </span>
+                              </td>
                               <td className="px-4 py-3 text-right text-emerald-700 font-semibold tabular-nums whitespace-nowrap">
                                 +{row.memberPoints}
                               </td>
@@ -587,6 +822,20 @@ const Leaderboard = () => {
                               </td>
                               <td className="px-4 py-3 text-right text-rose-600 font-semibold tabular-nums whitespace-nowrap">
                                 {row.penalties}
+                              </td>
+                              <td className="px-4 py-3 text-right font-semibold tabular-nums whitespace-nowrap text-slate-800">
+                                {row.total > 0 ? `+${row.total}` : row.total} pts
+                              </td>
+                              <td className="px-5 py-3 text-right whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-bold tabular-nums border ${
+                                    (row.averageRounded ?? 0) < 0
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  }`}
+                                >
+                                  {row.averageRounded != null ? row.averageRounded.toFixed(2) : '0.00'} pts
+                                </span>
                               </td>
                             </>
                           )}
@@ -599,31 +848,30 @@ const Leaderboard = () => {
                               <td className="px-4 py-3 text-right text-rose-600 font-semibold tabular-nums whitespace-nowrap">
                                 {row.penalties}
                               </td>
+                              <td className="px-5 py-3 text-right whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-bold tabular-nums border ${
+                                    row.total < 0
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  }`}
+                                >
+                                  {row.total > 0 ? `+${row.total}` : row.total} pts
+                                </span>
+                              </td>
                             </>
                           )}
-
-                          <td className="px-5 py-3 text-right whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-bold tabular-nums border ${
-                                row.total < 0
-                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              }`}
-                            >
-                              {row.total > 0 ? `+${row.total}` : row.total} pts
-                            </span>
-                          </td>
                         </tr>
 
                         {/* Expanded Breakdown for Team */}
                         {isExpanded && (
                           <tr className="bg-slate-50/90 text-xs">
-                            <td colSpan={6} className="px-6 py-3 border-t border-slate-100">
+                            <td colSpan={8} className="px-6 py-3 border-t border-slate-100">
                               <div className="flex flex-wrap items-center justify-between gap-4">
                                 <span className="font-semibold text-slate-700">
-                                  Score breakdown for {row.name}:
+                                  Score breakdown for {row.name} ({row.memberCount || 0} eligible members):
                                 </span>
-                                <div className="flex items-center gap-6">
+                                <div className="flex flex-wrap items-center gap-6">
                                   <span>
                                     Member rewards:{' '}
                                     <strong className="text-emerald-700 tabular-nums">+{row.memberPoints}</strong>
@@ -637,8 +885,15 @@ const Leaderboard = () => {
                                     <strong className="text-rose-600 tabular-nums">{row.penalties}</strong>
                                   </span>
                                   <span>
-                                    Final net score:{' '}
+                                    Total points:{' '}
                                     <strong className="text-slate-900 tabular-nums">{row.total} pts</strong>
+                                  </span>
+                                  <span>
+                                    Average per member:{' '}
+                                    <strong className="text-emerald-700 font-bold tabular-nums">
+                                      {row.averageRounded != null ? row.averageRounded.toFixed(2) : '0.00'} pts/member
+                                    </strong>{' '}
+                                    <span className="text-slate-400">({row.total} ÷ {row.memberCount || 0})</span>
                                   </span>
                                 </div>
                               </div>
@@ -651,6 +906,8 @@ const Leaderboard = () => {
                 </tbody>
               </table>
             </div>
+            </>
+          )}
           </div>
         </>
       )}

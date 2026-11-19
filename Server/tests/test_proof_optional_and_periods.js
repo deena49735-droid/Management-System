@@ -371,6 +371,17 @@ async function runTests() {
     },
   ];
 
+  // Save originals
+  const origPointFind = PointEntry.find;
+  const origTeamPointFind = TeamPointEntry.find;
+  const origUserFind = User.find;
+  const origPointDistinct = PointEntry.distinct;
+
+  User.find = () => ({
+    select: () => Promise.resolve([{ _id: memberId }, { _id: otherTeamMemberId }]),
+  });
+  PointEntry.distinct = () => Promise.resolve([]);
+
   // Helper filter simulator for PointEntry
   PointEntry.find = (filter) => {
     let result = [...mockDbPointEntries];
@@ -567,6 +578,12 @@ async function runTests() {
     assert(resJan.body.data.month.year === 2027 && resJan.body.data.month.monthName === 'January', 'Test 2.6: January date shows January 2027 month');
     assert(resJan.body.data.month.summary.approvedPoints === 40, 'Test 2.6: January month only includes 2027-01 entries (40 pts)');
   }
+
+  // Restore models
+  PointEntry.find = origPointFind;
+  TeamPointEntry.find = origTeamPointFind;
+  User.find = origUserFind;
+  PointEntry.distinct = origPointDistinct;
 
   // Restore startSession
   mongoose.startSession = origStartSession;

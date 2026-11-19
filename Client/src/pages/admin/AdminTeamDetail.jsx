@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Edit2, Plus, Users, UserCheck, Shield, Award, BarChart3 } from 'lucide-react';
+import { Edit2, Plus, Users, UserCheck, Shield, Award, BarChart3, Search } from 'lucide-react';
 import api from '../../api/axios';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -13,6 +13,7 @@ import Input from '../../components/Input';
 import Avatar from '../../components/Avatar';
 import EmptyState from '../../components/EmptyState';
 import { SkeletonCard, SkeletonTable } from '../../components/Skeleton';
+import SearchBar from '../../components/SearchBar';
 
 const AdminTeamDetail = () => {
   const { id } = useParams();
@@ -36,6 +37,9 @@ const AdminTeamDetail = () => {
 
   // Add Member State
   const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
+
+  // Roster Search State
+  const [memberSearch, setMemberSearch] = useState('');
 
   // Remove Member Confirm State
   const [memberToRemove, setMemberToRemove] = useState(null);
@@ -89,6 +93,19 @@ const AdminTeamDetail = () => {
     const userTeamId = u.team?._id || u.team;
     return !userTeamId;
   });
+
+  const filteredTeamMembers = useMemo(() => {
+    const list = team?.members || [];
+    if (!memberSearch.trim()) return list;
+    const q = memberSearch.trim().toLowerCase();
+    return list.filter((m) => {
+      const name = (m.name || '').toLowerCase();
+      const username = (m.username || '').toLowerCase();
+      const phone = (m.phone || '').toLowerCase();
+      const role = (m.role || '').toLowerCase();
+      return name.includes(q) || username.includes(q) || phone.includes(q) || role.includes(q);
+    });
+  }, [team?.members, memberSearch]);
 
   // Edit Team Name
   const handleUpdateName = async (e) => {
@@ -374,8 +391,8 @@ const AdminTeamDetail = () => {
 
       {/* Team Members Section */}
       <Card className="overflow-hidden p-0">
-        {/* Section Header with Add Member Form */}
-        <div className="border-b border-slate-200 p-5 sm:p-6 bg-slate-50/50">
+        {/* Section Header with Add Member Form & Search */}
+        <div className="border-b border-slate-200 p-5 sm:p-6 bg-slate-50/50 space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h2 className="text-base font-semibold text-slate-900">Team members roster</h2>
@@ -414,6 +431,22 @@ const AdminTeamDetail = () => {
               </Button>
             </form>
           </div>
+
+          {/* Roster Search Bar */}
+          {(team.members?.length > 0 || memberSearch) && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-200/60">
+              <SearchBar
+                value={memberSearch}
+                onChange={setMemberSearch}
+                placeholder="Search team members by name, username, phone, or role..."
+              />
+              {memberSearch && (
+                <span className="text-xs text-slate-500 tabular-nums shrink-0 self-center sm:self-auto">
+                  Matching: <strong className="text-slate-800">{filteredTeamMembers.length}</strong> of {team.members.length}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Member List */}
@@ -422,6 +455,14 @@ const AdminTeamDetail = () => {
             icon={Users}
             title="No members in this team"
             description="Use the dropdown above to add active members to this team roster."
+          />
+        ) : filteredTeamMembers.length === 0 && memberSearch ? (
+          <EmptyState
+            icon={Search}
+            title="No team members match your search"
+            description={`No members found matching "${memberSearch}".`}
+            actionLabel="Clear search"
+            onAction={() => setMemberSearch('')}
           />
         ) : (
           <>
@@ -438,7 +479,7 @@ const AdminTeamDetail = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {team.members.map((member) => (
+                  {filteredTeamMembers.map((member) => (
                     <tr key={member._id} className="hover:bg-slate-50/70 transition">
                       <td className="px-5 py-3.5 font-semibold text-slate-900 whitespace-nowrap">
                         <div className="flex items-center gap-2.5">
@@ -488,7 +529,7 @@ const AdminTeamDetail = () => {
 
             {/* Mobile Cards View (Below 768px: clean cards, no horizontal scroll) */}
             <div className="md:hidden divide-y divide-slate-100">
-              {team.members.map((member) => (
+              {filteredTeamMembers.map((member) => (
                 <div key={member._id} className="p-4 space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
