@@ -1379,7 +1379,7 @@ exports.getEntriesByPeriod = async (req, res, next) => {
       });
     }
 
-    const { date: dateQuery, team: teamQuery } = req.query;
+    const { date: dateQuery, team: teamQuery, member: memberQuery } = req.query;
 
     // Resolve date (default to today if missing or invalid)
     let targetYear, targetMonth, targetDay;
@@ -1414,8 +1414,30 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     const lastDayOfMonth = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
     const endOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, lastDayOfMonth, 23, 59, 59, 999));
 
-    // Team scoping
+    // Team & Member scoping
     let scopedTeamId = null;
+    let scopedMemberId = null;
+
+    if (memberQuery) {
+      if (!mongoose.Types.ObjectId.isValid(memberQuery)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid member ID format.',
+        });
+      }
+      scopedMemberId = new mongoose.Types.ObjectId(memberQuery);
+      if (userRole !== 'admin') {
+        const targetMember = await User.findById(scopedMemberId).select('team');
+        const userTeamId = req.user.team?._id ? req.user.team._id.toString() : req.user.team?.toString();
+        if (!targetMember || !targetMember.team || targetMember.team.toString() !== userTeamId) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied. You can only view member scores for your assigned team.',
+          });
+        }
+      }
+    }
+
     if (userRole === 'admin') {
       if (teamQuery && mongoose.Types.ObjectId.isValid(teamQuery)) {
         scopedTeamId = new mongoose.Types.ObjectId(teamQuery);
@@ -1468,10 +1490,12 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     }
 
     const teamFilter = scopedTeamId ? { team: scopedTeamId } : {};
+    const memberFilter = scopedMemberId ? { member: scopedMemberId } : {};
 
     // 1. Fetch Weekly Member Entries
     const weeklyFilter = {
       ...teamFilter,
+      ...memberFilter,
       $or: [
         { date: { $gte: startOfWeek, $lte: endOfWeek } },
         { weekNumber, year: { $in: [startOfWeek.getUTCFullYear(), endOfWeek.getUTCFullYear()] } },
@@ -1509,6 +1533,7 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     // 2. Fetch Monthly Member Entries
     const monthlyMemberFilter = {
       ...teamFilter,
+      ...memberFilter,
       $or: [
         { date: { $gte: startOfMonth, $lte: endOfMonth } },
         { month: targetMonth, year: targetYear },
@@ -1529,19 +1554,22 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     }
     const uniqueMonthlyMemberEntries = Array.from(uniqueMonthlyMemberMap.values());
 
-    // 3. Fetch Monthly Team Point Entries
-    const monthlyTeamFilter = {
-      ...teamFilter,
-      month: targetMonth,
-      year: targetYear,
-    };
+    // 3. Fetch Monthly Team Point Entries (team awards do not apply when inspecting a single member)
+    let monthlyTeamEntries = [];
+    if (!scopedMemberId) {
+      const monthlyTeamFilter = {
+        ...teamFilter,
+        month: targetMonth,
+        year: targetYear,
+      };
 
-    const monthlyTeamEntries = await TeamPointEntry.find(monthlyTeamFilter)
-      .populate('team', 'name')
-      .populate('criteria', 'key name category points basis frequency needsProof')
-      .populate('submittedBy', 'name username phone role')
-      .populate('approvedBy', 'name username phone role')
-      .sort({ createdAt: -1 });
+      monthlyTeamEntries = await TeamPointEntry.find(monthlyTeamFilter)
+        .populate('team', 'name')
+        .populate('criteria', 'key name category points basis frequency needsProof')
+        .populate('submittedBy', 'name username phone role')
+        .populate('approvedBy', 'name username phone role')
+        .sort({ createdAt: -1 });
+    }
 
     let monthlyMemberApprovedPoints = 0;
     let monthlyTeamApprovedPoints = 0;
@@ -1575,7 +1603,10 @@ exports.getEntriesByPeriod = async (req, res, next) => {
     let weeklyEligibleMemberCount = 0;
     let monthlyEligibleMemberCount = 0;
 
-    if (scopedTeamId) {
+    if (scopedMemberId) {
+      weeklyEligibleMemberCount = 1;
+      monthlyEligibleMemberCount = 1;
+    } else if (scopedTeamId) {
       const teamWeeklyUsers = await User.find({
         team: scopedTeamId,
         isActive: true,
