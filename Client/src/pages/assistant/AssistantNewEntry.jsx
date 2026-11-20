@@ -137,8 +137,8 @@ const AssistantNewEntry = () => {
         quantity: showQuantity ? Number(quantity) || 1 : 1,
         date: date || new Date().toISOString(),
         note: note ? note.trim() : undefined,
-        proofImage: proofImage || undefined,
-        proofPublicId: proofPublicId || undefined,
+        proofImage: (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : undefined,
+        proofPublicId: (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : undefined,
       });
 
       toast.success(

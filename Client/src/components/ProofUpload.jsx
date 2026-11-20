@@ -127,17 +127,11 @@ const ProofUpload = ({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold text-slate-700">
-          Photo Proof {required ? <span className="text-rose-500 font-bold">*</span> : <span className="text-xs font-normal text-slate-400 ml-1">(Optional)</span>}
+          Photo Proof <span className="text-xs font-normal text-slate-400 ml-1">(Optional)</span>
         </label>
-        {required ? (
-          <span className="text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-            Proof Required
-          </span>
-        ) : (
-          <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-            Optional
-          </span>
-        )}
+        <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+          Optional
+        </span>
       </div>
 
       <input
@@ -223,11 +217,7 @@ const ProofUpload = ({
             type="button"
             onClick={handleChooseClick}
             disabled={disabled}
-            className={`flex w-full min-h-[88px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
-              required
-                ? 'border-brand-300 bg-brand-50/30 hover:bg-brand-50/60'
-                : 'border-slate-300 bg-slate-50/50 hover:bg-slate-100/70'
-            } disabled:opacity-50 cursor-pointer`}
+            className="flex w-full min-h-[88px] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 p-4 text-center transition hover:bg-slate-100/70 disabled:opacity-50 cursor-pointer"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-2xs text-brand-600">
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

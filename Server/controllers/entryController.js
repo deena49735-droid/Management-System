@@ -107,8 +107,11 @@ exports.createEntry = async (req, res, next) => {
       });
     }
 
+    const cleanProofImage = (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : null;
+    const cleanProofPublicId = (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : null;
+
     // Validate proof image URL if provided (proof is optional)
-    if (proofImage && !validateProofUrl(proofImage)) {
+    if (cleanProofImage && !validateProofUrl(cleanProofImage)) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -221,8 +224,8 @@ exports.createEntry = async (req, res, next) => {
           month,
           year,
           frequency,
-          proofImage: proofImage || null,
-          proofPublicId: proofPublicId || null,
+          proofImage: cleanProofImage,
+          proofPublicId: cleanProofPublicId,
           note: typeof note === 'string' && note.trim() ? note.trim() : '',
           status: entryStatus,
           approvedBy,
@@ -798,7 +801,10 @@ exports.adminDirectAward = async (req, res, next) => {
   try {
     const { member, criteria, quantity, date, note, proofImage, proofPublicId } = req.body;
 
-    if (proofImage && !validateProofUrl(proofImage)) {
+    const cleanProofImage = (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : null;
+    const cleanProofPublicId = (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : null;
+
+    if (cleanProofImage && !validateProofUrl(cleanProofImage)) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -882,8 +888,8 @@ exports.adminDirectAward = async (req, res, next) => {
           month,
           year,
           frequency,
-          proofImage: proofImage || null,
-          proofPublicId: proofPublicId || null,
+          proofImage: cleanProofImage,
+          proofPublicId: cleanProofPublicId,
           note: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Award',
           status: 'approved',
           enteredBy: req.user._id,

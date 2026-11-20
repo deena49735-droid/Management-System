@@ -260,7 +260,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                                 <span className="font-semibold text-slate-900 text-sm">{item.name}</span>
                                 {item.needsProof && (
                                   <Badge variant="neutral">
-                                    Proof required
+                                    Proof optional
                                   </Badge>
                                 )}
                               </div>
@@ -367,7 +367,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                               {item.needsProof && (
                                 <span className="inline-block mt-1">
                                   <Badge variant="neutral">
-                                    Proof required
+                                    Proof optional
                                   </Badge>
                                 </span>
                               )}
@@ -473,7 +473,7 @@ const GameCriteria = ({ isAdminMode: forceAdminMode }) => {
                   className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 cursor-pointer"
                 />
                 <label htmlFor="needsProof" className="text-sm font-medium text-slate-700 cursor-pointer py-2">
-                  Proof photo upload required
+                  Allow photo proof upload (Optional)
                 </label>
               </div>
             )}

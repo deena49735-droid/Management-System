@@ -295,8 +295,8 @@ const ActivityCriteriaSelect = ({
                                   {c.name}
                                 </span>
                                 {c.needsProof && (
-                                  <span className="inline-flex items-center text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.2 rounded">
-                                    Proof req.
+                                  <span className="inline-flex items-center text-[10px] font-medium text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+                                    Proof optional
                                   </span>
                                 )}
                               </div>

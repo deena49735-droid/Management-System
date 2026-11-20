@@ -46,15 +46,14 @@ const loadMeetingCriteria = async () => {
     byId.set(c._id.toString(), c);
   });
 
-  // Allowed custom activities are meeting_day member criteria excluding early_bird, full_attire, and proof-required items
+  // Allowed custom activities are meeting_day member criteria excluding early_bird and full_attire (which are calculated from timing/attire controls)
   const allowedActivities = criteriaList
     .filter(
       (c) =>
         c.category === 'meeting_day' &&
         c.level === 'member' &&
         c.key !== 'early_bird' &&
-        c.key !== 'full_attire' &&
-        !c.needsProof
+        c.key !== 'full_attire'
     )
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
@@ -110,9 +109,6 @@ const validateMeetingRow = (row, criteriaHelper) => {
           );
         }
 
-        if (critDoc.needsProof) {
-          errors.push(`Activity "${critDoc.name}" requires proof upload and cannot be on meeting sheet.`);
-        }
 
         const qty = Number(act.quantity);
         if (!qty || qty < 1 || !Number.isInteger(qty)) {

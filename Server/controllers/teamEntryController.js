@@ -137,8 +137,11 @@ exports.createTeamEntry = async (req, res, next) => {
       });
     }
 
+    const cleanProofImage = (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : null;
+    const cleanProofPublicId = (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : null;
+
     // Validate proof image URL if provided (proof is optional)
-    if (proofImage && !validateProofUrl(proofImage)) {
+    if (cleanProofImage && !validateProofUrl(cleanProofImage)) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -220,8 +223,8 @@ exports.createTeamEntry = async (req, res, next) => {
           month: entryMonth,
           year: entryYear,
           frequency,
-          proofImage: proofImage || null,
-          proofPublicId: proofPublicId || null,
+          proofImage: cleanProofImage,
+          proofPublicId: cleanProofPublicId,
           note: typeof note === 'string' && note.trim() ? note.trim() : '',
           status: entryStatus,
           submittedBy: req.user._id,
@@ -657,7 +660,10 @@ exports.adminDirectTeamAward = async (req, res, next) => {
   try {
     const { team, criteria, month, year, note, proofImage, proofPublicId } = req.body;
 
-    if (proofImage && !validateProofUrl(proofImage)) {
+    const cleanProofImage = (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : null;
+    const cleanProofPublicId = (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : null;
+
+    if (cleanProofImage && !validateProofUrl(cleanProofImage)) {
       await session.abortTransaction();
       return res.status(400).json({
         success: false,
@@ -729,8 +735,8 @@ exports.adminDirectTeamAward = async (req, res, next) => {
           month: entryMonth,
           year: entryYear,
           frequency,
-          proofImage: proofImage || null,
-          proofPublicId: proofPublicId || null,
+          proofImage: cleanProofImage,
+          proofPublicId: cleanProofPublicId,
           note: typeof note === 'string' && note.trim() ? note.trim() : 'Admin Direct Team Award',
           status: 'approved',
           submittedBy: req.user._id,

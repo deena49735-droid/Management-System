@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const { createEntry, getEntriesByPeriod } = require('../controllers/entryController');
-const { createTeamEntry } = require('../controllers/teamEntryController');
+const { createEntry, getEntriesByPeriod, adminDirectAward } = require('../controllers/entryController');
+const { createTeamEntry, adminDirectTeamAward } = require('../controllers/teamEntryController');
+const { validateMeetingRow } = require('../services/meetingPointsHelper');
 const PointEntry = require('../models/PointEntry');
 const TeamPointEntry = require('../models/TeamPointEntry');
 const Criteria = require('../models/Criteria');
@@ -249,6 +250,209 @@ async function runTests() {
     await createTeamEntry(req, res, (err) => { errCaught = err; });
 
     assert(!errCaught && res.statusCode === 201, 'Test 1.5: Team Head team point submission succeeds with valid proof image (201 Created)');
+  }
+
+  // Test 1.6: Member submits with whitespace-only proof image ("   ") -> normalized to null
+  {
+    const req = {
+      user: mockUsers[memberId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+        proofImage: '   ',
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await createEntry(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.6: Whitespace-only proof image succeeds with 201 Created');
+    assert(createdPointEntries[createdPointEntries.length - 1].proofImage === null, 'Test 1.6: Whitespace-only proof stored safely as null');
+  }
+
+  // Test 1.7: Member submits with null proofImage -> stored as null
+  {
+    const req = {
+      user: mockUsers[memberId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+        proofImage: null,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await createEntry(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.7: null proof image succeeds with 201 Created');
+    assert(createdPointEntries[createdPointEntries.length - 1].proofImage === null, 'Test 1.7: null proof stored safely as null');
+  }
+
+  // Test 1.8: Member submits with omitted proofImage field -> stored as null
+  {
+    const req = {
+      user: mockUsers[memberId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await createEntry(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.8: Omitted proof field succeeds with 201 Created');
+    assert(createdPointEntries[createdPointEntries.length - 1].proofImage === null, 'Test 1.8: Omitted proof stored safely as null');
+  }
+
+  // Test 1.9: Admin Direct Award without proof image succeeds with 201
+  {
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await adminDirectAward(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.9: Admin Direct Award succeeds without proof (201 Created)');
+    assert(createdPointEntries[createdPointEntries.length - 1].proofImage === null, 'Test 1.9: Admin Direct Award empty proof stored as null');
+  }
+
+  // Test 1.10: Admin Direct Award with valid proof image succeeds
+  {
+    const validUrl = 'https://res.cloudinary.com/igqx4umu/image/upload/v1234/kadambas/proofs/admin_direct.jpg';
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+        proofImage: validUrl,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await adminDirectAward(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.10: Admin Direct Award succeeds with valid proof image (201 Created)');
+    assert(createdPointEntries[createdPointEntries.length - 1].proofImage === validUrl, 'Test 1.10: Admin Direct Award valid proof image preserved');
+  }
+
+  // Test 1.11: Admin Direct Team Award without proof image succeeds with 201
+  {
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        team: team1Id.toString(),
+        criteria: teamProofCriteriaId.toString(),
+        month: 11,
+        year: 2026,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await adminDirectTeamAward(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.11: Admin Direct Team Award succeeds without proof (201 Created)');
+    assert(createdTeamEntries[createdTeamEntries.length - 1].proofImage === null, 'Test 1.11: Admin Direct Team Award empty proof stored as null');
+  }
+
+  // Test 1.12: Admin Direct Team Award with valid proof image succeeds
+  {
+    const validUrl = 'https://res.cloudinary.com/igqx4umu/image/upload/v1234/kadambas/proofs/admin_team_direct.jpg';
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        team: team1Id.toString(),
+        criteria: teamProofCriteriaId.toString(),
+        month: 11,
+        year: 2026,
+        proofImage: validUrl,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await adminDirectTeamAward(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 201, 'Test 1.12: Admin Direct Team Award succeeds with valid proof image (201 Created)');
+    assert(createdTeamEntries[createdTeamEntries.length - 1].proofImage === validUrl, 'Test 1.12: Admin Direct Team Award valid proof image preserved');
+  }
+
+  // Test 1.13: Invalid member format still blocked with 400 Bad Request
+  {
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        member: 'not-a-valid-object-id',
+        criteria: proofCriteriaId.toString(),
+        quantity: 1,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await createEntry(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 400, 'Test 1.13: Invalid member ID blocked with 400 Bad Request');
+  }
+
+  // Test 1.14: Invalid criteria format still blocked with 400 Bad Request
+  {
+    const req = {
+      user: mockUsers[adminId.toString()],
+      body: {
+        member: memberId.toString(),
+        criteria: 'not-a-valid-criteria-id',
+        quantity: 1,
+      },
+    };
+    const res = createMockRes();
+    let errCaught = null;
+    await createEntry(req, res, (err) => { errCaught = err; });
+
+    assert(!errCaught && res.statusCode === 400, 'Test 1.14: Invalid criteria ID blocked with 400 Bad Request');
+  }
+
+  // Test 1.15: Meeting sheet validation allows meeting_day activities without proof-required rejection
+  {
+    const meetingCritId = new mongoose.Types.ObjectId();
+    const mockCrit = {
+      _id: meetingCritId,
+      key: 'highest_giver',
+      name: 'Highest Giver',
+      category: 'meeting_day',
+      level: 'member',
+      points: 50,
+      basis: 'per_member',
+      basisLabel: 'Per Member',
+      needsProof: true, // Even if flagged needsProof=true
+      displayOrder: 2,
+      isActive: true,
+    };
+    const byKey = new Map([['highest_giver', mockCrit]]);
+    const byId = new Map([[meetingCritId.toString(), mockCrit]]);
+    const allowedActivities = [mockCrit];
+    const helper = { byKey, byId, allowedActivities };
+
+    const row = {
+      attendance: 'present',
+      attire: 'full',
+      activities: [
+        {
+          criteria: meetingCritId.toString(),
+          quantity: 1,
+        },
+      ],
+    };
+    const errors = validateMeetingRow(row, helper);
+    assert(errors.length === 0, 'Test 1.15: Meeting row validation succeeds without "requires proof upload" error');
   }
 
   // --------------------------------------------------------------------------

@@ -147,9 +147,9 @@ const TeamScorecard = () => {
         criteria: submittingCriterion.criterion.id || submittingCriterion.criterion._id,
         month,
         year,
-        note: note.trim(),
-        proofImage: proofImage.trim() || undefined,
-        proofPublicId: proofPublicId || undefined,
+        note: note ? note.trim() : undefined,
+        proofImage: (typeof proofImage === 'string' && proofImage.trim()) ? proofImage.trim() : undefined,
+        proofPublicId: (typeof proofPublicId === 'string' && proofPublicId.trim()) ? proofPublicId.trim() : undefined,
         team: targetTeam,
       });
 
